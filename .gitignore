@@ -23,3 +23,7 @@ go.work.sum
 
 # env file
 .env
+
+vendor
+g4/external/.antlr
+g4/.antlr
