@@ -1,4 +1,4 @@
-lexer grammar stLexer;
+lexer grammar ST_lexer;
 
 /** Fragments for case insensitivity */
 fragment A:('a'|'A');

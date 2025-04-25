@@ -1,4 +1,4 @@
-// Code generated from ./g4/external/stLexer.g4 by ANTLR 4.13.2. DO NOT EDIT.
+// Code generated from ./antlr/external/ST_lexer.g4 by ANTLR 4.13.2. DO NOT EDIT.
 
 package parser
 
@@ -14,14 +14,14 @@ var _ = fmt.Printf
 var _ = sync.Once{}
 var _ = unicode.IsLetter
 
-type stLexer struct {
+type ST_lexer struct {
 	*antlr.BaseLexer
 	channelNames []string
 	modeNames    []string
 	// TODO: EOF string
 }
 
-var StLexerLexerStaticData struct {
+var ST_lexerLexerStaticData struct {
 	once                   sync.Once
 	serializedATN          []int32
 	ChannelNames           []string
@@ -34,8 +34,8 @@ var StLexerLexerStaticData struct {
 	decisionToDFA          []*antlr.DFA
 }
 
-func stlexerLexerInit() {
-	staticData := &StLexerLexerStaticData
+func st_lexerLexerInit() {
+	staticData := &ST_lexerLexerStaticData
 	staticData.ChannelNames = []string{
 		"DEFAULT_TOKEN_CHANNEL", "HIDDEN",
 	}
@@ -1372,259 +1372,259 @@ func stlexerLexerInit() {
 	}
 }
 
-// stLexerInit initializes any static state used to implement stLexer. By default the
+// ST_lexerInit initializes any static state used to implement ST_lexer. By default the
 // static state used to implement the lexer is lazily initialized during the first call to
-// NewstLexer(). You can call this function if you wish to initialize the static state ahead
+// NewST_lexer(). You can call this function if you wish to initialize the static state ahead
 // of time.
-func StLexerInit() {
-	staticData := &StLexerLexerStaticData
-	staticData.once.Do(stlexerLexerInit)
+func ST_lexerInit() {
+	staticData := &ST_lexerLexerStaticData
+	staticData.once.Do(st_lexerLexerInit)
 }
 
-// NewstLexer produces a new lexer instance for the optional input antlr.CharStream.
-func NewstLexer(input antlr.CharStream) *stLexer {
-	StLexerInit()
-	l := new(stLexer)
+// NewST_lexer produces a new lexer instance for the optional input antlr.CharStream.
+func NewST_lexer(input antlr.CharStream) *ST_lexer {
+	ST_lexerInit()
+	l := new(ST_lexer)
 	l.BaseLexer = antlr.NewBaseLexer(input)
-	staticData := &StLexerLexerStaticData
+	staticData := &ST_lexerLexerStaticData
 	l.Interpreter = antlr.NewLexerATNSimulator(l, staticData.atn, staticData.decisionToDFA, staticData.PredictionContextCache)
 	l.channelNames = staticData.ChannelNames
 	l.modeNames = staticData.ModeNames
 	l.RuleNames = staticData.RuleNames
 	l.LiteralNames = staticData.LiteralNames
 	l.SymbolicNames = staticData.SymbolicNames
-	l.GrammarFileName = "stLexer.g4"
+	l.GrammarFileName = "ST_lexer.g4"
 	// TODO: l.EOF = antlr.TokenEOF
 
 	return l
 }
 
-// stLexer tokens.
+// ST_lexer tokens.
 const (
-	stLexerIL_CODE                  = 1
-	stLexerANY                      = 2
-	stLexerANY_BIT                  = 3
-	stLexerANY_DATE                 = 4
-	stLexerANY_DERIVED              = 5
-	stLexerANY_ELEMENTARY           = 6
-	stLexerANY_INT                  = 7
-	stLexerANY_MAGNITUDE            = 8
-	stLexerANY_NUM                  = 9
-	stLexerANY_REAL                 = 10
-	stLexerANY_STRING               = 11
-	stLexerARRAY                    = 12
-	stLexerBOOL                     = 13
-	stLexerBYTE                     = 14
-	stLexerDATE_AND_TIME            = 15
-	stLexerDINT                     = 16
-	stLexerDWORD                    = 17
-	stLexerINT                      = 18
-	stLexerLINT                     = 19
-	stLexerLREAL                    = 20
-	stLexerLWORD                    = 21
-	stLexerREAL                     = 22
-	stLexerSINT                     = 23
-	stLexerSTRING                   = 24
-	stLexerTIME                     = 25
-	stLexerTIME_OF_DAY              = 26
-	stLexerUDINT                    = 27
-	stLexerUINT                     = 28
-	stLexerULINT                    = 29
-	stLexerUSINT                    = 30
-	stLexerWORD                     = 31
-	stLexerWSTRING                  = 32
-	stLexerPOINTER                  = 33
-	stLexerVAR_OUTPUT               = 34
-	stLexerAT                       = 35
-	stLexerBY                       = 36
-	stLexerCASE                     = 37
-	stLexerCONFIGURATION            = 38
-	stLexerCONSTANT                 = 39
-	stLexerCONTINUE                 = 40
-	stLexerDATE                     = 41
-	stLexerDO                       = 42
-	stLexerDT                       = 43
-	stLexerELSE                     = 44
-	stLexerELSEIF                   = 45
-	stLexerUNDERSCORE               = 46
-	stLexerEND_CASE                 = 47
-	stLexerEND_CONFIGURATION        = 48
-	stLexerEND_FOR                  = 49
-	stLexerEND_FUNCTION             = 50
-	stLexerEND_FUNCTION_BLOCK       = 51
-	stLexerEND_IF                   = 52
-	stLexerEND_PROGRAM              = 53
-	stLexerEND_REPEAT               = 54
-	stLexerEND_RESOURCE             = 55
-	stLexerEND_STRUCT               = 56
-	stLexerEND_TYPE                 = 57
-	stLexerEND_VAR                  = 58
-	stLexerEND_WHILE                = 59
-	stLexerEXIT                     = 60
-	stLexerFOR                      = 61
-	stLexerFUNCTION                 = 62
-	stLexerFUNCTION_BLOCK           = 63
-	stLexerF_EDGE                   = 64
-	stLexerIF                       = 65
-	stLexerINTERVAL                 = 66
-	stLexerJMP                      = 67
-	stLexerNIL                      = 68
-	stLexerNON_RETAIN               = 69
-	stLexerOF                       = 70
-	stLexerPRIORITY                 = 71
-	stLexerPROGRAM                  = 72
-	stLexerREAD_ONLY                = 73
-	stLexerREAD_WRITE               = 74
-	stLexerREPEAT                   = 75
-	stLexerRESOURCE                 = 76
-	stLexerRETAIN                   = 77
-	stLexerRETURN                   = 78
-	stLexerR_EDGE                   = 79
-	stLexerSINGLE                   = 80
-	stLexerSTRUCT                   = 81
-	stLexerTASK                     = 82
-	stLexerTHEN                     = 83
-	stLexerTO                       = 84
-	stLexerTYPE                     = 85
-	stLexerUNTIL                    = 86
-	stLexerVAR                      = 87
-	stLexerVAR_ACCESS               = 88
-	stLexerVAR_CONFIG               = 89
-	stLexerVAR_EXTERNAL             = 90
-	stLexerVAR_GLOBAL               = 91
-	stLexerVAR_INPUT                = 92
-	stLexerVAR_IN_OUT               = 93
-	stLexerVAR_TEMP                 = 94
-	stLexerWHILE                    = 95
-	stLexerWITH                     = 96
-	stLexerAND                      = 97
-	stLexerARROW_RIGHT              = 98
-	stLexerASSIGN                   = 99
-	stLexerRASSIGN                  = 100
-	stLexerASSIGN_ATTEMPT           = 101
-	stLexerCOMMA                    = 102
-	stLexerDIV                      = 103
-	stLexerEQUALS                   = 104
-	stLexerGREATER_EQUALS           = 105
-	stLexerGREATER_THAN             = 106
-	stLexerLBRACKET                 = 107
-	stLexerLESS_EQUALS              = 108
-	stLexerLESS_THAN                = 109
-	stLexerLPAREN                   = 110
-	stLexerMINUS                    = 111
-	stLexerMOD                      = 112
-	stLexerMULT                     = 113
-	stLexerNOT                      = 114
-	stLexerNOT_EQUALS               = 115
-	stLexerOR                       = 116
-	stLexerPLUS                     = 117
-	stLexerPOWER                    = 118
-	stLexerRBRACKET                 = 119
-	stLexerRPAREN                   = 120
-	stLexerXOR                      = 121
-	stLexerINCREAE                  = 122
-	stLexerDECREASE                 = 123
-	stLexerNAMESPACE                = 124
-	stLexerEND_NAMESPACE            = 125
-	stLexerUSING                    = 126
-	stLexerPERSISTENT               = 127
-	stLexerAMPERSAND                = 128
-	stLexerNULL                     = 129
-	stLexerSEMICOLON                = 130
-	stLexerSQUOTE                   = 131
-	stLexerDOT                      = 132
-	stLexerCARET                    = 133
-	stLexerREF                      = 134
-	stLexerRANGE                    = 135
-	stLexerCAST_LITERAL             = 136
-	stLexerINTERFACE                = 137
-	stLexerEND_INTERFACE            = 138
-	stLexerMETHOD                   = 139
-	stLexerEND_METHOD               = 140
-	stLexerCLASS                    = 141
-	stLexerEND_CLASS                = 142
-	stLexerOVERRIDE                 = 143
-	stLexerFINAL                    = 144
-	stLexerABSTRACT                 = 145
-	stLexerIMPLEMENTS               = 146
-	stLexerPUBLIC                   = 147
-	stLexerINTERNAL                 = 148
-	stLexerPROTECTED                = 149
-	stLexerPRIVATE                  = 150
-	stLexerSUPER                    = 151
-	stLexerTHIS                     = 152
-	stLexerEXTENDS                  = 153
-	stLexerREF_TO                   = 154
-	stLexerON                       = 155
-	stLexerSTEP                     = 156
-	stLexerEND_STEP                 = 157
-	stLexerINITIAL_STEP             = 158
-	stLexerCOLON                    = 159
-	stLexerACTION                   = 160
-	stLexerEND_ACTION               = 161
-	stLexerFROM                     = 162
-	stLexerEND_TRANSITION           = 163
-	stLexerTRANSITION               = 164
-	stLexerDCOLON                   = 165
-	stLexerRIGHTARROW               = 166
-	stLexerINTEGER_LITERAL          = 167
-	stLexerBITS_LITERAL             = 168
-	stLexerREAL_LITERAL             = 169
-	stLexerTIME_LITERAL             = 170
-	stLexerDATE_LITERAL             = 171
-	stLexerTOD_LITERAL              = 172
-	stLexerDATETIME                 = 173
-	stLexerINCOMPL_LOCATION_LITERAL = 174
-	stLexerSTRING_LITERAL           = 175
-	stLexerWSTRING_LITERAL          = 176
-	stLexerIDENTIFIER               = 177
-	stLexerWS                       = 178
-	stLexerCOMMENT                  = 179
-	stLexerLINE_COMMENT             = 180
-	stLexerDIRECT_VARIABLE_LITERAL  = 181
-	stLexerERROR_CHAR               = 182
-	stLexerIL_ADD                   = 183
-	stLexerIL_ANDN                  = 184
-	stLexerIL_CAL                   = 185
-	stLexerIL_CALC                  = 186
-	stLexerIL_CALCN                 = 187
-	stLexerIL_CD                    = 188
-	stLexerIL_CLK                   = 189
-	stLexerIL_CU                    = 190
-	stLexerIL_DIV                   = 191
-	stLexerIL_EQ                    = 192
-	stLexerIL_GE                    = 193
-	stLexerIL_GT                    = 194
-	stLexerIL_IN                    = 195
-	stLexerIL_JMP                   = 196
-	stLexerIL_JMPC                  = 197
-	stLexerIL_JMPCN                 = 198
-	stLexerIL_LD                    = 199
-	stLexerIL_LDN                   = 200
-	stLexerIL_LE                    = 201
-	stLexerIL_LT                    = 202
-	stLexerIL_MOD                   = 203
-	stLexerIL_MUL                   = 204
-	stLexerIL_NE                    = 205
-	stLexerIL_NOT                   = 206
-	stLexerIL_ORN                   = 207
-	stLexerIL_PT                    = 208
-	stLexerIL_PV                    = 209
-	stLexerIL_R1                    = 210
-	stLexerIL_R                     = 211
-	stLexerIL_RET                   = 212
-	stLexerIL_RETC                  = 213
-	stLexerIL_RETCN                 = 214
-	stLexerIL_S1                    = 215
-	stLexerIL_S                     = 216
-	stLexerIL_ST                    = 217
-	stLexerIL_STN                   = 218
-	stLexerIL_STQ                   = 219
-	stLexerIL_SUB                   = 220
-	stLexerIL_XORN                  = 221
-	stLexerEOL                      = 222
-	stLexerIL_OR                    = 223
+	ST_lexerIL_CODE                  = 1
+	ST_lexerANY                      = 2
+	ST_lexerANY_BIT                  = 3
+	ST_lexerANY_DATE                 = 4
+	ST_lexerANY_DERIVED              = 5
+	ST_lexerANY_ELEMENTARY           = 6
+	ST_lexerANY_INT                  = 7
+	ST_lexerANY_MAGNITUDE            = 8
+	ST_lexerANY_NUM                  = 9
+	ST_lexerANY_REAL                 = 10
+	ST_lexerANY_STRING               = 11
+	ST_lexerARRAY                    = 12
+	ST_lexerBOOL                     = 13
+	ST_lexerBYTE                     = 14
+	ST_lexerDATE_AND_TIME            = 15
+	ST_lexerDINT                     = 16
+	ST_lexerDWORD                    = 17
+	ST_lexerINT                      = 18
+	ST_lexerLINT                     = 19
+	ST_lexerLREAL                    = 20
+	ST_lexerLWORD                    = 21
+	ST_lexerREAL                     = 22
+	ST_lexerSINT                     = 23
+	ST_lexerSTRING                   = 24
+	ST_lexerTIME                     = 25
+	ST_lexerTIME_OF_DAY              = 26
+	ST_lexerUDINT                    = 27
+	ST_lexerUINT                     = 28
+	ST_lexerULINT                    = 29
+	ST_lexerUSINT                    = 30
+	ST_lexerWORD                     = 31
+	ST_lexerWSTRING                  = 32
+	ST_lexerPOINTER                  = 33
+	ST_lexerVAR_OUTPUT               = 34
+	ST_lexerAT                       = 35
+	ST_lexerBY                       = 36
+	ST_lexerCASE                     = 37
+	ST_lexerCONFIGURATION            = 38
+	ST_lexerCONSTANT                 = 39
+	ST_lexerCONTINUE                 = 40
+	ST_lexerDATE                     = 41
+	ST_lexerDO                       = 42
+	ST_lexerDT                       = 43
+	ST_lexerELSE                     = 44
+	ST_lexerELSEIF                   = 45
+	ST_lexerUNDERSCORE               = 46
+	ST_lexerEND_CASE                 = 47
+	ST_lexerEND_CONFIGURATION        = 48
+	ST_lexerEND_FOR                  = 49
+	ST_lexerEND_FUNCTION             = 50
+	ST_lexerEND_FUNCTION_BLOCK       = 51
+	ST_lexerEND_IF                   = 52
+	ST_lexerEND_PROGRAM              = 53
+	ST_lexerEND_REPEAT               = 54
+	ST_lexerEND_RESOURCE             = 55
+	ST_lexerEND_STRUCT               = 56
+	ST_lexerEND_TYPE                 = 57
+	ST_lexerEND_VAR                  = 58
+	ST_lexerEND_WHILE                = 59
+	ST_lexerEXIT                     = 60
+	ST_lexerFOR                      = 61
+	ST_lexerFUNCTION                 = 62
+	ST_lexerFUNCTION_BLOCK           = 63
+	ST_lexerF_EDGE                   = 64
+	ST_lexerIF                       = 65
+	ST_lexerINTERVAL                 = 66
+	ST_lexerJMP                      = 67
+	ST_lexerNIL                      = 68
+	ST_lexerNON_RETAIN               = 69
+	ST_lexerOF                       = 70
+	ST_lexerPRIORITY                 = 71
+	ST_lexerPROGRAM                  = 72
+	ST_lexerREAD_ONLY                = 73
+	ST_lexerREAD_WRITE               = 74
+	ST_lexerREPEAT                   = 75
+	ST_lexerRESOURCE                 = 76
+	ST_lexerRETAIN                   = 77
+	ST_lexerRETURN                   = 78
+	ST_lexerR_EDGE                   = 79
+	ST_lexerSINGLE                   = 80
+	ST_lexerSTRUCT                   = 81
+	ST_lexerTASK                     = 82
+	ST_lexerTHEN                     = 83
+	ST_lexerTO                       = 84
+	ST_lexerTYPE                     = 85
+	ST_lexerUNTIL                    = 86
+	ST_lexerVAR                      = 87
+	ST_lexerVAR_ACCESS               = 88
+	ST_lexerVAR_CONFIG               = 89
+	ST_lexerVAR_EXTERNAL             = 90
+	ST_lexerVAR_GLOBAL               = 91
+	ST_lexerVAR_INPUT                = 92
+	ST_lexerVAR_IN_OUT               = 93
+	ST_lexerVAR_TEMP                 = 94
+	ST_lexerWHILE                    = 95
+	ST_lexerWITH                     = 96
+	ST_lexerAND                      = 97
+	ST_lexerARROW_RIGHT              = 98
+	ST_lexerASSIGN                   = 99
+	ST_lexerRASSIGN                  = 100
+	ST_lexerASSIGN_ATTEMPT           = 101
+	ST_lexerCOMMA                    = 102
+	ST_lexerDIV                      = 103
+	ST_lexerEQUALS                   = 104
+	ST_lexerGREATER_EQUALS           = 105
+	ST_lexerGREATER_THAN             = 106
+	ST_lexerLBRACKET                 = 107
+	ST_lexerLESS_EQUALS              = 108
+	ST_lexerLESS_THAN                = 109
+	ST_lexerLPAREN                   = 110
+	ST_lexerMINUS                    = 111
+	ST_lexerMOD                      = 112
+	ST_lexerMULT                     = 113
+	ST_lexerNOT                      = 114
+	ST_lexerNOT_EQUALS               = 115
+	ST_lexerOR                       = 116
+	ST_lexerPLUS                     = 117
+	ST_lexerPOWER                    = 118
+	ST_lexerRBRACKET                 = 119
+	ST_lexerRPAREN                   = 120
+	ST_lexerXOR                      = 121
+	ST_lexerINCREAE                  = 122
+	ST_lexerDECREASE                 = 123
+	ST_lexerNAMESPACE                = 124
+	ST_lexerEND_NAMESPACE            = 125
+	ST_lexerUSING                    = 126
+	ST_lexerPERSISTENT               = 127
+	ST_lexerAMPERSAND                = 128
+	ST_lexerNULL                     = 129
+	ST_lexerSEMICOLON                = 130
+	ST_lexerSQUOTE                   = 131
+	ST_lexerDOT                      = 132
+	ST_lexerCARET                    = 133
+	ST_lexerREF                      = 134
+	ST_lexerRANGE                    = 135
+	ST_lexerCAST_LITERAL             = 136
+	ST_lexerINTERFACE                = 137
+	ST_lexerEND_INTERFACE            = 138
+	ST_lexerMETHOD                   = 139
+	ST_lexerEND_METHOD               = 140
+	ST_lexerCLASS                    = 141
+	ST_lexerEND_CLASS                = 142
+	ST_lexerOVERRIDE                 = 143
+	ST_lexerFINAL                    = 144
+	ST_lexerABSTRACT                 = 145
+	ST_lexerIMPLEMENTS               = 146
+	ST_lexerPUBLIC                   = 147
+	ST_lexerINTERNAL                 = 148
+	ST_lexerPROTECTED                = 149
+	ST_lexerPRIVATE                  = 150
+	ST_lexerSUPER                    = 151
+	ST_lexerTHIS                     = 152
+	ST_lexerEXTENDS                  = 153
+	ST_lexerREF_TO                   = 154
+	ST_lexerON                       = 155
+	ST_lexerSTEP                     = 156
+	ST_lexerEND_STEP                 = 157
+	ST_lexerINITIAL_STEP             = 158
+	ST_lexerCOLON                    = 159
+	ST_lexerACTION                   = 160
+	ST_lexerEND_ACTION               = 161
+	ST_lexerFROM                     = 162
+	ST_lexerEND_TRANSITION           = 163
+	ST_lexerTRANSITION               = 164
+	ST_lexerDCOLON                   = 165
+	ST_lexerRIGHTARROW               = 166
+	ST_lexerINTEGER_LITERAL          = 167
+	ST_lexerBITS_LITERAL             = 168
+	ST_lexerREAL_LITERAL             = 169
+	ST_lexerTIME_LITERAL             = 170
+	ST_lexerDATE_LITERAL             = 171
+	ST_lexerTOD_LITERAL              = 172
+	ST_lexerDATETIME                 = 173
+	ST_lexerINCOMPL_LOCATION_LITERAL = 174
+	ST_lexerSTRING_LITERAL           = 175
+	ST_lexerWSTRING_LITERAL          = 176
+	ST_lexerIDENTIFIER               = 177
+	ST_lexerWS                       = 178
+	ST_lexerCOMMENT                  = 179
+	ST_lexerLINE_COMMENT             = 180
+	ST_lexerDIRECT_VARIABLE_LITERAL  = 181
+	ST_lexerERROR_CHAR               = 182
+	ST_lexerIL_ADD                   = 183
+	ST_lexerIL_ANDN                  = 184
+	ST_lexerIL_CAL                   = 185
+	ST_lexerIL_CALC                  = 186
+	ST_lexerIL_CALCN                 = 187
+	ST_lexerIL_CD                    = 188
+	ST_lexerIL_CLK                   = 189
+	ST_lexerIL_CU                    = 190
+	ST_lexerIL_DIV                   = 191
+	ST_lexerIL_EQ                    = 192
+	ST_lexerIL_GE                    = 193
+	ST_lexerIL_GT                    = 194
+	ST_lexerIL_IN                    = 195
+	ST_lexerIL_JMP                   = 196
+	ST_lexerIL_JMPC                  = 197
+	ST_lexerIL_JMPCN                 = 198
+	ST_lexerIL_LD                    = 199
+	ST_lexerIL_LDN                   = 200
+	ST_lexerIL_LE                    = 201
+	ST_lexerIL_LT                    = 202
+	ST_lexerIL_MOD                   = 203
+	ST_lexerIL_MUL                   = 204
+	ST_lexerIL_NE                    = 205
+	ST_lexerIL_NOT                   = 206
+	ST_lexerIL_ORN                   = 207
+	ST_lexerIL_PT                    = 208
+	ST_lexerIL_PV                    = 209
+	ST_lexerIL_R1                    = 210
+	ST_lexerIL_R                     = 211
+	ST_lexerIL_RET                   = 212
+	ST_lexerIL_RETC                  = 213
+	ST_lexerIL_RETCN                 = 214
+	ST_lexerIL_S1                    = 215
+	ST_lexerIL_S                     = 216
+	ST_lexerIL_ST                    = 217
+	ST_lexerIL_STN                   = 218
+	ST_lexerIL_STQ                   = 219
+	ST_lexerIL_SUB                   = 220
+	ST_lexerIL_XORN                  = 221
+	ST_lexerEOL                      = 222
+	ST_lexerIL_OR                    = 223
 )
 
-// stLexeril is the stLexer mode.
-const stLexeril = 1
+// ST_lexeril is the ST_lexer mode.
+const ST_lexeril = 1

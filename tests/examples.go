@@ -6,8 +6,8 @@ import (
 
 	"github.com/antlr4-go/antlr/v4"
 
-	parser "github.com/slonegd/go-st/g4"
-	external_parser "github.com/slonegd/go-st/g4/external"
+	parser "github.com/slonegd/go-st/antlr"
+	external_parser "github.com/slonegd/go-st/antlr/external"
 )
 
 //go:embed 001_simpliest.st
@@ -24,7 +24,7 @@ func simpliest_main() {
 	is := antlr.NewInputStream(simpliest)
 
 	// Create the Lexer
-	lexer := parser.NewstLexer(is)
+	lexer := parser.NewSTLexer(is)
 
 	// Read all tokens
 	for {
@@ -42,7 +42,7 @@ func simpliest_external_main() {
 	is := antlr.NewInputStream(simpliest)
 
 	// Create the Lexer
-	lexer := external_parser.NewstLexer(is)
+	lexer := external_parser.NewST_lexer(is)
 
 	// Read all tokens
 	for {

@@ -25,5 +25,5 @@ go.work.sum
 .env
 
 vendor
-g4/external/.antlr
-g4/.antlr
+antlr/external/.antlr
+antlr/.antlr

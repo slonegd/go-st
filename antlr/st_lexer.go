@@ -1,4 +1,4 @@
-// Code generated from ./g4/st.g4 by ANTLR 4.13.2. DO NOT EDIT.
+// Code generated from ./antlr/ST.g4 by ANTLR 4.13.2. DO NOT EDIT.
 
 package parser
 
@@ -14,14 +14,14 @@ var _ = fmt.Printf
 var _ = sync.Once{}
 var _ = unicode.IsLetter
 
-type stLexer struct {
+type STLexer struct {
 	*antlr.BaseLexer
 	channelNames []string
 	modeNames    []string
 	// TODO: EOF string
 }
 
-var StLexerLexerStaticData struct {
+var STLexerLexerStaticData struct {
 	once                   sync.Once
 	serializedATN          []int32
 	ChannelNames           []string
@@ -35,7 +35,7 @@ var StLexerLexerStaticData struct {
 }
 
 func stlexerLexerInit() {
-	staticData := &StLexerLexerStaticData
+	staticData := &STLexerLexerStaticData
 	staticData.ChannelNames = []string{
 		"DEFAULT_TOKEN_CHANNEL", "HIDDEN",
 	}
@@ -103,44 +103,44 @@ func stlexerLexerInit() {
 	}
 }
 
-// stLexerInit initializes any static state used to implement stLexer. By default the
+// STLexerInit initializes any static state used to implement STLexer. By default the
 // static state used to implement the lexer is lazily initialized during the first call to
-// NewstLexer(). You can call this function if you wish to initialize the static state ahead
+// NewSTLexer(). You can call this function if you wish to initialize the static state ahead
 // of time.
-func StLexerInit() {
-	staticData := &StLexerLexerStaticData
+func STLexerInit() {
+	staticData := &STLexerLexerStaticData
 	staticData.once.Do(stlexerLexerInit)
 }
 
-// NewstLexer produces a new lexer instance for the optional input antlr.CharStream.
-func NewstLexer(input antlr.CharStream) *stLexer {
-	StLexerInit()
-	l := new(stLexer)
+// NewSTLexer produces a new lexer instance for the optional input antlr.CharStream.
+func NewSTLexer(input antlr.CharStream) *STLexer {
+	STLexerInit()
+	l := new(STLexer)
 	l.BaseLexer = antlr.NewBaseLexer(input)
-	staticData := &StLexerLexerStaticData
+	staticData := &STLexerLexerStaticData
 	l.Interpreter = antlr.NewLexerATNSimulator(l, staticData.atn, staticData.decisionToDFA, staticData.PredictionContextCache)
 	l.channelNames = staticData.ChannelNames
 	l.modeNames = staticData.ModeNames
 	l.RuleNames = staticData.RuleNames
 	l.LiteralNames = staticData.LiteralNames
 	l.SymbolicNames = staticData.SymbolicNames
-	l.GrammarFileName = "st.g4"
+	l.GrammarFileName = "ST.g4"
 	// TODO: l.EOF = antlr.TokenEOF
 
 	return l
 }
 
-// stLexer tokens.
+// STLexer tokens.
 const (
-	stLexerT__0       = 1
-	stLexerT__1       = 2
-	stLexerT__2       = 3
-	stLexerT__3       = 4
-	stLexerT__4       = 5
-	stLexerT__5       = 6
-	stLexerT__6       = 7
-	stLexerT__7       = 8
-	stLexerInteger    = 9
-	stLexerID         = 10
-	stLexerWHITESPACE = 11
+	STLexerT__0       = 1
+	STLexerT__1       = 2
+	STLexerT__2       = 3
+	STLexerT__3       = 4
+	STLexerT__4       = 5
+	STLexerT__5       = 6
+	STLexerT__6       = 7
+	STLexerT__7       = 8
+	STLexerInteger    = 9
+	STLexerID         = 10
+	STLexerWHITESPACE = 11
 )

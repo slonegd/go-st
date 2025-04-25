@@ -1,4 +1,4 @@
-grammar st;
+grammar ST;
 
 prorgamm :
     'PROGRAM' identifier=ID 

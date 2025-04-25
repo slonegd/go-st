@@ -1,11 +1,11 @@
-// Code generated from ./g4/st.g4 by ANTLR 4.13.2. DO NOT EDIT.
+// Code generated from ./antlr/ST.g4 by ANTLR 4.13.2. DO NOT EDIT.
 
-package parser // st
+package parser // ST
 
 import "github.com/antlr4-go/antlr/v4"
 
-// stListener is a complete listener for a parse tree produced by stParser.
-type stListener interface {
+// STListener is a complete listener for a parse tree produced by STParser.
+type STListener interface {
 	antlr.ParseTreeListener
 
 	// EnterProrgamm is called when entering the prorgamm production.

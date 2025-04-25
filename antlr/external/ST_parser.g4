@@ -1,6 +1,6 @@
-parser grammar stParser;
+parser grammar ST_parser;
 
-options {tokenVocab = stLexer;}
+options {tokenVocab = ST_lexer;}
 
 start
 :
