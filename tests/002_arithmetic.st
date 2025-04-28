@@ -4,6 +4,6 @@ PROGRAM arithmetic
     j : INT;
   END_VAR
 
-  i := 15;
+  i := 15+j;
   j := 5 + 2*i*(30-i)/5;
 END_PROGRAM

@@ -6,6 +6,7 @@ import (
 
 	"github.com/antlr4-go/antlr/v4"
 
+	"github.com/slonegd/go-st"
 	parser "github.com/slonegd/go-st/antlr"
 	external_parser "github.com/slonegd/go-st/antlr/external"
 )
@@ -24,6 +25,7 @@ func main() {
 	external_tokens(example)
 	listener(example)
 	tree(example)
+	program(example)
 }
 
 func st_tokens(example string) {
@@ -93,6 +95,15 @@ func tree(example string) {
 	root := p.Program()
 	log.Printf("root node %T %+v", root, root.GetIdentifier())
 	printChildren(root, "")
+}
+
+func program(example string) {
+	log.Printf("\n\n\t\t program")
+	program := st.NewProgram(example)
+	program.Run()
+	log.Printf("results: %+v", program.Variables)
+	program.Run()
+	log.Printf("results: %+v", program.Variables)
 }
 
 func printChildren(node antlr.Tree, prefix string) {
