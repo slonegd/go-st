@@ -8,8 +8,8 @@ import "github.com/antlr4-go/antlr/v4"
 type STListener interface {
 	antlr.ParseTreeListener
 
-	// EnterProrgamm is called when entering the prorgamm production.
-	EnterProrgamm(c *ProrgammContext)
+	// EnterProgramm is called when entering the programm production.
+	EnterProgramm(c *ProgrammContext)
 
 	// EnterVar_declaration_blocks is called when entering the var_declaration_blocks production.
 	EnterVar_declaration_blocks(c *Var_declaration_blocksContext)
@@ -41,8 +41,8 @@ type STListener interface {
 	// EnterNumber is called when entering the number production.
 	EnterNumber(c *NumberContext)
 
-	// ExitProrgamm is called when exiting the prorgamm production.
-	ExitProrgamm(c *ProrgammContext)
+	// ExitProgramm is called when exiting the programm production.
+	ExitProgramm(c *ProgrammContext)
 
 	// ExitVar_declaration_blocks is called when exiting the var_declaration_blocks production.
 	ExitVar_declaration_blocks(c *Var_declaration_blocksContext)

@@ -17,6 +17,7 @@ func main() {
 	simpliest_main()
 	simpliest_external_main()
 	simpliest_listener()
+	simpliest_tree()
 }
 
 func simpliest_main() {
@@ -68,7 +69,32 @@ func simpliest_listener() {
 	p := parser.NewSTParser(stream)
 
 	// Finally parse the expression (by walking the tree)
-	antlr.ParseTreeWalkerDefault.Walk(&Listener{}, p.Prorgamm())
+	antlr.ParseTreeWalkerDefault.Walk(&Listener{}, p.Programm())
+}
+
+func simpliest_tree() {
+	log.Printf("\n\n\t\t simpliest_tree")
+	// Setup the input
+	is := antlr.NewInputStream(simpliest)
+
+	// Create the Lexer
+	lexer := parser.NewSTLexer(is)
+	stream := antlr.NewCommonTokenStream(lexer, antlr.TokenDefaultChannel)
+
+	// Create the Parser
+	p := parser.NewSTParser(stream)
+
+	root := p.Programm()
+	log.Printf("root node %T %+v", root, root.GetIdentifier())
+	printChildren(root, "")
+}
+
+func printChildren(node antlr.Tree, prefix string) {
+	prefix += "  "
+	for _, child := range node.GetChildren() {
+		log.Printf(prefix+"%T %v", child, child.GetPayload())
+		printChildren(child, prefix)
+	}
 }
 
 type Listener struct{}
@@ -82,7 +108,7 @@ func (*Listener) EnterConstant(c *parser.ConstantContext)               { log.Pr
 func (*Listener) EnterEveryRule(ctx antlr.ParserRuleContext)            { log.Printf("%+v", ctx) }
 func (*Listener) EnterExpression(c *parser.ExpressionContext)           { log.Printf("%+v", c) }
 func (*Listener) EnterNumber(c *parser.NumberContext)                   { log.Printf("%+v", c) }
-func (*Listener) EnterProrgamm(c *parser.ProrgammContext)               { log.Printf("%+v", c) }
+func (*Listener) EnterProgramm(c *parser.ProgrammContext)               { log.Printf("%+v", c) }
 func (*Listener) EnterStatement(c *parser.StatementContext)             { log.Printf("%+v", c) }
 func (*Listener) EnterStatement_list(c *parser.Statement_listContext)   { log.Printf("%+v", c) }
 func (*Listener) EnterType_name(c *parser.Type_nameContext)             { log.Printf("%+v", c) }
@@ -100,7 +126,7 @@ func (*Listener) ExitConstant(c *parser.ConstantContext)               { log.Pri
 func (*Listener) ExitEveryRule(ctx antlr.ParserRuleContext)            { log.Printf("%+v", ctx) }
 func (*Listener) ExitExpression(c *parser.ExpressionContext)           { log.Printf("%+v", c) }
 func (*Listener) ExitNumber(c *parser.NumberContext)                   { log.Printf("%+v", c) }
-func (*Listener) ExitProrgamm(c *parser.ProrgammContext)               { log.Printf("%+v", c) }
+func (*Listener) ExitProgramm(c *parser.ProgrammContext)               { log.Printf("%+v", c) }
 func (*Listener) ExitStatement(c *parser.StatementContext)             { log.Printf("%+v", c) }
 func (*Listener) ExitStatement_list(c *parser.Statement_listContext)   { log.Printf("%+v", c) }
 func (*Listener) ExitType_name(c *parser.Type_nameContext)             { log.Printf("%+v", c) }

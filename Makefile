@@ -9,3 +9,9 @@ gen_antlr:
 vendor:
 	go mod tidy
 	go mod vendor
+
+tree:
+	antlr4-parse ./antlr/ST.g4 programm -gui < ./tests/001_simpliest.st 
+
+example:
+	go run ./tests/examples.go

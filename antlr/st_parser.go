@@ -40,7 +40,7 @@ func stParserInit() {
 		"", "", "", "", "", "", "", "", "", "Integer", "ID", "WHITESPACE",
 	}
 	staticData.RuleNames = []string{
-		"prorgamm", "var_declaration_blocks", "var_declaration_block", "var_declaration",
+		"programm", "var_declaration_blocks", "var_declaration_block", "var_declaration",
 		"type_name", "statement_list", "statement", "assignment_statement",
 		"expression", "constant", "number",
 	}
@@ -124,7 +124,7 @@ const (
 
 // STParser rules.
 const (
-	STParserRULE_prorgamm               = 0
+	STParserRULE_programm               = 0
 	STParserRULE_var_declaration_blocks = 1
 	STParserRULE_var_declaration_block  = 2
 	STParserRULE_var_declaration        = 3
@@ -137,8 +137,8 @@ const (
 	STParserRULE_number                 = 10
 )
 
-// IProrgammContext is an interface to support dynamic dispatch.
-type IProrgammContext interface {
+// IProgrammContext is an interface to support dynamic dispatch.
+type IProgrammContext interface {
 	antlr.ParserRuleContext
 
 	// GetParser returns the parser.
@@ -155,48 +155,48 @@ type IProrgammContext interface {
 	Statement_list() IStatement_listContext
 	ID() antlr.TerminalNode
 
-	// IsProrgammContext differentiates from other interfaces.
-	IsProrgammContext()
+	// IsProgrammContext differentiates from other interfaces.
+	IsProgrammContext()
 }
 
-type ProrgammContext struct {
+type ProgrammContext struct {
 	antlr.BaseParserRuleContext
 	parser     antlr.Parser
 	identifier antlr.Token
 }
 
-func NewEmptyProrgammContext() *ProrgammContext {
-	var p = new(ProrgammContext)
+func NewEmptyProgrammContext() *ProgrammContext {
+	var p = new(ProgrammContext)
 	antlr.InitBaseParserRuleContext(&p.BaseParserRuleContext, nil, -1)
-	p.RuleIndex = STParserRULE_prorgamm
+	p.RuleIndex = STParserRULE_programm
 	return p
 }
 
-func InitEmptyProrgammContext(p *ProrgammContext) {
+func InitEmptyProgrammContext(p *ProgrammContext) {
 	antlr.InitBaseParserRuleContext(&p.BaseParserRuleContext, nil, -1)
-	p.RuleIndex = STParserRULE_prorgamm
+	p.RuleIndex = STParserRULE_programm
 }
 
-func (*ProrgammContext) IsProrgammContext() {}
+func (*ProgrammContext) IsProgrammContext() {}
 
-func NewProrgammContext(parser antlr.Parser, parent antlr.ParserRuleContext, invokingState int) *ProrgammContext {
-	var p = new(ProrgammContext)
+func NewProgrammContext(parser antlr.Parser, parent antlr.ParserRuleContext, invokingState int) *ProgrammContext {
+	var p = new(ProgrammContext)
 
 	antlr.InitBaseParserRuleContext(&p.BaseParserRuleContext, parent, invokingState)
 
 	p.parser = parser
-	p.RuleIndex = STParserRULE_prorgamm
+	p.RuleIndex = STParserRULE_programm
 
 	return p
 }
 
-func (s *ProrgammContext) GetParser() antlr.Parser { return s.parser }
+func (s *ProgrammContext) GetParser() antlr.Parser { return s.parser }
 
-func (s *ProrgammContext) GetIdentifier() antlr.Token { return s.identifier }
+func (s *ProgrammContext) GetIdentifier() antlr.Token { return s.identifier }
 
-func (s *ProrgammContext) SetIdentifier(v antlr.Token) { s.identifier = v }
+func (s *ProgrammContext) SetIdentifier(v antlr.Token) { s.identifier = v }
 
-func (s *ProrgammContext) Var_declaration_blocks() IVar_declaration_blocksContext {
+func (s *ProgrammContext) Var_declaration_blocks() IVar_declaration_blocksContext {
 	var t antlr.RuleContext
 	for _, ctx := range s.GetChildren() {
 		if _, ok := ctx.(IVar_declaration_blocksContext); ok {
@@ -212,7 +212,7 @@ func (s *ProrgammContext) Var_declaration_blocks() IVar_declaration_blocksContex
 	return t.(IVar_declaration_blocksContext)
 }
 
-func (s *ProrgammContext) Statement_list() IStatement_listContext {
+func (s *ProgrammContext) Statement_list() IStatement_listContext {
 	var t antlr.RuleContext
 	for _, ctx := range s.GetChildren() {
 		if _, ok := ctx.(IStatement_listContext); ok {
@@ -228,33 +228,33 @@ func (s *ProrgammContext) Statement_list() IStatement_listContext {
 	return t.(IStatement_listContext)
 }
 
-func (s *ProrgammContext) ID() antlr.TerminalNode {
+func (s *ProgrammContext) ID() antlr.TerminalNode {
 	return s.GetToken(STParserID, 0)
 }
 
-func (s *ProrgammContext) GetRuleContext() antlr.RuleContext {
+func (s *ProgrammContext) GetRuleContext() antlr.RuleContext {
 	return s
 }
 
-func (s *ProrgammContext) ToStringTree(ruleNames []string, recog antlr.Recognizer) string {
+func (s *ProgrammContext) ToStringTree(ruleNames []string, recog antlr.Recognizer) string {
 	return antlr.TreesStringTree(s, ruleNames, recog)
 }
 
-func (s *ProrgammContext) EnterRule(listener antlr.ParseTreeListener) {
+func (s *ProgrammContext) EnterRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(STListener); ok {
-		listenerT.EnterProrgamm(s)
+		listenerT.EnterProgramm(s)
 	}
 }
 
-func (s *ProrgammContext) ExitRule(listener antlr.ParseTreeListener) {
+func (s *ProgrammContext) ExitRule(listener antlr.ParseTreeListener) {
 	if listenerT, ok := listener.(STListener); ok {
-		listenerT.ExitProrgamm(s)
+		listenerT.ExitProgramm(s)
 	}
 }
 
-func (p *STParser) Prorgamm() (localctx IProrgammContext) {
-	localctx = NewProrgammContext(p, p.GetParserRuleContext(), p.GetState())
-	p.EnterRule(localctx, 0, STParserRULE_prorgamm)
+func (p *STParser) Programm() (localctx IProgrammContext) {
+	localctx = NewProgrammContext(p, p.GetParserRuleContext(), p.GetState())
+	p.EnterRule(localctx, 0, STParserRULE_programm)
 	p.EnterOuterAlt(localctx, 1)
 	{
 		p.SetState(22)
@@ -269,7 +269,7 @@ func (p *STParser) Prorgamm() (localctx IProrgammContext) {
 
 		var _m = p.Match(STParserID)
 
-		localctx.(*ProrgammContext).identifier = _m
+		localctx.(*ProgrammContext).identifier = _m
 		if p.HasError() {
 			// Recognition error - abort rule
 			goto errorExit

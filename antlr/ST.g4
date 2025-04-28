@@ -1,6 +1,6 @@
 grammar ST;
 
-prorgamm :
+programm :
     'PROGRAM' identifier=ID 
         var_declaration_blocks
         statement_list 

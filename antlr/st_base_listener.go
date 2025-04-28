@@ -21,11 +21,11 @@ func (s *BaseSTListener) EnterEveryRule(ctx antlr.ParserRuleContext) {}
 // ExitEveryRule is called when any rule is exited.
 func (s *BaseSTListener) ExitEveryRule(ctx antlr.ParserRuleContext) {}
 
-// EnterProrgamm is called when production prorgamm is entered.
-func (s *BaseSTListener) EnterProrgamm(ctx *ProrgammContext) {}
+// EnterProgramm is called when production programm is entered.
+func (s *BaseSTListener) EnterProgramm(ctx *ProgrammContext) {}
 
-// ExitProrgamm is called when production prorgamm is exited.
-func (s *BaseSTListener) ExitProrgamm(ctx *ProrgammContext) {}
+// ExitProgramm is called when production programm is exited.
+func (s *BaseSTListener) ExitProgramm(ctx *ProgrammContext) {}
 
 // EnterVar_declaration_blocks is called when production var_declaration_blocks is entered.
 func (s *BaseSTListener) EnterVar_declaration_blocks(ctx *Var_declaration_blocksContext) {}

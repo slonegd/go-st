@@ -27,7 +27,7 @@ ID
 WHITESPACE
 
 rule names:
-prorgamm
+programm
 var_declaration_blocks
 var_declaration_block
 var_declaration
