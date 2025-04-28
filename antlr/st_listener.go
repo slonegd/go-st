@@ -8,8 +8,8 @@ import "github.com/antlr4-go/antlr/v4"
 type STListener interface {
 	antlr.ParseTreeListener
 
-	// EnterProgramm is called when entering the programm production.
-	EnterProgramm(c *ProgrammContext)
+	// EnterProgram is called when entering the program production.
+	EnterProgram(c *ProgramContext)
 
 	// EnterVar_declaration_blocks is called when entering the var_declaration_blocks production.
 	EnterVar_declaration_blocks(c *Var_declaration_blocksContext)
@@ -32,17 +32,26 @@ type STListener interface {
 	// EnterAssignment_statement is called when entering the assignment_statement production.
 	EnterAssignment_statement(c *Assignment_statementContext)
 
-	// EnterExpression is called when entering the expression production.
-	EnterExpression(c *ExpressionContext)
-
 	// EnterConstant is called when entering the constant production.
 	EnterConstant(c *ConstantContext)
+
+	// EnterBinaryPowerExpr is called when entering the binaryPowerExpr production.
+	EnterBinaryPowerExpr(c *BinaryPowerExprContext)
+
+	// EnterVariable is called when entering the variable production.
+	EnterVariable(c *VariableContext)
+
+	// EnterBinaryPlusExpr is called when entering the binaryPlusExpr production.
+	EnterBinaryPlusExpr(c *BinaryPlusExprContext)
+
+	// EnterParenExpr is called when entering the parenExpr production.
+	EnterParenExpr(c *ParenExprContext)
 
 	// EnterNumber is called when entering the number production.
 	EnterNumber(c *NumberContext)
 
-	// ExitProgramm is called when exiting the programm production.
-	ExitProgramm(c *ProgrammContext)
+	// ExitProgram is called when exiting the program production.
+	ExitProgram(c *ProgramContext)
 
 	// ExitVar_declaration_blocks is called when exiting the var_declaration_blocks production.
 	ExitVar_declaration_blocks(c *Var_declaration_blocksContext)
@@ -65,11 +74,20 @@ type STListener interface {
 	// ExitAssignment_statement is called when exiting the assignment_statement production.
 	ExitAssignment_statement(c *Assignment_statementContext)
 
-	// ExitExpression is called when exiting the expression production.
-	ExitExpression(c *ExpressionContext)
-
 	// ExitConstant is called when exiting the constant production.
 	ExitConstant(c *ConstantContext)
+
+	// ExitBinaryPowerExpr is called when exiting the binaryPowerExpr production.
+	ExitBinaryPowerExpr(c *BinaryPowerExprContext)
+
+	// ExitVariable is called when exiting the variable production.
+	ExitVariable(c *VariableContext)
+
+	// ExitBinaryPlusExpr is called when exiting the binaryPlusExpr production.
+	ExitBinaryPlusExpr(c *BinaryPlusExprContext)
+
+	// ExitParenExpr is called when exiting the parenExpr production.
+	ExitParenExpr(c *ParenExprContext)
 
 	// ExitNumber is called when exiting the number production.
 	ExitNumber(c *NumberContext)

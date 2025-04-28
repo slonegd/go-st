@@ -10,20 +10,26 @@ import (
 	external_parser "github.com/slonegd/go-st/antlr/external"
 )
 
-//go:embed 001_simpliest.st
-var simpliest string
+var (
+	//go:embed 001_simpliest.st
+	simpliest string
+	//go:embed 002_arithmetic.st
+	arithmetic string
+)
 
 func main() {
-	simpliest_main()
-	simpliest_external_main()
-	simpliest_listener()
-	simpliest_tree()
+	_ = simpliest
+	example := arithmetic
+	st_tokens(example)
+	external_tokens(example)
+	listener(example)
+	tree(example)
 }
 
-func simpliest_main() {
-	log.Printf("\n\n\t\t simpliest_main")
+func st_tokens(example string) {
+	log.Printf("\n\n\t\t st_tokens")
 	// Setup the input
-	is := antlr.NewInputStream(simpliest)
+	is := antlr.NewInputStream(example)
 
 	// Create the Lexer
 	lexer := parser.NewSTLexer(is)
@@ -38,8 +44,8 @@ func simpliest_main() {
 	}
 }
 
-func simpliest_external_main() {
-	log.Printf("\n\n\t\t simpliest_external_main")
+func external_tokens(example string) {
+	log.Printf("\n\n\t\t external_tokens")
 	// Setup the input
 	is := antlr.NewInputStream(simpliest)
 
@@ -56,10 +62,10 @@ func simpliest_external_main() {
 	}
 }
 
-func simpliest_listener() {
-	log.Printf("\n\n\t\t simpliest_listener")
+func listener(example string) {
+	log.Printf("\n\n\t\t listener")
 	// Setup the input
-	is := antlr.NewInputStream(simpliest)
+	is := antlr.NewInputStream(example)
 
 	// Create the Lexer
 	lexer := parser.NewSTLexer(is)
@@ -69,13 +75,13 @@ func simpliest_listener() {
 	p := parser.NewSTParser(stream)
 
 	// Finally parse the expression (by walking the tree)
-	antlr.ParseTreeWalkerDefault.Walk(&Listener{}, p.Programm())
+	antlr.ParseTreeWalkerDefault.Walk(&Listener{}, p.Program())
 }
 
-func simpliest_tree() {
-	log.Printf("\n\n\t\t simpliest_tree")
+func tree(example string) {
+	log.Printf("\n\n\t\t tree")
 	// Setup the input
-	is := antlr.NewInputStream(simpliest)
+	is := antlr.NewInputStream(example)
 
 	// Create the Lexer
 	lexer := parser.NewSTLexer(is)
@@ -84,7 +90,7 @@ func simpliest_tree() {
 	// Create the Parser
 	p := parser.NewSTParser(stream)
 
-	root := p.Programm()
+	root := p.Program()
 	log.Printf("root node %T %+v", root, root.GetIdentifier())
 	printChildren(root, "")
 }
@@ -105,10 +111,14 @@ func (*Listener) EnterAssignment_statement(c *parser.Assignment_statementContext
 	log.Printf("%+v", c)
 }
 func (*Listener) EnterConstant(c *parser.ConstantContext)               { log.Printf("%+v", c) }
+func (*Listener) EnterBinaryPlusExpr(c *parser.BinaryPlusExprContext)   { log.Printf("%+v", c) }
+func (*Listener) EnterBinaryPowerExpr(c *parser.BinaryPowerExprContext) { log.Printf("%+v", c) }
+func (*Listener) EnterParenExpr(c *parser.ParenExprContext)             { log.Printf("%+v", c) }
+func (*Listener) EnterVariable(c *parser.VariableContext)               { log.Printf("%+v", c) }
 func (*Listener) EnterEveryRule(ctx antlr.ParserRuleContext)            { log.Printf("%+v", ctx) }
 func (*Listener) EnterExpression(c *parser.ExpressionContext)           { log.Printf("%+v", c) }
 func (*Listener) EnterNumber(c *parser.NumberContext)                   { log.Printf("%+v", c) }
-func (*Listener) EnterProgramm(c *parser.ProgrammContext)               { log.Printf("%+v", c) }
+func (*Listener) EnterProgram(c *parser.ProgramContext)                 { log.Printf("%+v", c) }
 func (*Listener) EnterStatement(c *parser.StatementContext)             { log.Printf("%+v", c) }
 func (*Listener) EnterStatement_list(c *parser.Statement_listContext)   { log.Printf("%+v", c) }
 func (*Listener) EnterType_name(c *parser.Type_nameContext)             { log.Printf("%+v", c) }
@@ -123,10 +133,14 @@ func (*Listener) ExitAssignment_statement(c *parser.Assignment_statementContext)
 	log.Printf("%+v", c)
 }
 func (*Listener) ExitConstant(c *parser.ConstantContext)               { log.Printf("%+v", c) }
+func (*Listener) ExitBinaryPlusExpr(c *parser.BinaryPlusExprContext)   { log.Printf("%+v", c) }
+func (*Listener) ExitBinaryPowerExpr(c *parser.BinaryPowerExprContext) { log.Printf("%+v", c) }
+func (*Listener) ExitParenExpr(c *parser.ParenExprContext)             { log.Printf("%+v", c) }
+func (*Listener) ExitVariable(c *parser.VariableContext)               { log.Printf("%+v", c) }
 func (*Listener) ExitEveryRule(ctx antlr.ParserRuleContext)            { log.Printf("%+v", ctx) }
 func (*Listener) ExitExpression(c *parser.ExpressionContext)           { log.Printf("%+v", c) }
 func (*Listener) ExitNumber(c *parser.NumberContext)                   { log.Printf("%+v", c) }
-func (*Listener) ExitProgramm(c *parser.ProgrammContext)               { log.Printf("%+v", c) }
+func (*Listener) ExitProgram(c *parser.ProgramContext)                 { log.Printf("%+v", c) }
 func (*Listener) ExitStatement(c *parser.StatementContext)             { log.Printf("%+v", c) }
 func (*Listener) ExitStatement_list(c *parser.Statement_listContext)   { log.Printf("%+v", c) }
 func (*Listener) ExitType_name(c *parser.Type_nameContext)             { log.Printf("%+v", c) }

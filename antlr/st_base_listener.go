@@ -21,11 +21,11 @@ func (s *BaseSTListener) EnterEveryRule(ctx antlr.ParserRuleContext) {}
 // ExitEveryRule is called when any rule is exited.
 func (s *BaseSTListener) ExitEveryRule(ctx antlr.ParserRuleContext) {}
 
-// EnterProgramm is called when production programm is entered.
-func (s *BaseSTListener) EnterProgramm(ctx *ProgrammContext) {}
+// EnterProgram is called when production program is entered.
+func (s *BaseSTListener) EnterProgram(ctx *ProgramContext) {}
 
-// ExitProgramm is called when production programm is exited.
-func (s *BaseSTListener) ExitProgramm(ctx *ProgrammContext) {}
+// ExitProgram is called when production program is exited.
+func (s *BaseSTListener) ExitProgram(ctx *ProgramContext) {}
 
 // EnterVar_declaration_blocks is called when production var_declaration_blocks is entered.
 func (s *BaseSTListener) EnterVar_declaration_blocks(ctx *Var_declaration_blocksContext) {}
@@ -69,17 +69,35 @@ func (s *BaseSTListener) EnterAssignment_statement(ctx *Assignment_statementCont
 // ExitAssignment_statement is called when production assignment_statement is exited.
 func (s *BaseSTListener) ExitAssignment_statement(ctx *Assignment_statementContext) {}
 
-// EnterExpression is called when production expression is entered.
-func (s *BaseSTListener) EnterExpression(ctx *ExpressionContext) {}
-
-// ExitExpression is called when production expression is exited.
-func (s *BaseSTListener) ExitExpression(ctx *ExpressionContext) {}
-
 // EnterConstant is called when production constant is entered.
 func (s *BaseSTListener) EnterConstant(ctx *ConstantContext) {}
 
 // ExitConstant is called when production constant is exited.
 func (s *BaseSTListener) ExitConstant(ctx *ConstantContext) {}
+
+// EnterBinaryPowerExpr is called when production binaryPowerExpr is entered.
+func (s *BaseSTListener) EnterBinaryPowerExpr(ctx *BinaryPowerExprContext) {}
+
+// ExitBinaryPowerExpr is called when production binaryPowerExpr is exited.
+func (s *BaseSTListener) ExitBinaryPowerExpr(ctx *BinaryPowerExprContext) {}
+
+// EnterVariable is called when production variable is entered.
+func (s *BaseSTListener) EnterVariable(ctx *VariableContext) {}
+
+// ExitVariable is called when production variable is exited.
+func (s *BaseSTListener) ExitVariable(ctx *VariableContext) {}
+
+// EnterBinaryPlusExpr is called when production binaryPlusExpr is entered.
+func (s *BaseSTListener) EnterBinaryPlusExpr(ctx *BinaryPlusExprContext) {}
+
+// ExitBinaryPlusExpr is called when production binaryPlusExpr is exited.
+func (s *BaseSTListener) ExitBinaryPlusExpr(ctx *BinaryPlusExprContext) {}
+
+// EnterParenExpr is called when production parenExpr is entered.
+func (s *BaseSTListener) EnterParenExpr(ctx *ParenExprContext) {}
+
+// ExitParenExpr is called when production parenExpr is exited.
+func (s *BaseSTListener) ExitParenExpr(ctx *ParenExprContext) {}
 
 // EnterNumber is called when production number is entered.
 func (s *BaseSTListener) EnterNumber(ctx *NumberContext) {}

@@ -1,6 +1,6 @@
 grammar ST;
 
-programm :
+program :
     'PROGRAM' identifier=ID 
         var_declaration_blocks
         statement_list 
@@ -25,9 +25,12 @@ statement : assignment_statement ';'; // TODO другие виды выраже
 
 assignment_statement : left=ID ':=' right=expression; // TODO другие виды присваиваний?
 
-expression : constant; // TODO не только константы, но и выражения
-
-constant : number; // TODO не только число
+expression : number                                         #constant
+           | ID                                             #variable
+           | '(' sub=expression ')'                         #parenExpr
+           | left=expression op =('*'|'/') right=expression	#binaryPowerExpr
+           | left=expression op =('+'|'-') right=expression	#binaryPlusExpr
+; // TODO остальные типы выражений
 
 number : Integer; // TODO не только целое
 

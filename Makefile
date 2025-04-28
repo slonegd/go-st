@@ -11,7 +11,7 @@ vendor:
 	go mod vendor
 
 tree:
-	antlr4-parse ./antlr/ST.g4 programm -gui < ./tests/001_simpliest.st 
+	antlr4-parse ./antlr/ST.g4 program -gui < ./tests/002_arithmetic.st 
 
 example:
 	go run ./tests/examples.go
