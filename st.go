@@ -11,6 +11,7 @@ type Program struct {
 	stack              []int
 	lastCondition      int // TODO слайс для вложенных
 	lastConditionIndex int
+	lastThenIndexes    []int
 }
 
 var _ parser.STListener = (*Program)(nil)

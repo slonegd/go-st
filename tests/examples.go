@@ -22,8 +22,9 @@ var (
 
 func main() {
 	_ = simpliest
-	example := arithmetic
+	_ = arithmetic
 	_ = iftest
+	example := iftest
 	// st_tokens(example)
 	// external_tokens(example)
 	// tree(example)

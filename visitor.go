@@ -154,20 +154,33 @@ func (x *Program) ExitCondition(c *parser.ConditionContext) {
 	})
 }
 func (x *Program) ExitThen_list(c *parser.Then_listContext) {
-	gotoIndex := len(x.actions)
+	gotoIndex := len(x.actions) + 1
+	lastThenIndex := gotoIndex - 1
+	x.lastThenIndexes = append(x.lastThenIndexes, lastThenIndex) // позже может быть переписан в else
 	x.actions = append(x.actions, func() int {
-		log.Printf("%d:\tnull\t\tstack: %v", gotoIndex, x.stack)
-		return 0
+		log.Printf("%d:\tgoto %v\t\tstack: %v", lastThenIndex, gotoIndex, x.stack)
+		return gotoIndex
 	})
-	x.actions[x.lastConditionIndex] = func() int {
+	lastConditionIndex := x.lastConditionIndex
+	x.actions[lastConditionIndex] = func() int {
 		if x.lastCondition != 0 {
 			return 0
 		}
-		log.Printf("%d:\tgoto %v\t\tstack: %v", x.lastConditionIndex, gotoIndex, x.stack)
+		log.Printf("%d:\tgoto %v\t\tstack: %v", lastConditionIndex, gotoIndex, x.stack)
 		return gotoIndex
 	}
 }
-func (*Program) ExitElse_list(c *parser.Else_listContext) {}
+func (x *Program) ExitElse_list(c *parser.Else_listContext) {
+	gotoIndex := len(x.actions) + 1
+	// TODO вытащить в exit if, так как else может не быть
+	for _, lastThenIndex := range x.lastThenIndexes {
+		x.actions[lastThenIndex] = func() int {
+			log.Printf("%d:\tgoto %v\t\tstack: %v", lastThenIndex, gotoIndex, x.stack)
+			return gotoIndex
+		}
+	}
+
+}
 
 func (x *Program) ExitConstant(c *parser.ConstantContext)  {}
 func (*Program) ExitEveryRule(ctx antlr.ParserRuleContext) {}

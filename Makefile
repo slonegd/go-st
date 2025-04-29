@@ -15,3 +15,6 @@ tree:
 
 example:
 	go run ./tests/examples.go
+
+test:
+	go test ./...
