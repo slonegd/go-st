@@ -15,7 +15,7 @@ var_declaration_block :
 	'END_VAR'
 ;
 
-var_declaration : (identifier=ID ':' type=type_name ';')*; // TODO значения по умолчанию
+var_declaration : (identifier+=ID ':' type+=type_name ';')*; // TODO значения по умолчанию
 
 type_name: 'INT'; // TODO другие типы
 
@@ -44,8 +44,8 @@ expression : number                                                             
            | ID                                                                 #variable
            | '(' sub=expression ')'                                             #parenExpr
            | left=expression op =('*'|'/'|'MOD') right=expression               #binaryPowerExpr
-           | left=expression op =('+'|'-') right=expression	                    #binaryPlusExpr
-           | left=expression op =('>'|'>='|'<'|'<='|'='|'<>') right=expression	#binaryCompareExpr
+           | left=expression op =('+'|'-') right=expression                     #binaryPlusExpr
+           | left=expression op =('>'|'>='|'<'|'<='|'='|'<>') right=expression  #binaryCompareExpr
 ; // TODO остальные типы выражений
 
 number : Integer; // TODO не только целое

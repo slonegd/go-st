@@ -25,9 +25,10 @@ func (x *Program) EnterType_name(c *parser.Type_nameContext) {
 	// TODO типизировать переменные
 }
 func (x *Program) EnterVar_declaration(c *parser.Var_declarationContext) {
-	varName := c.GetIdentifier().GetText()
-	x.Variables[varName] = 0 // TODO значения по умолчанию
-	log.Printf("variables %v", x.Variables)
+	for _, id := range c.GetIdentifier() {
+		varName := id.GetText()
+		x.Variables[varName] = 0 // TODO значения по умолчанию
+	}
 }
 func (*Program) EnterVar_declaration_block(c *parser.Var_declaration_blockContext)   {}
 func (*Program) EnterVar_declaration_blocks(c *parser.Var_declaration_blocksContext) {}
@@ -181,14 +182,16 @@ func (x *Program) ExitNumber(c *parser.NumberContext) {
 	})
 }
 
-func (*Program) ExitParenExpr(c *parser.ParenExprContext)                           {}
-func (*Program) ExitProgram(c *parser.ProgramContext)                               {}
-func (*Program) ExitStatement(c *parser.StatementContext)                           {}
-func (*Program) ExitStatement_list(c *parser.Statement_listContext)                 {}
-func (*Program) ExitType_name(c *parser.Type_nameContext)                           {}
-func (*Program) ExitVar_declaration(c *parser.Var_declarationContext)               {}
-func (*Program) ExitVar_declaration_block(c *parser.Var_declaration_blockContext)   {}
-func (*Program) ExitVar_declaration_blocks(c *parser.Var_declaration_blocksContext) {}
+func (*Program) ExitParenExpr(c *parser.ParenExprContext)                         {}
+func (*Program) ExitProgram(c *parser.ProgramContext)                             {}
+func (*Program) ExitStatement(c *parser.StatementContext)                         {}
+func (*Program) ExitStatement_list(c *parser.Statement_listContext)               {}
+func (*Program) ExitType_name(c *parser.Type_nameContext)                         {}
+func (*Program) ExitVar_declaration(c *parser.Var_declarationContext)             {}
+func (*Program) ExitVar_declaration_block(c *parser.Var_declaration_blockContext) {}
+func (x *Program) ExitVar_declaration_blocks(c *parser.Var_declaration_blocksContext) {
+	log.Printf("variables %v", x.Variables)
+}
 func (x *Program) ExitVariable(c *parser.VariableContext) {
 	step := len(x.actions)
 	varName := c.GetText()

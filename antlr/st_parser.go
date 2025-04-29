@@ -626,17 +626,29 @@ type IVar_declarationContext interface {
 	// GetParser returns the parser.
 	GetParser() antlr.Parser
 
-	// GetIdentifier returns the identifier token.
-	GetIdentifier() antlr.Token
+	// Get_ID returns the _ID token.
+	Get_ID() antlr.Token
 
-	// SetIdentifier sets the identifier token.
-	SetIdentifier(antlr.Token)
+	// Set_ID sets the _ID token.
+	Set_ID(antlr.Token)
 
-	// GetType_ returns the type_ rule contexts.
-	GetType_() IType_nameContext
+	// GetIdentifier returns the identifier token list.
+	GetIdentifier() []antlr.Token
 
-	// SetType_ sets the type_ rule contexts.
-	SetType_(IType_nameContext)
+	// SetIdentifier sets the identifier token list.
+	SetIdentifier([]antlr.Token)
+
+	// Get_type_name returns the _type_name rule contexts.
+	Get_type_name() IType_nameContext
+
+	// Set_type_name sets the _type_name rule contexts.
+	Set_type_name(IType_nameContext)
+
+	// GetType_ returns the type_ rule context list.
+	GetType_() []IType_nameContext
+
+	// SetType_ sets the type_ rule context list.
+	SetType_([]IType_nameContext)
 
 	// Getter signatures
 	AllID() []antlr.TerminalNode
@@ -651,8 +663,10 @@ type IVar_declarationContext interface {
 type Var_declarationContext struct {
 	antlr.BaseParserRuleContext
 	parser     antlr.Parser
-	identifier antlr.Token
-	type_      IType_nameContext
+	_ID        antlr.Token
+	identifier []antlr.Token
+	_type_name IType_nameContext
+	type_      []IType_nameContext
 }
 
 func NewEmptyVar_declarationContext() *Var_declarationContext {
@@ -682,13 +696,21 @@ func NewVar_declarationContext(parser antlr.Parser, parent antlr.ParserRuleConte
 
 func (s *Var_declarationContext) GetParser() antlr.Parser { return s.parser }
 
-func (s *Var_declarationContext) GetIdentifier() antlr.Token { return s.identifier }
+func (s *Var_declarationContext) Get_ID() antlr.Token { return s._ID }
 
-func (s *Var_declarationContext) SetIdentifier(v antlr.Token) { s.identifier = v }
+func (s *Var_declarationContext) Set_ID(v antlr.Token) { s._ID = v }
 
-func (s *Var_declarationContext) GetType_() IType_nameContext { return s.type_ }
+func (s *Var_declarationContext) GetIdentifier() []antlr.Token { return s.identifier }
 
-func (s *Var_declarationContext) SetType_(v IType_nameContext) { s.type_ = v }
+func (s *Var_declarationContext) SetIdentifier(v []antlr.Token) { s.identifier = v }
+
+func (s *Var_declarationContext) Get_type_name() IType_nameContext { return s._type_name }
+
+func (s *Var_declarationContext) Set_type_name(v IType_nameContext) { s._type_name = v }
+
+func (s *Var_declarationContext) GetType_() []IType_nameContext { return s.type_ }
+
+func (s *Var_declarationContext) SetType_(v []IType_nameContext) { s.type_ = v }
 
 func (s *Var_declarationContext) AllID() []antlr.TerminalNode {
 	return s.GetTokens(STParserID)
@@ -778,12 +800,13 @@ func (p *STParser) Var_declaration() (localctx IVar_declarationContext) {
 
 			var _m = p.Match(STParserID)
 
-			localctx.(*Var_declarationContext).identifier = _m
+			localctx.(*Var_declarationContext)._ID = _m
 			if p.HasError() {
 				// Recognition error - abort rule
 				goto errorExit
 			}
 		}
+		localctx.(*Var_declarationContext).identifier = append(localctx.(*Var_declarationContext).identifier, localctx.(*Var_declarationContext)._ID)
 		{
 			p.SetState(45)
 			p.Match(STParserT__4)
@@ -797,8 +820,9 @@ func (p *STParser) Var_declaration() (localctx IVar_declarationContext) {
 
 			var _x = p.Type_name()
 
-			localctx.(*Var_declarationContext).type_ = _x
+			localctx.(*Var_declarationContext)._type_name = _x
 		}
+		localctx.(*Var_declarationContext).type_ = append(localctx.(*Var_declarationContext).type_, localctx.(*Var_declarationContext)._type_name)
 		{
 			p.SetState(47)
 			p.Match(STParserT__5)
