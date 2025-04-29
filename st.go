@@ -5,14 +5,19 @@ import (
 	parser "github.com/slonegd/go-st/antlr"
 )
 
-type Program struct {
-	Variables          map[string]int
-	actions            []func() int // если возврат != 0 - перейти к действию (для ветвления)
-	stack              []int
-	lastCondition      int // TODO слайс для вложенных
-	lastConditionIndex int
-	lastThenIndexes    []int
-}
+type (
+	Program struct {
+		Variables map[string]int
+		actions   []func() int // если возврат != 0 - перейти к действию (для ветвления)
+		stack     []int
+		ifs       []*ifState
+	}
+	ifState struct {
+		lastCondition      int
+		lastConditionIndex int
+		thenIndexes        []int
+	}
+)
 
 var _ parser.STListener = (*Program)(nil)
 

@@ -138,48 +138,53 @@ func (x *Program) ExitBinaryCompareExpr(c *parser.BinaryCompareExprContext) {
 	})
 }
 
-func (x *Program) ExitIf_statement(c *parser.If_statementContext) {}
-
 // ExitCondition implements parser.STListener.
 func (x *Program) ExitCondition(c *parser.ConditionContext) {
+	if len(x.ifs) == 0 || len(x.ifs[len(x.ifs)-1].thenIndexes) == 0 {
+		x.ifs = append(x.ifs, &ifState{})
+	}
+	ifState := x.ifs[len(x.ifs)-1]
+	lastCondition := &ifState.lastCondition
 	x.actions = append(x.actions, func() int {
-		x.lastCondition = x.stack[len(x.stack)-1]
+		*lastCondition = x.stack[len(x.stack)-1]
 		x.stack = x.stack[:len(x.stack)-1]
 		return 0
 	})
-	x.lastConditionIndex = len(x.actions)
-	x.actions = append(x.actions, func() int {
-		// переход будет дополнен, когда определится куда
-		return 0
-	})
+	ifState.lastConditionIndex = len(x.actions)
+	// место зарезервировано для перехода, который заполнится в конце then в зависимости от условия
+	x.actions = append(x.actions, nil)
 }
 func (x *Program) ExitThen_list(c *parser.Then_listContext) {
-	gotoIndex := len(x.actions) + 1
-	lastThenIndex := gotoIndex - 1
-	x.lastThenIndexes = append(x.lastThenIndexes, lastThenIndex) // позже может быть переписан в else
-	x.actions = append(x.actions, func() int {
-		log.Printf("%d:\tgoto %v\t\tstack: %v", lastThenIndex, gotoIndex, x.stack)
-		return gotoIndex
-	})
-	lastConditionIndex := x.lastConditionIndex
+	gotoIndex := len(x.actions)
+	lastThenIndex := gotoIndex
+	ifState := x.ifs[len(x.ifs)-1]
+	ifState.thenIndexes = append(ifState.thenIndexes, lastThenIndex)
+	x.actions = append(x.actions, nil) // место зарезервировано для перехода, который заполнится в конце if
+
+	// надо делать копии и указатели, так как в замыкании затрётся
+	lastConditionIndex := ifState.lastConditionIndex
+	lastCondition := &ifState.lastCondition
 	x.actions[lastConditionIndex] = func() int {
-		if x.lastCondition != 0 {
+		if *lastCondition != 0 {
 			return 0
 		}
-		log.Printf("%d:\tgoto %v\t\tstack: %v", lastConditionIndex, gotoIndex, x.stack)
-		return gotoIndex
+		log.Printf("%d:\tgoto %v\t\tstack: %v", lastConditionIndex, gotoIndex+1, x.stack)
+		return gotoIndex + 1
 	}
 }
-func (x *Program) ExitElse_list(c *parser.Else_listContext) {
-	gotoIndex := len(x.actions) + 1
-	// TODO вытащить в exit if, так как else может не быть
-	for _, lastThenIndex := range x.lastThenIndexes {
+func (x *Program) ExitElse_list(c *parser.Else_listContext) {}
+
+func (x *Program) ExitIf_statement(c *parser.If_statementContext) {
+	gotoIndex := len(x.actions)
+	ifState := x.ifs[len(x.ifs)-1]
+	for _, lastThenIndex := range ifState.thenIndexes {
+		lastThenIndex := lastThenIndex
 		x.actions[lastThenIndex] = func() int {
 			log.Printf("%d:\tgoto %v\t\tstack: %v", lastThenIndex, gotoIndex, x.stack)
 			return gotoIndex
 		}
 	}
-
+	x.ifs = x.ifs[:len(x.ifs)-1]
 }
 
 func (x *Program) ExitConstant(c *parser.ConstantContext)  {}

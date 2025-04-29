@@ -10,7 +10,7 @@ null
 ':='
 'IF'
 'THEN'
-'ELSEIF'
+'ELSIF'
 'ELSE'
 'END_IF'
 '('

@@ -34,7 +34,7 @@ func stParserInit() {
 	staticData := &STParserStaticData
 	staticData.LiteralNames = []string{
 		"", "'PROGRAM'", "'END_PROGRAM'", "'VAR'", "'END_VAR'", "':'", "';'",
-		"'INT'", "':='", "'IF'", "'THEN'", "'ELSEIF'", "'ELSE'", "'END_IF'",
+		"'INT'", "':='", "'IF'", "'THEN'", "'ELSIF'", "'ELSE'", "'END_IF'",
 		"'('", "')'", "'*'", "'/'", "'MOD'", "'+'", "'-'", "'>'", "'>='", "'<'",
 		"'<='", "'='", "'<>'",
 	}

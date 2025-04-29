@@ -30,7 +30,7 @@ assignment_statement : left=ID ':=' right=expression; // TODO другие ви�
 if_statement
 :
 	'IF' cond+=condition 'THEN' thenlist+=then_list
-	('ELSEIF' cond+=condition 'THEN' thenlist+=then_list)* 
+	('ELSIF' cond+=condition 'THEN' thenlist+=then_list)* 
 	('ELSE' elselist = else_list)?
 	'END_IF' ';'?
 ;

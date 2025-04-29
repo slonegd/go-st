@@ -37,7 +37,7 @@ WHITESPACE=29
 ':='=8
 'IF'=9
 'THEN'=10
-'ELSEIF'=11
+'ELSIF'=11
 'ELSE'=12
 'END_IF'=13
 '('=14
