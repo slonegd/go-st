@@ -21,15 +21,31 @@ type_name: 'INT'; // TODO другие типы
 
 statement_list : (statement)*;
 
-statement : assignment_statement ';'; // TODO другие виды выражений
+statement : assignment_statement ';'
+          | if_statement ';'?
+; // TODO другие виды выражений
 
 assignment_statement : left=ID ':=' right=expression; // TODO другие виды присваиваний?
 
-expression : number                                         #constant
-           | ID                                             #variable
-           | '(' sub=expression ')'                         #parenExpr
-           | left=expression op =('*'|'/') right=expression	#binaryPowerExpr
-           | left=expression op =('+'|'-') right=expression	#binaryPlusExpr
+if_statement
+:
+	'IF' cond=condition 'THEN' thenlist=then_list
+	// ('ELSEIF' cond+=condition 'THEN' thenlist+=then_list)* // TODO
+	('ELSE' elselist = else_list)?
+	'END_IF' ';'?
+;
+
+// семантически нужно отличать (для ветвления)
+condition : expression; // TODO bool_expression
+then_list : statement_list;
+else_list: statement_list;
+
+expression : number                                                             #constant
+           | ID                                                                 #variable
+           | '(' sub=expression ')'                                             #parenExpr
+           | left=expression op =('*'|'/'|'MOD') right=expression               #binaryPowerExpr
+           | left=expression op =('+'|'-') right=expression	                    #binaryPlusExpr
+           | left=expression op =('>'|'>='|'<'|'<='|'='|'<>') right=expression	#binaryCompareExpr
 ; // TODO остальные типы выражений
 
 number : Integer; // TODO не только целое

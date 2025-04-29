@@ -1,9 +1,9 @@
 .PHONY: all vendor
 
-gen_external:
+gen-external:
 	antlr4 -Dlanguage=Go ./antlr/external/ST_lexer.g4 ./antlr/external/ST_parser.g4
 
-gen_antlr:
+gen-antlr:
 	antlr4 -Dlanguage=Go ./antlr/ST.g4 
 
 vendor:
@@ -11,7 +11,7 @@ vendor:
 	go mod vendor
 
 tree:
-	antlr4-parse ./antlr/ST.g4 program -gui < ./tests/002_arithmetic.st 
+	antlr4-parse ./antlr/ST.g4 program -gui < ./tests/003_iftest.st 
 
 example:
 	go run ./tests/examples.go

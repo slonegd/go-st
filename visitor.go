@@ -1,14 +1,16 @@
 package st
 
 import (
+	"log"
 	"strconv"
 
 	"github.com/antlr4-go/antlr/v4"
 	parser "github.com/slonegd/go-st/antlr"
 )
 
+// enters
+
 // implements parser.STListener.
-// EnterBinaryPowerExpr implements parser.STListener.
 func (*Program) EnterBinaryPowerExpr(c *parser.BinaryPowerExprContext)             {}
 func (x *Program) EnterAssignment_statement(c *parser.Assignment_statementContext) {}
 func (x *Program) EnterBinaryPlusExpr(c *parser.BinaryPlusExprContext)             {}
@@ -16,63 +18,166 @@ func (x *Program) EnterConstant(c *parser.ConstantContext)                      
 func (x *Program) EnterEveryRule(ctx antlr.ParserRuleContext)                      {}
 func (x *Program) EnterNumber(c *parser.NumberContext)                             {}
 func (x *Program) EnterParenExpr(c *parser.ParenExprContext)                       {}
-func (x *Program) EnterProgram(c *parser.ProgramContext) {
-	x.variablePrefix = c.GetIdentifier().GetText()
-}
-func (x *Program) EnterStatement(c *parser.StatementContext)           {}
-func (x *Program) EnterStatement_list(c *parser.Statement_listContext) {}
+func (x *Program) EnterProgram(c *parser.ProgramContext)                           {}
+func (x *Program) EnterStatement(c *parser.StatementContext)                       {}
+func (x *Program) EnterStatement_list(c *parser.Statement_listContext)             {}
 func (x *Program) EnterType_name(c *parser.Type_nameContext) {
 	// TODO типизировать переменные
 }
 func (x *Program) EnterVar_declaration(c *parser.Var_declarationContext) {
-	varName := x.variablePrefix + "." + c.GetIdentifier().GetText()
+	varName := c.GetIdentifier().GetText()
 	x.Variables[varName] = 0 // TODO значения по умолчанию
+	log.Printf("variables %v", x.Variables)
 }
 func (*Program) EnterVar_declaration_block(c *parser.Var_declaration_blockContext)   {}
 func (*Program) EnterVar_declaration_blocks(c *parser.Var_declaration_blocksContext) {}
 func (*Program) EnterVariable(c *parser.VariableContext)                             {}
+func (*Program) EnterBinaryCompareExpr(c *parser.BinaryCompareExprContext)           {}
+func (*Program) EnterIf_statement(c *parser.If_statementContext)                     {}
+func (*Program) EnterElse_list(c *parser.Else_listContext)                           {}
+func (*Program) EnterThen_list(c *parser.Then_listContext)                           {}
+func (*Program) EnterCondition(c *parser.ConditionContext)                           {}
+
+// exits
 
 func (x *Program) ExitAssignment_statement(c *parser.Assignment_statementContext) {
-	varName := x.variablePrefix + "." + c.GetLeft().GetText()
-	x.actions = append(x.actions, func() {
-		x.Variables[varName] = x.stack[len(x.stack)-1]
+	varName := c.GetLeft().GetText()
+	step := len(x.actions)
+	x.actions = append(x.actions, func() int {
+		value := x.stack[len(x.stack)-1]
 		x.stack = x.stack[:len(x.stack)-1]
+		x.Variables[varName] = value
+		log.Printf("%d:\t%v\t<-\t%v\t\tstack: %v", step, varName, value, x.stack)
+		return 0
 	})
 }
 func (x *Program) ExitBinaryPlusExpr(c *parser.BinaryPlusExprContext) {
-	x.actions = append(x.actions, func() {
+	step := len(x.actions)
+	x.actions = append(x.actions, func() int {
 		right := x.stack[len(x.stack)-1]
 		left := x.stack[len(x.stack)-2]
 		x.stack = x.stack[:len(x.stack)-2]
-		switch c.GetOp().GetText() { // TODO через id токена
+		op := c.GetOp().GetText()
+		switch op { // TODO через id токена
 		case "+":
 			x.stack = append(x.stack, left+right)
 		case "-":
 			x.stack = append(x.stack, left-right)
 		}
+		log.Printf("%d:\t%v\t<-\t%v %v %v\t\tstack: %v", step, x.stack[len(x.stack)-1], left, op, right, x.stack)
+		return 0
 	})
 }
 func (x *Program) ExitBinaryPowerExpr(c *parser.BinaryPowerExprContext) {
-	x.actions = append(x.actions, func() {
+	step := len(x.actions)
+	x.actions = append(x.actions, func() int {
 		right := x.stack[len(x.stack)-1]
 		left := x.stack[len(x.stack)-2]
 		x.stack = x.stack[:len(x.stack)-2]
-		switch c.GetOp().GetText() { // TODO через id токена или до замыкания
+		op := c.GetOp().GetText()
+		switch op { // TODO через id токена или до замыкания
 		case "*":
 			x.stack = append(x.stack, left*right)
 		case "/":
 			x.stack = append(x.stack, left/right)
+		case "MOD":
+			x.stack = append(x.stack, left%right)
 		}
+		log.Printf("%d:\t%v\t<-\t%v %v %v\t\tstack: %v", step, x.stack[len(x.stack)-1], left, op, right, x.stack)
+		return 0
 	})
 }
+func (x *Program) ExitBinaryCompareExpr(c *parser.BinaryCompareExprContext) {
+	step := len(x.actions)
+	x.actions = append(x.actions, func() int {
+		right := x.stack[len(x.stack)-1]
+		left := x.stack[len(x.stack)-2]
+		x.stack = x.stack[:len(x.stack)-2]
+		op := c.GetOp().GetText()
+		switch op { // TODO через id токена или до замыкания
+		case ">":
+			if left > right {
+				x.stack = append(x.stack, 1) // TODO когда будут типы тут bool
+			} else {
+				x.stack = append(x.stack, 0)
+			}
+		case ">=":
+			if left >= right {
+				x.stack = append(x.stack, 1)
+			} else {
+				x.stack = append(x.stack, 0)
+			}
+		case "<":
+			if left < right {
+				x.stack = append(x.stack, 1)
+			} else {
+				x.stack = append(x.stack, 0)
+			}
+		case "<=":
+			if left <= right {
+				x.stack = append(x.stack, 1)
+			} else {
+				x.stack = append(x.stack, 0)
+			}
+		case "=":
+			if left == right {
+				x.stack = append(x.stack, 1)
+			} else {
+				x.stack = append(x.stack, 0)
+			}
+		case "<>":
+			if left != right {
+				x.stack = append(x.stack, 1)
+			} else {
+				x.stack = append(x.stack, 0)
+			}
+		}
+		log.Printf("%d:\t%v\t<-\t%v %v %v\t\tstack: %v", step, x.stack[len(x.stack)-1], left, op, right, x.stack)
+		return 0
+	})
+}
+
+func (x *Program) ExitIf_statement(c *parser.If_statementContext) {}
+
+// ExitCondition implements parser.STListener.
+func (x *Program) ExitCondition(c *parser.ConditionContext) {
+	x.actions = append(x.actions, func() int {
+		x.lastCondition = x.stack[len(x.stack)-1]
+		x.stack = x.stack[:len(x.stack)-1]
+		return 0
+	})
+	x.lastConditionIndex = len(x.actions)
+	x.actions = append(x.actions, func() int {
+		// переход будет дополнен, когда определится куда
+		return 0
+	})
+}
+func (x *Program) ExitThen_list(c *parser.Then_listContext) {
+	gotoIndex := len(x.actions)
+	x.actions = append(x.actions, func() int {
+		log.Printf("%d:\tnull\t\tstack: %v", gotoIndex, x.stack)
+		return 0
+	})
+	x.actions[x.lastConditionIndex] = func() int {
+		if x.lastCondition != 0 {
+			return 0
+		}
+		log.Printf("%d:\tgoto %v\t\tstack: %v", x.lastConditionIndex, gotoIndex, x.stack)
+		return gotoIndex
+	}
+}
+func (*Program) ExitElse_list(c *parser.Else_listContext) {}
 
 func (x *Program) ExitConstant(c *parser.ConstantContext)  {}
 func (*Program) ExitEveryRule(ctx antlr.ParserRuleContext) {}
 
 func (x *Program) ExitNumber(c *parser.NumberContext) {
+	step := len(x.actions)
 	i, _ := strconv.Atoi(c.GetText())
-	x.actions = append(x.actions, func() {
+	x.actions = append(x.actions, func() int {
 		x.stack = append(x.stack, i)
+		log.Printf("%d:\t%v\t<-\t%v\t\tstack: %v", step, x.stack[len(x.stack)-1], x.stack[len(x.stack)-1], x.stack)
+		return 0
 	})
 }
 
@@ -85,9 +190,12 @@ func (*Program) ExitVar_declaration(c *parser.Var_declarationContext)           
 func (*Program) ExitVar_declaration_block(c *parser.Var_declaration_blockContext)   {}
 func (*Program) ExitVar_declaration_blocks(c *parser.Var_declaration_blocksContext) {}
 func (x *Program) ExitVariable(c *parser.VariableContext) {
-	varName := x.variablePrefix + "." + c.GetText()
-	x.actions = append(x.actions, func() {
+	step := len(x.actions)
+	varName := c.GetText()
+	x.actions = append(x.actions, func() int {
 		x.stack = append(x.stack, x.Variables[varName])
+		log.Printf("%d:\t%v\t<-\t%v\t\tstack: %v", step, x.stack[len(x.stack)-1], varName, x.stack)
+		return 0
 	})
 }
 func (*Program) VisitErrorNode(node antlr.ErrorNode)   {}

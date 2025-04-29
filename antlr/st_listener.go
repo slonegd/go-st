@@ -32,6 +32,21 @@ type STListener interface {
 	// EnterAssignment_statement is called when entering the assignment_statement production.
 	EnterAssignment_statement(c *Assignment_statementContext)
 
+	// EnterIf_statement is called when entering the if_statement production.
+	EnterIf_statement(c *If_statementContext)
+
+	// EnterCondition is called when entering the condition production.
+	EnterCondition(c *ConditionContext)
+
+	// EnterThen_list is called when entering the then_list production.
+	EnterThen_list(c *Then_listContext)
+
+	// EnterElse_list is called when entering the else_list production.
+	EnterElse_list(c *Else_listContext)
+
+	// EnterBinaryCompareExpr is called when entering the binaryCompareExpr production.
+	EnterBinaryCompareExpr(c *BinaryCompareExprContext)
+
 	// EnterConstant is called when entering the constant production.
 	EnterConstant(c *ConstantContext)
 
@@ -73,6 +88,21 @@ type STListener interface {
 
 	// ExitAssignment_statement is called when exiting the assignment_statement production.
 	ExitAssignment_statement(c *Assignment_statementContext)
+
+	// ExitIf_statement is called when exiting the if_statement production.
+	ExitIf_statement(c *If_statementContext)
+
+	// ExitCondition is called when exiting the condition production.
+	ExitCondition(c *ConditionContext)
+
+	// ExitThen_list is called when exiting the then_list production.
+	ExitThen_list(c *Then_listContext)
+
+	// ExitElse_list is called when exiting the else_list production.
+	ExitElse_list(c *Else_listContext)
+
+	// ExitBinaryCompareExpr is called when exiting the binaryCompareExpr production.
+	ExitBinaryCompareExpr(c *BinaryCompareExprContext)
 
 	// ExitConstant is called when exiting the constant production.
 	ExitConstant(c *ConstantContext)

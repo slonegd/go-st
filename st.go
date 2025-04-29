@@ -6,10 +6,11 @@ import (
 )
 
 type Program struct {
-	Variables      map[string]int
-	actions        []func()
-	variablePrefix string
-	stack          []int
+	Variables          map[string]int
+	actions            []func() int // если возврат != 0 - перейти к действию (для ветвления)
+	stack              []int
+	lastCondition      int // TODO слайс для вложенных
+	lastConditionIndex int
 }
 
 var _ parser.STListener = (*Program)(nil)
@@ -33,8 +34,13 @@ func NewProgram(script string) *Program {
 	return result
 }
 
-func (x *Program) Run() {
-	for _, action := range x.actions {
-		action()
+func (x *Program) Execute() {
+	for i := 0; i < len(x.actions); {
+		next := x.actions[i]()
+		if next != 0 {
+			i = next
+			continue
+		}
+		i++
 	}
 }

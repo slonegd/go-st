@@ -69,6 +69,36 @@ func (s *BaseSTListener) EnterAssignment_statement(ctx *Assignment_statementCont
 // ExitAssignment_statement is called when production assignment_statement is exited.
 func (s *BaseSTListener) ExitAssignment_statement(ctx *Assignment_statementContext) {}
 
+// EnterIf_statement is called when production if_statement is entered.
+func (s *BaseSTListener) EnterIf_statement(ctx *If_statementContext) {}
+
+// ExitIf_statement is called when production if_statement is exited.
+func (s *BaseSTListener) ExitIf_statement(ctx *If_statementContext) {}
+
+// EnterCondition is called when production condition is entered.
+func (s *BaseSTListener) EnterCondition(ctx *ConditionContext) {}
+
+// ExitCondition is called when production condition is exited.
+func (s *BaseSTListener) ExitCondition(ctx *ConditionContext) {}
+
+// EnterThen_list is called when production then_list is entered.
+func (s *BaseSTListener) EnterThen_list(ctx *Then_listContext) {}
+
+// ExitThen_list is called when production then_list is exited.
+func (s *BaseSTListener) ExitThen_list(ctx *Then_listContext) {}
+
+// EnterElse_list is called when production else_list is entered.
+func (s *BaseSTListener) EnterElse_list(ctx *Else_listContext) {}
+
+// ExitElse_list is called when production else_list is exited.
+func (s *BaseSTListener) ExitElse_list(ctx *Else_listContext) {}
+
+// EnterBinaryCompareExpr is called when production binaryCompareExpr is entered.
+func (s *BaseSTListener) EnterBinaryCompareExpr(ctx *BinaryCompareExprContext) {}
+
+// ExitBinaryCompareExpr is called when production binaryCompareExpr is exited.
+func (s *BaseSTListener) ExitBinaryCompareExpr(ctx *BinaryCompareExprContext) {}
+
 // EnterConstant is called when production constant is entered.
 func (s *BaseSTListener) EnterConstant(ctx *ConstantContext) {}
 
