@@ -9,7 +9,7 @@ type (
 	Program struct {
 		Variables map[string]int
 		actions   []func() int // если возврат != 0 - перейти к действию (для ветвления)
-		stack     []int
+		stack     Stack
 		ifs       []*ifState
 	}
 	ifState struct {
@@ -17,6 +17,7 @@ type (
 		lastConditionIndex int
 		thenIndexes        []int
 	}
+	Stack []int
 )
 
 var _ parser.STListener = (*Program)(nil)
@@ -49,4 +50,18 @@ func (x *Program) Execute() {
 		}
 		i++
 	}
+}
+
+func (x *Stack) Push(v int) {
+	*x = append(*x, v)
+}
+
+func (x *Stack) Pop() int {
+	size := len(*x)
+	if size == 0 {
+		return 0
+	}
+	r := (*x)[size-1]
+	*x = (*x)[:size-1]
+	return r
 }

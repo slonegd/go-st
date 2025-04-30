@@ -45,8 +45,7 @@ func (x *Program) ExitAssignment_statement(c *parser.Assignment_statementContext
 	varName := c.GetLeft().GetText()
 	step := len(x.actions)
 	x.actions = append(x.actions, func() int {
-		value := x.stack[len(x.stack)-1]
-		x.stack = x.stack[:len(x.stack)-1]
+		value := x.stack.Pop()
 		x.Variables[varName] = value
 		log.Printf("%d:\t%v\t<-\t%v\t\tstack: %v", step, varName, value, x.stack)
 		return 0
@@ -55,85 +54,76 @@ func (x *Program) ExitAssignment_statement(c *parser.Assignment_statementContext
 func (x *Program) ExitBinaryPlusExpr(c *parser.BinaryPlusExprContext) {
 	step := len(x.actions)
 	x.actions = append(x.actions, func() int {
-		right := x.stack[len(x.stack)-1]
-		left := x.stack[len(x.stack)-2]
-		x.stack = x.stack[:len(x.stack)-2]
+		right := x.stack.Pop()
+		left := x.stack.Pop()
+		var v int
 		op := c.GetOp().GetText()
 		switch op { // TODO через id токена
 		case "+":
-			x.stack = append(x.stack, left+right)
+			v = left + right
 		case "-":
-			x.stack = append(x.stack, left-right)
+			v = left - right
 		}
-		log.Printf("%d:\t%v\t<-\t%v %v %v\t\tstack: %v", step, x.stack[len(x.stack)-1], left, op, right, x.stack)
+		x.stack.Push(v)
+		log.Printf("%d:\t%v\t<-\t%v %v %v\t\tstack: %v", step, v, left, op, right, x.stack)
 		return 0
 	})
 }
 func (x *Program) ExitBinaryPowerExpr(c *parser.BinaryPowerExprContext) {
 	step := len(x.actions)
 	x.actions = append(x.actions, func() int {
-		right := x.stack[len(x.stack)-1]
-		left := x.stack[len(x.stack)-2]
-		x.stack = x.stack[:len(x.stack)-2]
+		right := x.stack.Pop()
+		left := x.stack.Pop()
+		var v int
 		op := c.GetOp().GetText()
 		switch op { // TODO через id токена или до замыкания
 		case "*":
-			x.stack = append(x.stack, left*right)
+			v = left * right
 		case "/":
-			x.stack = append(x.stack, left/right)
+			v = left / right
 		case "MOD":
-			x.stack = append(x.stack, left%right)
+			v = left % right
 		}
-		log.Printf("%d:\t%v\t<-\t%v %v %v\t\tstack: %v", step, x.stack[len(x.stack)-1], left, op, right, x.stack)
+		x.stack.Push(v)
+		log.Printf("%d:\t%v\t<-\t%v %v %v\t\tstack: %v", step, v, left, op, right, x.stack)
 		return 0
 	})
 }
 func (x *Program) ExitBinaryCompareExpr(c *parser.BinaryCompareExprContext) {
 	step := len(x.actions)
 	x.actions = append(x.actions, func() int {
-		right := x.stack[len(x.stack)-1]
-		left := x.stack[len(x.stack)-2]
-		x.stack = x.stack[:len(x.stack)-2]
+		right := x.stack.Pop()
+		left := x.stack.Pop()
+		var v int
 		op := c.GetOp().GetText()
 		switch op { // TODO через id токена или до замыкания
 		case ">":
 			if left > right {
-				x.stack = append(x.stack, 1) // TODO когда будут типы тут bool
-			} else {
-				x.stack = append(x.stack, 0)
+				v = 1 // TODO когда будут типы тут bool
 			}
 		case ">=":
 			if left >= right {
-				x.stack = append(x.stack, 1)
-			} else {
-				x.stack = append(x.stack, 0)
+				v = 1
 			}
 		case "<":
 			if left < right {
-				x.stack = append(x.stack, 1)
-			} else {
-				x.stack = append(x.stack, 0)
+				v = 1
 			}
 		case "<=":
 			if left <= right {
-				x.stack = append(x.stack, 1)
-			} else {
-				x.stack = append(x.stack, 0)
+				v = 1
 			}
 		case "=":
 			if left == right {
-				x.stack = append(x.stack, 1)
-			} else {
-				x.stack = append(x.stack, 0)
+				v = 1
 			}
 		case "<>":
 			if left != right {
-				x.stack = append(x.stack, 1)
-			} else {
-				x.stack = append(x.stack, 0)
+				v = 1
 			}
 		}
-		log.Printf("%d:\t%v\t<-\t%v %v %v\t\tstack: %v", step, x.stack[len(x.stack)-1], left, op, right, x.stack)
+		x.stack.Push(v)
+		log.Printf("%d:\t%v\t<-\t%v %v %v\t\tstack: %v", step, v, left, op, right, x.stack)
 		return 0
 	})
 }
@@ -146,8 +136,7 @@ func (x *Program) ExitCondition(c *parser.ConditionContext) {
 	ifState := x.ifs[len(x.ifs)-1]
 	lastCondition := &ifState.lastCondition
 	x.actions = append(x.actions, func() int {
-		*lastCondition = x.stack[len(x.stack)-1]
-		x.stack = x.stack[:len(x.stack)-1]
+		*lastCondition = x.stack.Pop()
 		return 0
 	})
 	ifState.lastConditionIndex = len(x.actions)
@@ -194,8 +183,8 @@ func (x *Program) ExitNumber(c *parser.NumberContext) {
 	step := len(x.actions)
 	i, _ := strconv.Atoi(c.GetText())
 	x.actions = append(x.actions, func() int {
-		x.stack = append(x.stack, i)
-		log.Printf("%d:\t%v\t<-\t%v\t\tstack: %v", step, x.stack[len(x.stack)-1], x.stack[len(x.stack)-1], x.stack)
+		x.stack.Push(i)
+		log.Printf("%d:\t%v\t<-\t%v\t\tstack: %v", step, i, i, x.stack)
 		return 0
 	})
 }
@@ -214,8 +203,9 @@ func (x *Program) ExitVariable(c *parser.VariableContext) {
 	step := len(x.actions)
 	varName := c.GetText()
 	x.actions = append(x.actions, func() int {
-		x.stack = append(x.stack, x.Variables[varName])
-		log.Printf("%d:\t%v\t<-\t%v\t\tstack: %v", step, x.stack[len(x.stack)-1], varName, x.stack)
+		v := x.Variables[varName]
+		x.stack.Push(v)
+		log.Printf("%d:\t%v\t<-\t%v\t\tstack: %v", step, v, varName, x.stack)
 		return 0
 	})
 }
