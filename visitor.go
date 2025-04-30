@@ -2,10 +2,10 @@ package st
 
 import (
 	"log"
-	"strconv"
 
 	"github.com/antlr4-go/antlr/v4"
 	parser "github.com/slonegd/go-st/antlr"
+	"github.com/slonegd/go-st/variant"
 )
 
 // enters
@@ -25,9 +25,11 @@ func (x *Program) EnterType_name(c *parser.Type_nameContext) {
 	// TODO типизировать переменные
 }
 func (x *Program) EnterVar_declaration(c *parser.Var_declarationContext) {
-	for _, id := range c.GetIdentifier() {
+	for i, id := range c.GetIdentifier() {
 		varName := id.GetText()
-		x.Variables[varName] = 0 // TODO значения по умолчанию
+		// TODO значения по умолчанию
+		v := variant.SetType(variant.NewAnyVariant(""), variant.TypeFromString(c.GetType_()[i].GetText()))
+		x.Variables[varName] = v
 	}
 }
 func (*Program) EnterVar_declaration_block(c *parser.Var_declaration_blockContext)   {}
@@ -56,13 +58,13 @@ func (x *Program) ExitBinaryPlusExpr(c *parser.BinaryPlusExprContext) {
 	x.actions = append(x.actions, func() int {
 		right := x.stack.Pop()
 		left := x.stack.Pop()
-		var v int
+		var v variant.Variant
 		op := c.GetOp().GetText()
 		switch op { // TODO через id токена
 		case "+":
-			v = left + right
+			v = variant.Plus(left, right)
 		case "-":
-			v = left - right
+			v = variant.Minus(left, right)
 		}
 		x.stack.Push(v)
 		log.Printf("%d:\t%v\t<-\t%v %v %v\t\tstack: %v", step, v, left, op, right, x.stack)
@@ -74,15 +76,15 @@ func (x *Program) ExitBinaryPowerExpr(c *parser.BinaryPowerExprContext) {
 	x.actions = append(x.actions, func() int {
 		right := x.stack.Pop()
 		left := x.stack.Pop()
-		var v int
+		var v variant.Variant
 		op := c.GetOp().GetText()
 		switch op { // TODO через id токена или до замыкания
 		case "*":
-			v = left * right
+			v = variant.Mult(left, right)
 		case "/":
-			v = left / right
+			v = variant.Divide(left, right)
 		case "MOD":
-			v = left % right
+			v = variant.Mod(left, right)
 		}
 		x.stack.Push(v)
 		log.Printf("%d:\t%v\t<-\t%v %v %v\t\tstack: %v", step, v, left, op, right, x.stack)
@@ -94,33 +96,21 @@ func (x *Program) ExitBinaryCompareExpr(c *parser.BinaryCompareExprContext) {
 	x.actions = append(x.actions, func() int {
 		right := x.stack.Pop()
 		left := x.stack.Pop()
-		var v int
+		var v variant.Variant
 		op := c.GetOp().GetText()
 		switch op { // TODO через id токена или до замыкания
 		case ">":
-			if left > right {
-				v = 1 // TODO когда будут типы тут bool
-			}
+			v = variant.Greather(left, right)
 		case ">=":
-			if left >= right {
-				v = 1
-			}
+			v = variant.GreatherOrEqual(left, right)
 		case "<":
-			if left < right {
-				v = 1
-			}
+			v = variant.Less(left, right)
 		case "<=":
-			if left <= right {
-				v = 1
-			}
+			v = variant.LessOrEqual(left, right)
 		case "=":
-			if left == right {
-				v = 1
-			}
+			v = variant.Equal(left, right)
 		case "<>":
-			if left != right {
-				v = 1
-			}
+			v = variant.NotEqual(left, right)
 		}
 		x.stack.Push(v)
 		log.Printf("%d:\t%v\t<-\t%v %v %v\t\tstack: %v", step, v, left, op, right, x.stack)
@@ -136,7 +126,7 @@ func (x *Program) ExitCondition(c *parser.ConditionContext) {
 	ifState := x.ifs[len(x.ifs)-1]
 	lastCondition := &ifState.lastCondition
 	x.actions = append(x.actions, func() int {
-		*lastCondition = x.stack.Pop()
+		*lastCondition = x.stack.Pop().Bool()
 		return 0
 	})
 	ifState.lastConditionIndex = len(x.actions)
@@ -154,7 +144,7 @@ func (x *Program) ExitThen_list(c *parser.Then_listContext) {
 	lastConditionIndex := ifState.lastConditionIndex
 	lastCondition := &ifState.lastCondition
 	x.actions[lastConditionIndex] = func() int {
-		if *lastCondition != 0 {
+		if *lastCondition {
 			return 0
 		}
 		log.Printf("%d:\tgoto %v\t\tstack: %v", lastConditionIndex, gotoIndex+1, x.stack)
@@ -181,10 +171,10 @@ func (*Program) ExitEveryRule(ctx antlr.ParserRuleContext) {}
 
 func (x *Program) ExitNumber(c *parser.NumberContext) {
 	step := len(x.actions)
-	i, _ := strconv.Atoi(c.GetText())
+	v := variant.NewAnyVariant(c.GetText())
 	x.actions = append(x.actions, func() int {
-		x.stack.Push(i)
-		log.Printf("%d:\t%v\t<-\t%v\t\tstack: %v", step, i, i, x.stack)
+		x.stack.Push(v)
+		log.Printf("%d:\t%v\t<-\t%v\t\tstack: %v", step, v, v, x.stack)
 		return 0
 	})
 }

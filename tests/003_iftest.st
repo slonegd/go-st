@@ -30,7 +30,7 @@ PROGRAM iftest
     mult := i;
   END_IF
 
-  IF mult <> 1 
+  IF mult <> 1 THEN
     test := mult*divisor;
   END_IF
 END_PROGRAM

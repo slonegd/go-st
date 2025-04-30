@@ -17,7 +17,11 @@ var_declaration_block :
 
 var_declaration : (identifier+=ID ':' type+=type_name ';')*; // TODO значения по умолчанию
 
-type_name: 'INT'; // TODO другие типы
+type_name: 'INT'
+         | 'REAL'
+         | 'BOOL'
+         | 'STRING'
+; // TODO другие типы
 
 statement_list : (statement)*;
 

@@ -11,14 +11,14 @@ func TestProgram_Execute_002(t *testing.T) {
 	require := require.New(t)
 
 	p := st.NewProgram(arithmetic)
-	require.Equal(0, p.Variables["i"])
-	require.Equal(0, p.Variables["j"])
+	require.Equal(int64(0), p.Variables["i"].Int())
+	require.Equal(int64(0), p.Variables["j"].Int())
 
 	p.Execute()
-	require.Equal(15, p.Variables["i"])
-	require.Equal(95, p.Variables["j"])
+	require.Equal(int64(15), p.Variables["i"].Int())
+	require.Equal(int64(95), p.Variables["j"].Int())
 
 	p.Execute()
-	require.Equal(110, p.Variables["i"])
-	require.Equal(-3515, p.Variables["j"])
+	require.Equal(int64(110), p.Variables["i"].Int())
+	require.Equal(int64(-3515), p.Variables["j"].Int())
 }
