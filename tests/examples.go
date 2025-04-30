@@ -87,6 +87,7 @@ func tree(example string) {
 func program(example string) {
 	log.Printf("\n\n\t\t program")
 	program := st.NewProgram(example)
+	program.Print()
 	program.Execute()
 	log.Printf("results: %+v", program.Variables)
 	program.Execute()

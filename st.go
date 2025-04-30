@@ -1,6 +1,8 @@
 package st
 
 import (
+	"log"
+
 	"github.com/antlr4-go/antlr/v4"
 	parser "github.com/slonegd/go-st/antlr"
 	"github.com/slonegd/go-st/variant"
@@ -9,7 +11,7 @@ import (
 type (
 	Program struct {
 		Variables map[string]variant.Variant
-		actions   []func() int // если возврат != 0 - перейти к действию (для ветвления)
+		steps     []Step
 		stack     Stack
 		ifs       []*ifState
 	}
@@ -19,6 +21,11 @@ type (
 		thenIndexes        []int
 	}
 	Stack []variant.Variant
+	Step  struct {
+		number   int // номер по порядку
+		action   string
+		callback func() int // если возврат != 0 - перейти к действию (для ветвления)
+	}
 )
 
 var _ parser.STListener = (*Program)(nil)
@@ -43,13 +50,19 @@ func NewProgram(script string) *Program {
 }
 
 func (x *Program) Execute() {
-	for i := 0; i < len(x.actions); {
-		next := x.actions[i]()
+	for i := 0; i < len(x.steps); {
+		next := x.steps[i].callback()
 		if next != 0 {
 			i = next
 			continue
 		}
 		i++
+	}
+}
+
+func (x *Program) Print() {
+	for _, s := range x.steps {
+		log.Printf(s.action)
 	}
 }
 
