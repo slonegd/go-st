@@ -9,11 +9,11 @@ PROGRAM iftest
   i := i+1;
   IF i MOD 5 = 0 THEN
     divisor := 5;
-    IF i/5 = 1 THEN
+    IF i/5 = 1 THEN    // тест условия внутри условия
       mult := 1;
-    ELSIF i/5 = 2 THEN
+    ELSIF i/5 = 2 THEN // тест блока ELSIF
       mult := 2;
-    ELSE
+    ELSE               // тест блока ELSE
       mult := 3;
     END_IF
   ELSIF i MOD 4 = 0 THEN
@@ -28,8 +28,10 @@ PROGRAM iftest
   ELSIF i MOD 1 = 0 THEN
     divisor := 1;
     mult := i;
+  // тест условия c ELSIF без ELSE
   END_IF
 
+  // тест простого условия без ELSE
   IF mult <> 1 THEN
     test := mult*divisor;
   END_IF

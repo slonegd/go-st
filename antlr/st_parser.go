@@ -36,12 +36,12 @@ func stParserInit() {
 		"", "'PROGRAM'", "'END_PROGRAM'", "'VAR'", "'END_VAR'", "':'", "':='",
 		"';'", "'INT'", "'REAL'", "'BOOL'", "'STRING'", "'IF'", "'THEN'", "'ELSIF'",
 		"'ELSE'", "'END_IF'", "'('", "')'", "'*'", "'/'", "'MOD'", "'>'", "'>='",
-		"'<'", "'<='", "'='", "'<>'", "", "", "", "'+'", "'-'",
+		"'<'", "'<='", "'='", "'<>'", "", "", "'+'", "'-'",
 	}
 	staticData.SymbolicNames = []string{
 		"", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "",
-		"", "", "", "", "", "", "", "", "", "", "", "Integer", "ID", "WHITESPACE",
-		"PLUS", "MINUS",
+		"", "", "", "", "", "", "", "", "", "", "", "Integer", "ID", "PLUS",
+		"MINUS", "Comment", "WHITESPACE",
 	}
 	staticData.RuleNames = []string{
 		"program", "var_declaration_blocks", "var_declaration_block", "var_declaration",
@@ -51,7 +51,7 @@ func stParserInit() {
 	}
 	staticData.PredictionContextCache = antlr.NewPredictionContextCache()
 	staticData.serializedATN = []int32{
-		4, 1, 32, 147, 2, 0, 7, 0, 2, 1, 7, 1, 2, 2, 7, 2, 2, 3, 7, 3, 2, 4, 7,
+		4, 1, 33, 147, 2, 0, 7, 0, 2, 1, 7, 1, 2, 2, 7, 2, 2, 3, 7, 3, 2, 4, 7,
 		4, 2, 5, 7, 5, 2, 6, 7, 6, 2, 7, 7, 7, 2, 8, 7, 8, 2, 9, 7, 9, 2, 10, 7,
 		10, 2, 11, 7, 11, 2, 12, 7, 12, 2, 13, 7, 13, 2, 14, 7, 14, 2, 15, 7, 15,
 		1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 5, 1, 40, 8, 1, 10, 1, 12, 1,
@@ -66,8 +66,8 @@ func stParserInit() {
 		12, 1, 12, 1, 12, 1, 12, 5, 12, 130, 8, 12, 10, 12, 12, 12, 133, 9, 12,
 		1, 13, 1, 13, 3, 13, 137, 8, 13, 1, 14, 1, 14, 1, 14, 1, 14, 3, 14, 143,
 		8, 14, 1, 15, 1, 15, 1, 15, 0, 1, 24, 16, 0, 2, 4, 6, 8, 10, 12, 14, 16,
-		18, 20, 22, 24, 26, 28, 30, 0, 4, 1, 0, 8, 11, 1, 0, 19, 21, 1, 0, 31,
-		32, 1, 0, 22, 27, 146, 0, 32, 1, 0, 0, 0, 2, 41, 1, 0, 0, 0, 4, 44, 1,
+		18, 20, 22, 24, 26, 28, 30, 0, 4, 1, 0, 8, 11, 1, 0, 19, 21, 1, 0, 30,
+		31, 1, 0, 22, 27, 146, 0, 32, 1, 0, 0, 0, 2, 41, 1, 0, 0, 0, 4, 44, 1,
 		0, 0, 0, 6, 53, 1, 0, 0, 0, 8, 62, 1, 0, 0, 0, 10, 67, 1, 0, 0, 0, 12,
 		77, 1, 0, 0, 0, 14, 79, 1, 0, 0, 0, 16, 83, 1, 0, 0, 0, 18, 105, 1, 0,
 		0, 0, 20, 107, 1, 0, 0, 0, 22, 109, 1, 0, 0, 0, 24, 118, 1, 0, 0, 0, 26,
@@ -107,8 +107,8 @@ func stParserInit() {
 		133, 1, 0, 0, 0, 131, 129, 1, 0, 0, 0, 131, 132, 1, 0, 0, 0, 132, 25, 1,
 		0, 0, 0, 133, 131, 1, 0, 0, 0, 134, 137, 3, 28, 14, 0, 135, 137, 3, 30,
 		15, 0, 136, 134, 1, 0, 0, 0, 136, 135, 1, 0, 0, 0, 137, 27, 1, 0, 0, 0,
-		138, 139, 5, 31, 0, 0, 139, 143, 5, 28, 0, 0, 140, 141, 5, 32, 0, 0, 141,
-		143, 5, 28, 0, 0, 142, 138, 1, 0, 0, 0, 142, 140, 1, 0, 0, 0, 143, 29,
+		138, 139, 5, 30, 0, 0, 139, 143, 3, 30, 15, 0, 140, 141, 5, 31, 0, 0, 141,
+		143, 3, 30, 15, 0, 142, 138, 1, 0, 0, 0, 142, 140, 1, 0, 0, 0, 143, 29,
 		1, 0, 0, 0, 144, 145, 5, 28, 0, 0, 145, 31, 1, 0, 0, 0, 14, 41, 48, 58,
 		67, 75, 77, 94, 99, 103, 118, 129, 131, 136, 142,
 	}
@@ -178,9 +178,10 @@ const (
 	STParserT__26      = 27
 	STParserInteger    = 28
 	STParserID         = 29
-	STParserWHITESPACE = 30
-	STParserPLUS       = 31
-	STParserMINUS      = 32
+	STParserPLUS       = 30
+	STParserMINUS      = 31
+	STParserComment    = 32
+	STParserWHITESPACE = 33
 )
 
 // STParser rules.
@@ -2989,7 +2990,7 @@ type ISigned_integerContext interface {
 
 	// Getter signatures
 	PLUS() antlr.TerminalNode
-	Integer() antlr.TerminalNode
+	Integer() IIntegerContext
 	MINUS() antlr.TerminalNode
 
 	// IsSigned_integerContext differentiates from other interfaces.
@@ -3032,8 +3033,20 @@ func (s *Signed_integerContext) PLUS() antlr.TerminalNode {
 	return s.GetToken(STParserPLUS, 0)
 }
 
-func (s *Signed_integerContext) Integer() antlr.TerminalNode {
-	return s.GetToken(STParserInteger, 0)
+func (s *Signed_integerContext) Integer() IIntegerContext {
+	var t antlr.RuleContext
+	for _, ctx := range s.GetChildren() {
+		if _, ok := ctx.(IIntegerContext); ok {
+			t = ctx.(antlr.RuleContext)
+			break
+		}
+	}
+
+	if t == nil {
+		return nil
+	}
+
+	return t.(IIntegerContext)
 }
 
 func (s *Signed_integerContext) MINUS() antlr.TerminalNode {
@@ -3082,11 +3095,7 @@ func (p *STParser) Signed_integer() (localctx ISigned_integerContext) {
 		}
 		{
 			p.SetState(139)
-			p.Match(STParserInteger)
-			if p.HasError() {
-				// Recognition error - abort rule
-				goto errorExit
-			}
+			p.Integer()
 		}
 
 	case STParserMINUS:
@@ -3101,11 +3110,7 @@ func (p *STParser) Signed_integer() (localctx ISigned_integerContext) {
 		}
 		{
 			p.SetState(141)
-			p.Match(STParserInteger)
-			if p.HasError() {
-				// Recognition error - abort rule
-				goto errorExit
-			}
+			p.Integer()
 		}
 
 	default:

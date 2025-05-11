@@ -56,8 +56,8 @@ number : signed_integer
        | integer
 ; // TODO не только целое
 
-signed_integer: PLUS Integer
-              | MINUS Integer
+signed_integer: PLUS integer
+              | MINUS integer
 ;
 
 integer: Integer;
@@ -66,7 +66,12 @@ Integer : ('0'..'9')('0'..'9')*; // TODO другие записи целого 
 
 ID : ([a-zA-Z_]) ([$a-zA-Z0-9_])*;
 
-WHITESPACE: [ \r\n\t]+ -> skip;
-
 PLUS : '+';
 MINUS: '-';
+
+Comment : (
+               '//' ~( '\n' | '\r' )* '\r' ? '\n' 
+             | '(*' .*? '*)' 
+             | '/*' .*? '*/' 
+          ) -> channel(HIDDEN);
+WHITESPACE: [ \r\n\t]+ -> skip;

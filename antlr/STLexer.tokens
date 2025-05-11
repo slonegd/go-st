@@ -27,9 +27,10 @@ T__25=26
 T__26=27
 Integer=28
 ID=29
-WHITESPACE=30
-PLUS=31
-MINUS=32
+PLUS=30
+MINUS=31
+Comment=32
+WHITESPACE=33
 'PROGRAM'=1
 'END_PROGRAM'=2
 'VAR'=3
@@ -57,5 +58,5 @@ MINUS=32
 '<='=25
 '='=26
 '<>'=27
-'+'=31
-'-'=32
+'+'=30
+'-'=31

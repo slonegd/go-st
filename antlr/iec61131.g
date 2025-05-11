@@ -14,8 +14,8 @@ Identifier  : Letter ( Letter | Digit )*;
 // Table 3 - Comments
 Comment : (
                '//' ~( '\n' | '\r' )* '\r' ? '\n' 
-             | '(*' *? '*)' 
-             | '/*' *? '*/' 
+             | '(*' .*? '*)' 
+             | '/*' .*? '*/' 
           ) -> channel(HIDDEN);
 WS : ( ' ' | '\t' | '\r' | '\n' ) -> channel(HIDDEN); // white space
 EOL : '\n'; 
