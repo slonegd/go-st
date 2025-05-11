@@ -65,6 +65,12 @@ type STListener interface {
 	// EnterNumber is called when entering the number production.
 	EnterNumber(c *NumberContext)
 
+	// EnterSigned_integer is called when entering the signed_integer production.
+	EnterSigned_integer(c *Signed_integerContext)
+
+	// EnterInteger is called when entering the integer production.
+	EnterInteger(c *IntegerContext)
+
 	// ExitProgram is called when exiting the program production.
 	ExitProgram(c *ProgramContext)
 
@@ -121,4 +127,10 @@ type STListener interface {
 
 	// ExitNumber is called when exiting the number production.
 	ExitNumber(c *NumberContext)
+
+	// ExitSigned_integer is called when exiting the signed_integer production.
+	ExitSigned_integer(c *Signed_integerContext)
+
+	// ExitInteger is called when exiting the integer production.
+	ExitInteger(c *IntegerContext)
 }

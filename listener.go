@@ -43,6 +43,8 @@ func (*Program) EnterIf_statement(c *parser.If_statementContext)                
 func (*Program) EnterElse_list(c *parser.Else_listContext)                           {}
 func (*Program) EnterThen_list(c *parser.Then_listContext)                           {}
 func (*Program) EnterCondition(c *parser.ConditionContext)                           {}
+func (*Program) EnterInteger(c *parser.IntegerContext)                               {}
+func (*Program) EnterSigned_integer(c *parser.Signed_integerContext)                 {}
 
 // exits
 
@@ -225,5 +227,8 @@ func (x *Program) ExitVariable(c *parser.VariableContext) {
 	}
 	x.steps = append(x.steps, step)
 }
-func (*Program) VisitErrorNode(node antlr.ErrorNode)   {}
-func (*Program) VisitTerminal(node antlr.TerminalNode) {}
+
+func (*Program) ExitInteger(c *parser.IntegerContext)               {}
+func (*Program) ExitSigned_integer(c *parser.Signed_integerContext) {}
+func (*Program) VisitErrorNode(node antlr.ErrorNode)                {}
+func (*Program) VisitTerminal(node antlr.TerminalNode)              {}

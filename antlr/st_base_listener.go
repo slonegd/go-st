@@ -134,3 +134,15 @@ func (s *BaseSTListener) EnterNumber(ctx *NumberContext) {}
 
 // ExitNumber is called when production number is exited.
 func (s *BaseSTListener) ExitNumber(ctx *NumberContext) {}
+
+// EnterSigned_integer is called when production signed_integer is entered.
+func (s *BaseSTListener) EnterSigned_integer(ctx *Signed_integerContext) {}
+
+// ExitSigned_integer is called when production signed_integer is exited.
+func (s *BaseSTListener) ExitSigned_integer(ctx *Signed_integerContext) {}
+
+// EnterInteger is called when production integer is entered.
+func (s *BaseSTListener) EnterInteger(ctx *IntegerContext) {}
+
+// ExitInteger is called when production integer is exited.
+func (s *BaseSTListener) ExitInteger(ctx *IntegerContext) {}

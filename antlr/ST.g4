@@ -52,10 +52,21 @@ expression : number                                                             
            | left=expression op =('>'|'>='|'<'|'<='|'='|'<>') right=expression  #binaryCompareExpr
 ; // TODO остальные типы выражений
 
-number : Integer; // TODO не только целое
+number : signed_integer 
+       | integer
+; // TODO не только целое
+
+signed_integer: PLUS Integer
+              | MINUS Integer
+;
+
+integer: Integer;
 
 Integer : ('0'..'9')('0'..'9')*; // TODO другие записи целого числа: 16#
 
 ID : ([a-zA-Z_]) ([$a-zA-Z0-9_])*;
 
 WHITESPACE: [ \r\n\t]+ -> skip;
+
+PLUS : '+';
+MINUS: '-';
