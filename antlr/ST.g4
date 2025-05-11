@@ -11,11 +11,11 @@ var_declaration_blocks : (var_declaration_block)*;
 
 var_declaration_block :
 	'VAR'
-	var_declaration
+	var_declaration*
 	'END_VAR'
 ;
 
-var_declaration : (identifier+=ID ':' type+=type_name ';')*; // TODO значения по умолчанию
+var_declaration : identifier=ID ':' type=type_name ( ':=' default=number )? ';'; 
 
 type_name: 'INT'
          | 'REAL'

@@ -26,12 +26,14 @@ func (x *Program) EnterType_name(c *parser.Type_nameContext) {
 	// TODO типизировать переменные
 }
 func (x *Program) EnterVar_declaration(c *parser.Var_declarationContext) {
-	for i, id := range c.GetIdentifier() {
-		varName := id.GetText()
-		// TODO значения по умолчанию
-		v := variant.SetType(variant.NewAnyVariant(""), variant.TypeFromString(c.GetType_()[i].GetText()))
-		x.Variables[varName] = v
+	varName := c.GetIdentifier().GetText()
+	defaultValue := ""
+	if token := c.GetDefault_(); token != nil {
+		defaultValue = token.GetText()
 	}
+	valueType := c.GetType_().GetText()
+	v := variant.SetType(variant.NewAnyVariant(defaultValue), variant.TypeFromString(valueType))
+	x.Variables[varName] = v
 }
 func (*Program) EnterVar_declaration_block(c *parser.Var_declaration_blockContext)   {}
 func (*Program) EnterVar_declaration_blocks(c *parser.Var_declaration_blocksContext) {}
