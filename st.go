@@ -1,6 +1,7 @@
 package st
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/antlr4-go/antlr/v4"
@@ -10,10 +11,12 @@ import (
 
 type (
 	Program struct {
+		source    Source
 		Variables map[string]variant.Variant
 		steps     []Step
 		stack     Stack
 		ifs       []*ifState
+		err       error
 	}
 	ifState struct {
 		lastCondition      bool
@@ -28,10 +31,14 @@ type (
 	}
 )
 
-var _ parser.STListener = (*Program)(nil)
+var (
+	_ parser.STListener   = (*Program)(nil)
+	_ antlr.ErrorListener = (*Program)(nil)
+)
 
-func NewProgram(script string) *Program {
+func NewProgram(script string) (*Program, error) {
 	result := &Program{
+		source:    []rune(script),
 		Variables: make(map[string]variant.Variant),
 	}
 	// Setup the input
@@ -43,10 +50,15 @@ func NewProgram(script string) *Program {
 
 	// Create the Parser
 	p := parser.NewSTParser(stream)
+	p.BaseRecognizer.AddErrorListener(result)
 
 	// Finally parse the expression (by walking the tree)
 	antlr.ParseTreeWalkerDefault.Walk(result, p.Program())
-	return result
+	if p.SynErr != nil && p.SynErr.GetMessage() != "" {
+		result.err = fmt.Errorf(p.SynErr.GetMessage())
+	}
+
+	return result, result.err
 }
 
 func (x *Program) Execute() {

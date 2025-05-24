@@ -11,7 +11,7 @@ import (
 func TestProgram_Execute_003(t *testing.T) {
 	require := require.New(t)
 
-	p := st.NewProgram(iftest)
+	p, _ := st.NewProgram(iftest)
 	require.Equal(int64(0), p.Variables["i"].Int())
 	require.Equal(int64(0), p.Variables["divisor"].Int())
 

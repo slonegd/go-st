@@ -10,7 +10,7 @@ import (
 func TestProgram_Execute_002(t *testing.T) {
 	require := require.New(t)
 
-	p := st.NewProgram(arithmetic)
+	p, _ := st.NewProgram(arithmetic)
 	require.Equal(int64(0), p.Variables["i"].Int())
 	require.Equal(int64(0), p.Variables["j"].Int())
 	require.Equal(int64(42), p.Variables["k"].Int())

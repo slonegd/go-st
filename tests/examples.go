@@ -18,12 +18,15 @@ var (
 	arithmetic string
 	//go:embed 003_iftest.st
 	iftest string
+	//go:embed 004_parse_err.st
+	parseErr string
 )
 
 func main() {
 	_ = simpliest
 	_ = arithmetic
 	_ = iftest
+	_ = parseErr
 	example := iftest
 	// st_tokens(example)
 	// external_tokens(example)
@@ -86,7 +89,7 @@ func tree(example string) {
 
 func program(example string) {
 	log.Printf("\n\n\t\t program")
-	program := st.NewProgram(example)
+	program, _ := st.NewProgram(example)
 	program.Print()
 	program.Execute()
 	log.Printf("results: %+v", program.Variables)
