@@ -10,9 +10,9 @@ type (
 	VM struct {
 		// не байты, так как далее я буду в операторах делать ссылки на значения
 		// но пока всё по книге, буду индексы на stack consts vars
-		bytecode Bytecode
-		consts   []variant.Variant // пока варианты, но потом лучше сделать просто гошные типы
-		vars     []variant.Variant // тоже лучше гошные типы
+		Bytecode Bytecode
+		Consts   []variant.Variant // пока варианты, но потом лучше сделать просто гошные типы
+		Vars     []variant.Variant // тоже лучше гошные типы
 		stack    Stack
 	}
 	Op       uintptr
@@ -29,15 +29,15 @@ func New() *VM {
 }
 
 func (x *VM) Execute() {
-	for i := 0; i < len(x.bytecode); {
-		action, offset := x.bytecode[i:].getAction()
+	for i := 0; i < len(x.Bytecode); {
+		action, offset := x.Bytecode[i:].getAction()
 		jump := x.ExecuteOne(action)
 		if jump != 0 {
 			i = jump
 		} else {
 			i += offset
 		}
-		if offset > len(x.bytecode) {
+		if offset > len(x.Bytecode) {
 			return
 		}
 	}
@@ -46,19 +46,37 @@ func (x *VM) Execute() {
 func (x *VM) ExecuteOne(a Action) (jump int) {
 	switch a.Op {
 	case PushConst:
-		x.stack.Push(x.consts[a.Args[0]])
+		x.stack.Push(x.Consts[a.Args[0]])
 	case PushVar:
-		x.stack.Push(x.vars[a.Args[0]])
+		x.stack.Push(x.Vars[a.Args[0]])
 	case PopVar:
-		x.vars[a.Args[0]] = x.stack.Pop()
-	case SumInt:
-		left := x.stack.Pop()
+		x.Vars[a.Args[0]] = x.stack.Pop()
+	case PlusInt:
 		right := x.stack.Pop()
+		left := x.stack.Pop()
 		x.stack.Push(variant.Plus(left, right)) // лучше сумму без вариантов
+	case MinusInt:
+		right := x.stack.Pop()
+		left := x.stack.Pop()
+		x.stack.Push(variant.Minus(left, right))
+	case MultInt:
+		right := x.stack.Pop()
+		left := x.stack.Pop()
+		x.stack.Push(variant.Mult(left, right))
+	case DivInt:
+		right := x.stack.Pop()
+		left := x.stack.Pop()
+		x.stack.Push(variant.Divide(left, right))
+	case ModInt:
+		right := x.stack.Pop()
+		left := x.stack.Pop()
+		x.stack.Push(variant.Mod(left, right))
 	}
 	return 0
 }
 
+// TODO подумать о том, чтобы зафиксировать количество аргументов, тогда offset не нужен
+// через бенчмарк
 func (x Bytecode) getAction() (r Action, offset int) {
 	switch Op(x[0]) {
 	case PushConst:
@@ -67,10 +85,25 @@ func (x Bytecode) getAction() (r Action, offset int) {
 		return Action{Op: PushVar, Args: x[1:2]}, 2
 	case PopVar:
 		return Action{Op: PopVar, Args: x[1:2]}, 2
-	case SumInt:
-		return Action{Op: SumInt}, 1
+	case PlusInt:
+		return Action{Op: PlusInt}, 1
+	case MinusInt:
+		return Action{Op: MinusInt}, 1
+	case MultInt:
+		return Action{Op: MultInt}, 1
+	case DivInt:
+		return Action{Op: DivInt}, 1
+	case ModInt:
+		return Action{Op: DivInt}, 1
 	default:
 		return Action{}, math.MaxInt
+	}
+}
+
+func (x *Bytecode) AddOp(op Op, args ...uintptr) {
+	*x = append(*x, uintptr(op))
+	for _, a := range args {
+		*x = append(*x, a)
 	}
 }
 
@@ -78,7 +111,12 @@ const (
 	PushConst Op = iota
 	PushVar
 	PopVar
-	SumInt
+	PlusInt
+	MinusInt
+	MultInt
+	DivInt
+	ModInt
+	// не забыть: getAction ExecuteOne
 )
 
 func (x *Stack) Push(v variant.Variant) {

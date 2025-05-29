@@ -53,7 +53,7 @@ func (x *Program) ExitAssignment_statement(c *parser.Assignment_statementContext
 	step := Step{number: len(x.steps)}
 	step.action = fmt.Sprintf("step %04d: %s <- $1", step.number, varName)
 	step.callback = func() int {
-		log.Printf(step.action+"\t%v", x.stack)
+		// log.Printf(step.action+"\t%v", x.stack)
 		value := x.stack.Pop()
 		x.Variables[varName] = value
 		return 0
@@ -65,7 +65,7 @@ func (x *Program) ExitBinaryPlusExpr(c *parser.BinaryPlusExprContext) {
 	op := c.GetOp().GetText()
 	step.action = fmt.Sprintf("step %04d: $2 %s $1 ->", step.number, op)
 	step.callback = func() int {
-		log.Printf(step.action+"\t%v", x.stack)
+		// log.Printf(step.action+"\t%v", x.stack)
 		right := x.stack.Pop()
 		left := x.stack.Pop()
 		var v variant.Variant
@@ -85,7 +85,7 @@ func (x *Program) ExitBinaryPowerExpr(c *parser.BinaryPowerExprContext) {
 	op := c.GetOp().GetText()
 	step.action = fmt.Sprintf("step %04d: $2 %s $1 ->", step.number, op)
 	step.callback = func() int {
-		log.Printf(step.action+"\t%v", x.stack)
+		// log.Printf(step.action+"\t%v", x.stack)
 		right := x.stack.Pop()
 		left := x.stack.Pop()
 		var v variant.Variant
@@ -107,7 +107,7 @@ func (x *Program) ExitBinaryCompareExpr(c *parser.BinaryCompareExprContext) {
 	op := c.GetOp().GetText()
 	step.action = fmt.Sprintf("step %04d: $2 %s $1 ->", step.number, op)
 	step.callback = func() int {
-		log.Printf(step.action+"\t%v", x.stack)
+		// log.Printf(step.action+"\t%v", x.stack)
 		right := x.stack.Pop()
 		left := x.stack.Pop()
 		var v variant.Variant
@@ -141,9 +141,9 @@ func (x *Program) ExitCondition(c *parser.ConditionContext) {
 
 	step := Step{number: len(x.steps)}
 	step.action = fmt.Sprintf("step %04d: $1?", step.number)
-	action := step.action
+	// action := step.action
 	step.callback = func() int {
-		log.Printf(action+"\t\t%v", x.stack)
+		// log.Printf(action+"\t\t%v", x.stack)
 		*lastCondition = x.stack.Pop().Bool()
 		return 0
 	}
@@ -167,7 +167,7 @@ func (x *Program) ExitThen_list(c *parser.Then_listContext) {
 	stepRef := &x.steps[lastConditionIndex]
 	stepRef.action = fmt.Sprintf("step %04d: cond ? nop : goto %d", stepRef.number, gotoIndex)
 	stepRef.callback = func() int {
-		log.Printf(stepRef.action+", cond: %v", *lastCondition)
+		// log.Printf(stepRef.action+", cond: %v", *lastCondition)
 		if *lastCondition {
 			return 0
 		}
@@ -194,11 +194,14 @@ func (x *Program) ExitConstant(c *parser.ConstantContext)  {}
 func (*Program) ExitEveryRule(ctx antlr.ParserRuleContext) {}
 
 func (x *Program) ExitNumber(c *parser.NumberContext) {
+	if _, ok := c.GetParent().(*parser.Var_declarationContext); ok {
+		return // чтоб не класть на стек инициализацию
+	}
 	v := variant.NewAnyVariant(c.GetText())
 	step := Step{number: len(x.steps)}
 	step.action = fmt.Sprintf("step %04d: %v ->", step.number, v)
 	step.callback = func() int {
-		log.Printf(step.action+"\t%v", x.stack)
+		// log.Printf(step.action+"\t%v", x.stack)
 		x.stack.Push(v)
 		return 0
 	}
@@ -221,7 +224,7 @@ func (x *Program) ExitVariable(c *parser.VariableContext) {
 	step.action = fmt.Sprintf("step %04d: %v ->", step.number, varName)
 	step.callback = func() int {
 		v := x.Variables[varName]
-		log.Printf(step.action+" %v\t%v", v, x.stack)
+		// log.Printf(step.action+" %v\t%v", v, x.stack)
 		x.stack.Push(v)
 		return 0
 	}
