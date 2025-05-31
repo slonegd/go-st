@@ -1,6 +1,6 @@
 package stack
 
-// проверить бенчмарком замедляют ли дженерики
+// дженерики не замедляют, проверил бенчмарком
 type Stack[T any] []T
 
 func (x *Stack[T]) Push(v T) {
@@ -8,7 +8,6 @@ func (x *Stack[T]) Push(v T) {
 }
 
 func (x *Stack[T]) Pop() T {
-	// TODO наверное лучше через указатель на стек (проверить бенчмарком!)
 	size := len(*x)
 	r := (*x)[size-1]
 	*x = (*x)[:size-1]

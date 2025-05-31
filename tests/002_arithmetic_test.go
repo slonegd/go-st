@@ -53,10 +53,10 @@ func TestCompiler_Execute_002(t *testing.T) {
 // байткод чуть более понятен + возможно взятие переменных и констант не по индексу, а по указателю
 // TODO сначала проверю бэнчмарк с условиями, потом бенчмарк с указателями
 // TODO ну и операторы можно сделать типозависимыми, тогда меньше преобразований
-// TODO так же через операторы возможны оптимизации, например, брать аргумент прямо из констант, без стека
+// UPDATE использование фиксированного размера оператора с аргументами дало +20% прирост скорости
 // cpu: Intel(R) Core(TM) i5-6400 CPU @ 2.70GHz
-// BenchmarkProgram_Execute_002-4          1000000000               0.006458 ns/op
-// BenchmarkCompiler_Execute_002-4         1000000000               0.005709 ns/op
+// BenchmarkProgram_Execute_002-4          1000000000               0.006594 ns/op
+// BenchmarkCompiler_Execute_002-4         1000000000               0.005301 ns/op
 // BenchmarkGo_Execute_002-4               1000000000               0.0000611 ns/op
 func BenchmarkProgram_Execute_002(b *testing.B) {
 	p, _ := st.NewProgram(arithmetic)

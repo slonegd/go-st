@@ -2,7 +2,6 @@ package vm
 
 import (
 	"log"
-	"math"
 
 	"github.com/slonegd/go-st/stack"
 	"github.com/slonegd/go-st/variant"
@@ -19,11 +18,8 @@ type (
 		stack    stack.Stack[variant.Variant]
 	}
 	Op       uintptr
-	Bytecode []uintptr
-	Action   struct {
-		Op
-		Args []uintptr
-	}
+	Bytecode []Action
+	Action   [2]uintptr
 )
 
 func New() *VM {
@@ -32,27 +28,25 @@ func New() *VM {
 
 func (x *VM) Execute() {
 	for i := 0; i < len(x.Bytecode); {
-		action, offset := x.Bytecode[i:].getAction()
+		action := x.Bytecode[i]
 		jump := x.ExecuteOne(action)
 		if jump != 0 {
 			i = jump
 		} else {
-			i += offset
-		}
-		if offset > len(x.Bytecode) {
-			return
+			i++
 		}
 	}
 }
 
 func (x *VM) ExecuteOne(a Action) (jump int) {
-	switch a.Op {
+	op := Op(a[0])
+	switch op {
 	case PushConst:
-		x.stack.Push(x.Consts[a.Args[0]])
+		x.stack.Push(x.Consts[a[1]])
 	case PushVar:
-		x.stack.Push(x.Vars[a.Args[0]])
+		x.stack.Push(x.Vars[a[1]])
 	case PopVar:
-		x.Vars[a.Args[0]] = x.stack.Pop()
+		x.Vars[a[1]] = x.stack.Pop()
 	case PlusInt:
 		right := x.stack.Pop()
 		left := x.stack.Pop()
@@ -76,10 +70,10 @@ func (x *VM) ExecuteOne(a Action) (jump int) {
 	case IfFalse:
 		c := x.stack.Pop()
 		if !c.Bool() {
-			return int(a.Args[0])
+			return int(a[1])
 		}
 	case Jump:
-		return int(a.Args[0])
+		return int(a[1])
 	case GtInt:
 		right := x.stack.Pop()
 		left := x.stack.Pop()
@@ -108,50 +102,19 @@ func (x *VM) ExecuteOne(a Action) (jump int) {
 	return 0
 }
 
-// TODO подумать о том, чтобы зафиксировать количество аргументов, тогда offset не нужен
-// через бенчмарк
-func (x Bytecode) getAction() (r Action, offset int) {
-	op := Op(x[0])
-	switch op {
-	case PushConst:
-		return Action{Op: op, Args: x[1:2]}, 2
-	case PushVar:
-		return Action{Op: op, Args: x[1:2]}, 2
-	case PopVar:
-		return Action{Op: op, Args: x[1:2]}, 2
-	case PlusInt:
-		return Action{Op: op}, 1
-	case MinusInt:
-		return Action{Op: op}, 1
-	case MultInt:
-		return Action{Op: op}, 1
-	case DivInt:
-		return Action{Op: op}, 1
-	case ModInt:
-		return Action{Op: op}, 1
-	case IfFalse:
-		return Action{Op: op, Args: x[1:2]}, 2
-	case Jump:
-		return Action{Op: op, Args: x[1:2]}, 2
-	case GtInt, GteInt, LtInt, LteInt, EqInt, NeqInt:
-		return Action{Op: op}, 1
-	default:
-		return Action{}, math.MaxInt
-	}
-}
-
 func (x *Bytecode) AddOp(op Op, args ...uintptr) int {
-	i := len(*x)
-	*x = append(*x, uintptr(op))
-	for _, a := range args {
-		*x = append(*x, a)
+	a := [2]uintptr{uintptr(op), 0}
+	for i, arg := range args {
+		a[i+1] = arg
 	}
+	i := len(*x)
+	*x = append(*x, a)
 	return i
 }
 
 func (x *Bytecode) ChangeOpArgs(index int, args ...uintptr) {
 	for i, v := range args {
-		(*x)[index+1+i] = v
+		(*x)[index][i+1] = v
 	}
 }
 
@@ -177,18 +140,17 @@ const (
 )
 
 func (x *VM) Print() {
-	for i := 0; i < len(x.Bytecode); {
-		a, offset := x.Bytecode[i:].getAction()
-		switch a.Op {
+	for i, a := range x.Bytecode {
+		op := Op(a[0])
+		switch op {
 		case PushConst:
-			log.Printf("%04d: %s %v", i, a.Op, x.Consts[a.Args[0]])
+			log.Printf("%04d: %s %v", i, op, x.Consts[a[1]])
 		case PushVar, PopVar:
-			log.Printf("%04d: %s %s", i, a.Op, x.VarNames[int(a.Args[0])])
+			log.Printf("%04d: %s %s", i, op, x.VarNames[int(a[1])])
 		case PlusInt, MinusInt, MultInt, DivInt, ModInt, GtInt, GteInt, LtInt, LteInt, EqInt, NeqInt:
-			log.Printf("%04d: %s", i, a.Op)
+			log.Printf("%04d: %s", i, op)
 		case IfFalse, Jump:
-			log.Printf("%04d: %s %v", i, a.Op, a.Args[0])
+			log.Printf("%04d: %s %v", i, op, a[1])
 		}
-		i += offset
 	}
 }
