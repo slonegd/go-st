@@ -57,7 +57,7 @@ func TestCompiler_Execute_002(t *testing.T) {
 // cpu: Intel(R) Core(TM) i5-6400 CPU @ 2.70GHz
 // BenchmarkProgram_Execute_002-4          1000000000               0.006458 ns/op
 // BenchmarkCompiler_Execute_002-4         1000000000               0.005709 ns/op
-
+// BenchmarkGo_Execute_002-4               1000000000               0.0000611 ns/op
 func BenchmarkProgram_Execute_002(b *testing.B) {
 	p, _ := st.NewProgram(arithmetic)
 
@@ -75,4 +75,21 @@ func BenchmarkCompiler_Execute_002(b *testing.B) {
 	for range 10000 {
 		c.Execute()
 	}
+}
+
+func BenchmarkGo_Execute_002(b *testing.B) {
+	var i, j int
+	k := 42
+	f := func() {
+		i = 15 + j
+		j = 5 + 2*i*(30-i)/5
+		k = k + -2
+	}
+
+	b.ResetTimer()
+	for range 10000 {
+		f()
+	}
+	b.StopTimer()
+	b.Logf("%v %v %v", i, j, k)
 }

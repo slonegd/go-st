@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/slonegd/go-st"
+	"github.com/slonegd/go-st/compiler"
 	"github.com/stretchr/testify/require"
 )
 
@@ -81,4 +82,94 @@ func TestProgram_Execute_003(t *testing.T) {
 	require.Equal(int64(5), p.Variables["divisor"].Int())
 	require.Equal(int64(3), p.Variables["mult"].Int(), "проверка работы условия внутри другого условия, ветка else")
 	require.Equal(int64(15), p.Variables["test"].Int())
+}
+
+func TestCompiler_Execute_003(t *testing.T) {
+	require := require.New(t)
+
+	c := compiler.New()
+	err := c.Compile(iftest)
+	require.NoError(err)
+	require.Equal(int64(0), c.GetVar("i").Int())
+	require.Equal(int64(0), c.GetVar("divisor").Int())
+
+	c.VM.Print()
+
+	c.Execute()
+	require.Equal(int64(1), c.GetVar("i").Int())
+	require.Equal(int64(1), c.GetVar("divisor").Int(), "проверка последнего elsif без else в конце")
+
+	c.Execute()
+	require.Equal(int64(2), c.GetVar("i").Int())
+	require.Equal(int64(2), c.GetVar("divisor").Int(), "проверка внутреннего elsif")
+
+	c.Execute()
+	require.Equal(int64(3), c.GetVar("i").Int())
+	require.Equal(int64(3), c.GetVar("divisor").Int())
+
+	c.Execute()
+	require.Equal(int64(4), c.GetVar("i").Int())
+	require.Equal(int64(4), c.GetVar("divisor").Int())
+
+	c.Execute()
+	require.Equal(int64(5), c.GetVar("i").Int())
+	require.Equal(int64(5), c.GetVar("divisor").Int())
+	require.Equal(int64(1), c.GetVar("mult").Int())
+	require.Equal(int64(0), c.GetVar("test").Int(), "проверка простого if в конце (ни разу не сработал)")
+
+	c.Execute()
+	require.Equal(int64(6), c.GetVar("i").Int())
+	require.Equal(int64(3), c.GetVar("divisor").Int())
+	require.Equal(int64(2), c.GetVar("mult").Int())
+	require.Equal(int64(6), c.GetVar("test").Int(), "проверка простого if в конце (сработал первый раз)")
+
+	c.Execute()
+	require.Equal(int64(7), c.GetVar("i").Int())
+	require.Equal(int64(1), c.GetVar("divisor").Int())
+	require.Equal(int64(7), c.GetVar("mult").Int())
+	require.Equal(int64(7), c.GetVar("test").Int())
+
+	c.Execute()
+	require.Equal(int64(8), c.GetVar("i").Int())
+	require.Equal(int64(4), c.GetVar("divisor").Int())
+	require.Equal(int64(2), c.GetVar("mult").Int())
+	require.Equal(int64(8), c.GetVar("test").Int())
+
+	c.Execute()
+	c.Execute()
+	require.Equal(int64(10), c.GetVar("i").Int())
+	require.Equal(int64(5), c.GetVar("divisor").Int())
+	require.Equal(int64(2), c.GetVar("mult").Int(), "проверка работы условия внутри другого условия, ветка elif")
+	require.Equal(int64(10), c.GetVar("test").Int())
+
+	c.Execute()
+	c.Execute()
+	c.Execute()
+	c.Execute()
+	c.Execute()
+	require.Equal(int64(15), c.GetVar("i").Int())
+	require.Equal(int64(5), c.GetVar("divisor").Int())
+	require.Equal(int64(3), c.GetVar("mult").Int(), "проверка работы условия внутри другого условия, ветка else")
+	require.Equal(int64(15), c.GetVar("test").Int())
+}
+
+// BenchmarkProgram_Execute_003-4          1000000000               0.01047 ns/op
+// BenchmarkCompiler_Execute_003-4         1000000000               0.009396 ns/op
+func BenchmarkProgram_Execute_003(b *testing.B) {
+	p, _ := st.NewProgram(iftest)
+
+	b.ResetTimer()
+	for range 10000 {
+		p.Execute()
+	}
+}
+
+func BenchmarkCompiler_Execute_003(b *testing.B) {
+	c := compiler.New()
+	c.Compile(iftest)
+
+	b.ResetTimer()
+	for range 10000 {
+		c.Execute()
+	}
 }

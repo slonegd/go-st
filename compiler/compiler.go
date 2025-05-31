@@ -6,6 +6,7 @@ import (
 
 	"github.com/antlr4-go/antlr/v4"
 	parser "github.com/slonegd/go-st/antlr"
+	"github.com/slonegd/go-st/stack"
 	"github.com/slonegd/go-st/variant"
 	"github.com/slonegd/go-st/vm"
 )
@@ -13,6 +14,9 @@ import (
 type Compiler struct {
 	*vm.VM
 	varIndexes map[string]int
+	// для простановки jump интсрукций
+	ConditionJumpIndexes stack.Stack[int]
+	ThenJumpIndexes      stack.Stack[[]int]
 }
 
 func New() *Compiler {
@@ -73,6 +77,7 @@ func (x *Compiler) EnterVar_declaration(c *parser.Var_declarationContext) {
 	valueType := c.GetType_().GetText()
 	v := variant.SetType(variant.NewAnyVariant(defaultValue), variant.TypeFromString(valueType))
 	x.varIndexes[varName] = len(x.Vars)
+	x.VarNames[len(x.Vars)] = varName
 	x.Vars = append(x.VM.Vars, v)
 }
 func (*Compiler) EnterVar_declaration_block(c *parser.Var_declaration_blockContext)   {}
@@ -115,16 +120,40 @@ func (x *Compiler) ExitBinaryPowerExpr(c *parser.BinaryPowerExprContext) {
 	}
 }
 func (x *Compiler) ExitBinaryCompareExpr(c *parser.BinaryCompareExprContext) {
+	op := c.GetOp().GetText()
+	switch op { // TODO через id токена
+	case ">":
+		x.Bytecode.AddOp(vm.GtInt)
+	case ">=":
+		x.VM.Bytecode.AddOp(vm.GteInt)
+	case "<":
+		x.Bytecode.AddOp(vm.LtInt)
+	case "<=":
+		x.Bytecode.AddOp(vm.LteInt)
+	case "=":
+		x.Bytecode.AddOp(vm.EqInt)
+	case "<>":
+		x.Bytecode.AddOp(vm.NeqInt)
+	}
 }
 
 // ExitCondition implements parser.STListener.
 func (x *Compiler) ExitCondition(c *parser.ConditionContext) {
+	i := x.Bytecode.AddOp(vm.IfFalse, 0) // дозаполним после Then
+	x.ConditionJumpIndexes.Push(i)
 }
 func (x *Compiler) ExitThen_list(c *parser.Then_listContext) {
+	i := x.Bytecode.AddOp(vm.Jump, 0) // // дозаполним после Then ExitIf
+	x.ThenJumpIndexes.ChangeLast(func(v []int) []int { return append(v, i) })
+	jumpIndex := x.ConditionJumpIndexes.Pop()
+	x.Bytecode.ChangeOpArgs(jumpIndex, uintptr(len(x.Bytecode)))
 }
 func (x *Compiler) ExitElse_list(c *parser.Else_listContext) {}
 
 func (x *Compiler) ExitIf_statement(c *parser.If_statementContext) {
+	for _, jumpIndex := range x.ThenJumpIndexes.Pop() {
+		x.Bytecode.ChangeOpArgs(jumpIndex, uintptr(len(x.Bytecode)))
+	}
 }
 
 func (x *Compiler) ExitConstant(c *parser.ConstantContext)  {}

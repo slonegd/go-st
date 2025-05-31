@@ -1,8 +1,10 @@
 package vm
 
 import (
+	"log"
 	"math"
 
+	"github.com/slonegd/go-st/stack"
 	"github.com/slonegd/go-st/variant"
 )
 
@@ -13,7 +15,8 @@ type (
 		Bytecode Bytecode
 		Consts   []variant.Variant // пока варианты, но потом лучше сделать просто гошные типы
 		Vars     []variant.Variant // тоже лучше гошные типы
-		stack    Stack
+		VarNames map[int]string
+		stack    stack.Stack[variant.Variant]
 	}
 	Op       uintptr
 	Bytecode []uintptr
@@ -21,11 +24,10 @@ type (
 		Op
 		Args []uintptr
 	}
-	Stack []variant.Variant
 )
 
 func New() *VM {
-	return &VM{}
+	return &VM{VarNames: make(map[int]string)}
 }
 
 func (x *VM) Execute() {
@@ -71,6 +73,37 @@ func (x *VM) ExecuteOne(a Action) (jump int) {
 		right := x.stack.Pop()
 		left := x.stack.Pop()
 		x.stack.Push(variant.Mod(left, right))
+	case IfFalse:
+		c := x.stack.Pop()
+		if !c.Bool() {
+			return int(a.Args[0])
+		}
+	case Jump:
+		return int(a.Args[0])
+	case GtInt:
+		right := x.stack.Pop()
+		left := x.stack.Pop()
+		x.stack.Push(variant.Greather(left, right))
+	case GteInt:
+		right := x.stack.Pop()
+		left := x.stack.Pop()
+		x.stack.Push(variant.GreatherOrEqual(left, right))
+	case LtInt:
+		right := x.stack.Pop()
+		left := x.stack.Pop()
+		x.stack.Push(variant.Less(left, right))
+	case LteInt:
+		right := x.stack.Pop()
+		left := x.stack.Pop()
+		x.stack.Push(variant.LessOrEqual(left, right))
+	case EqInt:
+		right := x.stack.Pop()
+		left := x.stack.Pop()
+		x.stack.Push(variant.Equal(left, right))
+	case NeqInt:
+		right := x.stack.Pop()
+		left := x.stack.Pop()
+		x.stack.Push(variant.NotEqual(left, right))
 	}
 	return 0
 }
@@ -78,55 +111,84 @@ func (x *VM) ExecuteOne(a Action) (jump int) {
 // TODO подумать о том, чтобы зафиксировать количество аргументов, тогда offset не нужен
 // через бенчмарк
 func (x Bytecode) getAction() (r Action, offset int) {
-	switch Op(x[0]) {
+	op := Op(x[0])
+	switch op {
 	case PushConst:
-		return Action{Op: PushConst, Args: x[1:2]}, 2
+		return Action{Op: op, Args: x[1:2]}, 2
 	case PushVar:
-		return Action{Op: PushVar, Args: x[1:2]}, 2
+		return Action{Op: op, Args: x[1:2]}, 2
 	case PopVar:
-		return Action{Op: PopVar, Args: x[1:2]}, 2
+		return Action{Op: op, Args: x[1:2]}, 2
 	case PlusInt:
-		return Action{Op: PlusInt}, 1
+		return Action{Op: op}, 1
 	case MinusInt:
-		return Action{Op: MinusInt}, 1
+		return Action{Op: op}, 1
 	case MultInt:
-		return Action{Op: MultInt}, 1
+		return Action{Op: op}, 1
 	case DivInt:
-		return Action{Op: DivInt}, 1
+		return Action{Op: op}, 1
 	case ModInt:
-		return Action{Op: DivInt}, 1
+		return Action{Op: op}, 1
+	case IfFalse:
+		return Action{Op: op, Args: x[1:2]}, 2
+	case Jump:
+		return Action{Op: op, Args: x[1:2]}, 2
+	case GtInt, GteInt, LtInt, LteInt, EqInt, NeqInt:
+		return Action{Op: op}, 1
 	default:
 		return Action{}, math.MaxInt
 	}
 }
 
-func (x *Bytecode) AddOp(op Op, args ...uintptr) {
+func (x *Bytecode) AddOp(op Op, args ...uintptr) int {
+	i := len(*x)
 	*x = append(*x, uintptr(op))
 	for _, a := range args {
 		*x = append(*x, a)
 	}
+	return i
 }
 
+func (x *Bytecode) ChangeOpArgs(index int, args ...uintptr) {
+	for i, v := range args {
+		(*x)[index+1+i] = v
+	}
+}
+
+//go:generate go run .././vendor/golang.org/x/tools/cmd/stringer/stringer.go -type=Op
 const (
-	PushConst Op = iota
-	PushVar
-	PopVar
-	PlusInt
-	MinusInt
-	MultInt
-	DivInt
-	ModInt
-	// не забыть: getAction ExecuteOne
+	PushConst Op = iota // положить константу на стек
+	PushVar             // положить переменную на стек
+	PopVar              // забрать переменную со стека
+	PlusInt             // сумма 2 интов на стеке
+	MinusInt            // разность...
+	MultInt             // переменожение...
+	DivInt              // деление...
+	ModInt              // остаток от деления...
+	IfFalse             // если на стеке false перейти по метке
+	Jump                // перейти по метке
+	GtInt               // оператор больше для 2 интов на стеке
+	GteInt              // оператор больше либо равно для 2 интов на стеке
+	LtInt               // оператор меньше для 2 интов на стеке
+	LteInt              // оператор меньше для 2 интов на стеке
+	EqInt               // оператор равенства для 2 интов на стеке
+	NeqInt              // оператор неравенства для 2 интов на стеке
+	// не забыть: getAction ExecuteOne Print
 )
 
-func (x *Stack) Push(v variant.Variant) {
-	*x = append(*x, v)
-}
-
-func (x *Stack) Pop() variant.Variant {
-	// TODO наверное лучше через указатель на стек (проверить бенчмарком!)
-	size := len(*x)
-	r := (*x)[size-1]
-	*x = (*x)[:size-1]
-	return r
+func (x *VM) Print() {
+	for i := 0; i < len(x.Bytecode); {
+		a, offset := x.Bytecode[i:].getAction()
+		switch a.Op {
+		case PushConst:
+			log.Printf("%04d: %s %v", i, a.Op, x.Consts[a.Args[0]])
+		case PushVar, PopVar:
+			log.Printf("%04d: %s %s", i, a.Op, x.VarNames[int(a.Args[0])])
+		case PlusInt, MinusInt, MultInt, DivInt, ModInt, GtInt, GteInt, LtInt, LteInt, EqInt, NeqInt:
+			log.Printf("%04d: %s", i, a.Op)
+		case IfFalse, Jump:
+			log.Printf("%04d: %s %v", i, a.Op, a.Args[0])
+		}
+		i += offset
+	}
 }

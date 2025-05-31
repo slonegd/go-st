@@ -165,7 +165,7 @@ func (x *Program) ExitThen_list(c *parser.Then_listContext) {
 	lastCondition := &ifState.lastCondition
 
 	stepRef := &x.steps[lastConditionIndex]
-	stepRef.action = fmt.Sprintf("step %04d: cond ? nop : goto %d", stepRef.number, gotoIndex)
+	// stepRef.action = fmt.Sprintf("step %04d: cond ? nop : goto %d", stepRef.number, gotoIndex)
 	stepRef.callback = func() int {
 		// log.Printf(stepRef.action+", cond: %v", *lastCondition)
 		if *lastCondition {
@@ -183,7 +183,7 @@ func (x *Program) ExitIf_statement(c *parser.If_statementContext) {
 		lastThenIndex := lastThenIndex
 		x.steps[lastThenIndex].action = fmt.Sprintf("step %04d: goto %d", x.steps[lastThenIndex].number, gotoIndex)
 		x.steps[lastThenIndex].callback = func() int {
-			log.Printf(x.steps[lastThenIndex].action)
+			// log.Printf(x.steps[lastThenIndex].action)
 			return gotoIndex
 		}
 	}
