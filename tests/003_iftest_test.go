@@ -154,7 +154,7 @@ func TestCompiler_Execute_003(t *testing.T) {
 }
 
 // BenchmarkProgram_Execute_003-4          1000000000               0.01084 ns/op
-// BenchmarkCompiler_Execute_003-4         1000000000               0.007665 ns/op
+// BenchmarkCompiler_Execute_003-4         1000000000               0.006692 ns/op
 func BenchmarkProgram_Execute_003(b *testing.B) {
 	p, _ := st.NewProgram(iftest)
 

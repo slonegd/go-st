@@ -50,23 +50,23 @@ func (x *VM) ExecuteOne(a Action) (jump int) {
 	case PlusInt:
 		right := x.stack.Pop()
 		left := x.stack.Pop()
-		x.stack.Push(variant.Plus(left, right)) // лучше сумму без вариантов
+		x.stack.Push(variant.IntVariant(left.Int() + right.Int())) // лучше сумму без вариантов
 	case MinusInt:
 		right := x.stack.Pop()
 		left := x.stack.Pop()
-		x.stack.Push(variant.Minus(left, right))
+		x.stack.Push(variant.IntVariant(left.Int() - right.Int()))
 	case MultInt:
 		right := x.stack.Pop()
 		left := x.stack.Pop()
-		x.stack.Push(variant.Mult(left, right))
+		x.stack.Push(variant.IntVariant(left.Int() * right.Int()))
 	case DivInt:
 		right := x.stack.Pop()
 		left := x.stack.Pop()
-		x.stack.Push(variant.Divide(left, right))
+		x.stack.Push(variant.IntVariant(left.Int() / right.Int()))
 	case ModInt:
 		right := x.stack.Pop()
 		left := x.stack.Pop()
-		x.stack.Push(variant.Mod(left, right))
+		x.stack.Push(variant.IntVariant(left.Int() % right.Int()))
 	case IfFalse:
 		c := x.stack.Pop()
 		if !c.Bool() {
@@ -77,27 +77,27 @@ func (x *VM) ExecuteOne(a Action) (jump int) {
 	case GtInt:
 		right := x.stack.Pop()
 		left := x.stack.Pop()
-		x.stack.Push(variant.Greather(left, right))
+		x.stack.Push(variant.BoolVariant(left.Int() > right.Int()))
 	case GteInt:
 		right := x.stack.Pop()
 		left := x.stack.Pop()
-		x.stack.Push(variant.GreatherOrEqual(left, right))
+		x.stack.Push(variant.BoolVariant(left.Int() >= right.Int()))
 	case LtInt:
 		right := x.stack.Pop()
 		left := x.stack.Pop()
-		x.stack.Push(variant.Less(left, right))
+		x.stack.Push(variant.BoolVariant(left.Int() < right.Int()))
 	case LteInt:
 		right := x.stack.Pop()
 		left := x.stack.Pop()
-		x.stack.Push(variant.LessOrEqual(left, right))
+		x.stack.Push(variant.BoolVariant(left.Int() <= right.Int()))
 	case EqInt:
 		right := x.stack.Pop()
 		left := x.stack.Pop()
-		x.stack.Push(variant.Equal(left, right))
+		x.stack.Push(variant.BoolVariant(left.Int() == right.Int()))
 	case NeqInt:
 		right := x.stack.Pop()
 		left := x.stack.Pop()
-		x.stack.Push(variant.NotEqual(left, right))
+		x.stack.Push(variant.BoolVariant(left.Int() != right.Int()))
 	}
 	return 0
 }
