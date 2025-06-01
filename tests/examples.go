@@ -92,9 +92,9 @@ func program(example string) {
 	program, _ := st.NewProgram(example)
 	program.Print()
 	program.Execute()
-	log.Printf("results: %+v", program.Variables)
+	log.Printf("results: %+v", program.Variables())
 	program.Execute()
-	log.Printf("results: %+v", program.Variables)
+	log.Printf("results: %+v", program.Variables())
 }
 
 func printChildren(node antlr.Tree, prefix string) {

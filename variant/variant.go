@@ -72,7 +72,9 @@ type Int struct {
 	t Type
 }
 
-func (x *Int) Type() Type         { return x.t }
+func IntVariant(v int64) *Int { return &Int{v, INT} }
+
+func (x *Int) Type() Type         { return INT }
 func (x *Int) SetValue(v Variant) { x.v = v.Int() }
 func (x *Int) Bool() bool         { return x.v != 0 }
 func (x *Int) Int() int64         { return x.v }
@@ -81,6 +83,8 @@ func (x *Int) String() string     { return fmt.Sprintf("%s(%d)", x.t, x.v) }
 func (x *Int) ToString() string   { return fmt.Sprintf("%d", x.v) }
 
 type Bool struct{ v bool }
+
+func BoolVariant(v bool) *Bool { return &Bool{v} }
 
 func (x *Bool) Type() Type         { return BOOL }
 func (x *Bool) SetValue(v Variant) { x.v = v.Bool() }
@@ -172,7 +176,7 @@ func Plus(left Variant, right Variant) Variant {
 	}
 }
 
-func Minus(left Variant, right Variant) Variant {
+func Sub(left Variant, right Variant) Variant {
 	t := commonType(left, right)
 	switch t {
 	case BOOL:
