@@ -176,7 +176,7 @@ func Plus(left Variant, right Variant) Variant {
 	}
 }
 
-func Minus(left Variant, right Variant) Variant {
+func Sub(left Variant, right Variant) Variant {
 	t := commonType(left, right)
 	switch t {
 	case BOOL:

@@ -47,26 +47,26 @@ func (x *VM) ExecuteOne(a Action) (jump int) {
 		x.stack.Push(x.Vars[a[1]])
 	case PopVar:
 		x.Vars[a[1]] = x.stack.Pop()
-	case PlusInt:
+	case Plus:
 		right := x.stack.Pop()
 		left := x.stack.Pop()
-		x.stack.Push(variant.IntVariant(left.Int() + right.Int())) // лучше сумму без вариантов
-	case MinusInt:
+		x.stack.Push(variant.Plus(left, right)) // лучше сумму без вариантов
+	case Sub:
 		right := x.stack.Pop()
 		left := x.stack.Pop()
-		x.stack.Push(variant.IntVariant(left.Int() - right.Int()))
-	case MultInt:
+		x.stack.Push(variant.Sub(left, right))
+	case Mult:
 		right := x.stack.Pop()
 		left := x.stack.Pop()
-		x.stack.Push(variant.IntVariant(left.Int() * right.Int()))
-	case DivInt:
+		x.stack.Push(variant.Mult(left, right))
+	case Div:
 		right := x.stack.Pop()
 		left := x.stack.Pop()
-		x.stack.Push(variant.IntVariant(left.Int() / right.Int()))
-	case ModInt:
+		x.stack.Push(variant.Divide(left, right))
+	case Mod:
 		right := x.stack.Pop()
 		left := x.stack.Pop()
-		x.stack.Push(variant.IntVariant(left.Int() % right.Int()))
+		x.stack.Push(variant.Mod(left, right))
 	case IfFalse:
 		c := x.stack.Pop()
 		if !c.Bool() {
@@ -74,30 +74,30 @@ func (x *VM) ExecuteOne(a Action) (jump int) {
 		}
 	case Jump:
 		return int(a[1])
-	case GtInt:
+	case Gt:
 		right := x.stack.Pop()
 		left := x.stack.Pop()
-		x.stack.Push(variant.BoolVariant(left.Int() > right.Int()))
-	case GteInt:
+		x.stack.Push(variant.Greather(left, right))
+	case Gte:
 		right := x.stack.Pop()
 		left := x.stack.Pop()
-		x.stack.Push(variant.BoolVariant(left.Int() >= right.Int()))
-	case LtInt:
+		x.stack.Push(variant.GreatherOrEqual(left, right))
+	case Lt:
 		right := x.stack.Pop()
 		left := x.stack.Pop()
-		x.stack.Push(variant.BoolVariant(left.Int() < right.Int()))
-	case LteInt:
+		x.stack.Push(variant.Less(left, right))
+	case Lte:
 		right := x.stack.Pop()
 		left := x.stack.Pop()
-		x.stack.Push(variant.BoolVariant(left.Int() <= right.Int()))
-	case EqInt:
+		x.stack.Push(variant.LessOrEqual(left, right))
+	case Eq:
 		right := x.stack.Pop()
 		left := x.stack.Pop()
-		x.stack.Push(variant.BoolVariant(left.Int() == right.Int()))
-	case NeqInt:
+		x.stack.Push(variant.Equal(left, right))
+	case Neq:
 		right := x.stack.Pop()
 		left := x.stack.Pop()
-		x.stack.Push(variant.BoolVariant(left.Int() != right.Int()))
+		x.stack.Push(variant.NotEqual(left, right))
 	}
 	return 0
 }
@@ -123,20 +123,23 @@ const (
 	PushConst Op = iota // положить константу на стек
 	PushVar             // положить переменную на стек
 	PopVar              // забрать переменную со стека
-	PlusInt             // сумма 2 интов на стеке
-	MinusInt            // разность...
-	MultInt             // переменожение...
-	DivInt              // деление...
-	ModInt              // остаток от деления...
-	IfFalse             // если на стеке false перейти по метке
-	Jump                // перейти по метке
-	GtInt               // оператор больше для 2 интов на стеке
-	GteInt              // оператор больше либо равно для 2 интов на стеке
-	LtInt               // оператор меньше для 2 интов на стеке
-	LteInt              // оператор меньше для 2 интов на стеке
-	EqInt               // оператор равенства для 2 интов на стеке
-	NeqInt              // оператор неравенства для 2 интов на стеке
-	// не забыть: getAction ExecuteOne Print
+
+	Plus // сумма 2 вариантов (обобщённый тип) на стеке
+	Sub  // разность...
+	Mult // переменожение...
+	Div  // деление...
+	Mod  // остаток от деления...
+
+	Gt  // оператор больше для 2 интов на стеке
+	Gte // оператор больше либо равно для 2 интов на стеке
+	Lt  // оператор меньше для 2 интов на стеке
+	Lte // оператор меньше для 2 интов на стеке
+	Eq  // оператор равенства для 2 интов на стеке
+	Neq // оператор неравенства для 2 интов на стеке
+
+	IfFalse // если на стеке false перейти по метке
+	Jump    // перейти по метке
+	// не забыть: ExecuteOne Print
 )
 
 func (x *VM) Print() {
@@ -147,7 +150,7 @@ func (x *VM) Print() {
 			log.Printf("%04d: %s %v", i, op, x.Consts[a[1]])
 		case PushVar, PopVar:
 			log.Printf("%04d: %s %s", i, op, x.VarNames[int(a[1])])
-		case PlusInt, MinusInt, MultInt, DivInt, ModInt, GtInt, GteInt, LtInt, LteInt, EqInt, NeqInt:
+		case Plus, Sub, Mult, Div, Mod, Gt, Gte, Lt, Lte, Eq, Neq:
 			log.Printf("%04d: %s", i, op)
 		case IfFalse, Jump:
 			log.Printf("%04d: %s %v", i, op, a[1])

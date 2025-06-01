@@ -12,7 +12,7 @@ func TestProgram_Execute_004(t *testing.T) {
 
 	_, err := st.NewProgram(parseErr)
 	require.Error(err)
-	require.Equal(`
+	require.Equal(`compile: 
 03|    i : INT := 5;
 04|  END_VAR
 05|  i := 1x5;

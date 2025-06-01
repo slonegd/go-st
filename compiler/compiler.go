@@ -1,8 +1,7 @@
 package compiler
 
 import (
-	"fmt"
-	"log"
+	"errors"
 
 	"github.com/antlr4-go/antlr/v4"
 	parser "github.com/slonegd/go-st/antlr"
@@ -11,19 +10,38 @@ import (
 	"github.com/slonegd/go-st/vm"
 )
 
-type Compiler struct {
-	*vm.VM
-	varIndexes map[string]int
-	// для простановки jump интсрукций
-	ConditionJumpIndexes stack.Stack[int]
-	ThenJumpIndexes      stack.Stack[[]int]
-}
+type (
+	// создаёт стековую виртуальную машину с обобщёнными операторами (без семантики типов)
+	// TODO семантику типов сделать в оптимизаторе, где обощённые операторы будут заменться на типовые
+	Compiler struct {
+		*vm.VM
+		varIndexes map[string]int
+		// для простановки jump интсрукций
+		conditionJumpIndexes stack.Stack[int]
+		thenJumpIndexes      stack.Stack[[]int]
+		source               Source
+		err                  error
+	}
+	listener struct { // чтоб не засорять интерфейс Compiler методами от antlr
+		*Compiler
+	}
+)
+
+var (
+	_ parser.STListener   = (*listener)(nil)
+	_ antlr.ErrorListener = (*listener)(nil)
+)
 
 func New() *Compiler {
-	return &Compiler{VM: vm.New(), varIndexes: make(map[string]int)}
+	return &Compiler{
+		VM:         vm.New(),
+		varIndexes: make(map[string]int),
+	}
 }
 
 func (x *Compiler) Compile(script string) error {
+	x.source = Source(script)
+
 	// Setup the input
 	is := antlr.NewInputStream(script)
 
@@ -33,15 +51,17 @@ func (x *Compiler) Compile(script string) error {
 
 	// Create the Parser
 	p := parser.NewSTParser(stream)
-	// p.BaseRecognizer.AddErrorListener(result) // TODO
+
+	listener := listener{Compiler: x}
+	p.BaseRecognizer.AddErrorListener(listener)
 
 	// Finally parse the expression (by walking the tree)
-	antlr.ParseTreeWalkerDefault.Walk(x, p.Program())
+	antlr.ParseTreeWalkerDefault.Walk(listener, p.Program())
 	if p.SynErr != nil && p.SynErr.GetMessage() != "" {
-		return fmt.Errorf(p.SynErr.GetMessage())
+		return errors.New(p.SynErr.GetMessage())
 	}
 
-	return nil
+	return x.err
 }
 
 func (x *Compiler) GetVar(name string) variant.Variant {
@@ -52,139 +72,10 @@ func (x *Compiler) GetVar(name string) variant.Variant {
 	return x.Vars[i]
 }
 
-// enters
-
-// implements parser.STListener.
-func (*Compiler) EnterBinaryPowerExpr(c *parser.BinaryPowerExprContext)             {}
-func (x *Compiler) EnterAssignment_statement(c *parser.Assignment_statementContext) {}
-func (x *Compiler) EnterBinaryPlusExpr(c *parser.BinaryPlusExprContext)             {}
-func (x *Compiler) EnterConstant(c *parser.ConstantContext)                         {}
-func (x *Compiler) EnterEveryRule(ctx antlr.ParserRuleContext)                      {}
-func (x *Compiler) EnterNumber(c *parser.NumberContext)                             {}
-func (x *Compiler) EnterParenExpr(c *parser.ParenExprContext)                       {}
-func (x *Compiler) EnterProgram(c *parser.ProgramContext)                           {}
-func (x *Compiler) EnterStatement(c *parser.StatementContext)                       {}
-func (x *Compiler) EnterStatement_list(c *parser.Statement_listContext)             {}
-func (x *Compiler) EnterType_name(c *parser.Type_nameContext) {
-	// TODO типизировать переменные
-}
-func (x *Compiler) EnterVar_declaration(c *parser.Var_declarationContext) {
-	varName := c.GetIdentifier().GetText()
-	defaultValue := ""
-	if token := c.GetDefault_(); token != nil {
-		defaultValue = token.GetText()
+func (x *Compiler) Variables() map[string]variant.Variant {
+	r := make(map[string]variant.Variant, len(x.varIndexes))
+	for name, i := range x.varIndexes {
+		r[name] = x.Vars[i]
 	}
-	valueType := c.GetType_().GetText()
-	v := variant.SetType(variant.NewAnyVariant(defaultValue), variant.TypeFromString(valueType))
-	x.varIndexes[varName] = len(x.Vars)
-	x.VarNames[len(x.Vars)] = varName
-	x.Vars = append(x.VM.Vars, v)
+	return r
 }
-func (*Compiler) EnterVar_declaration_block(c *parser.Var_declaration_blockContext)   {}
-func (*Compiler) EnterVar_declaration_blocks(c *parser.Var_declaration_blocksContext) {}
-func (*Compiler) EnterVariable(c *parser.VariableContext)                             {}
-func (*Compiler) EnterBinaryCompareExpr(c *parser.BinaryCompareExprContext)           {}
-func (*Compiler) EnterIf_statement(c *parser.If_statementContext)                     {}
-func (*Compiler) EnterElse_list(c *parser.Else_listContext)                           {}
-func (*Compiler) EnterThen_list(c *parser.Then_listContext)                           {}
-func (*Compiler) EnterCondition(c *parser.ConditionContext)                           {}
-func (*Compiler) EnterInteger(c *parser.IntegerContext)                               {}
-func (*Compiler) EnterSigned_integer(c *parser.Signed_integerContext)                 {}
-
-// exits
-
-func (x *Compiler) ExitAssignment_statement(c *parser.Assignment_statementContext) {
-	varName := c.GetLeft().GetText()
-	i := x.varIndexes[varName]
-	x.Bytecode.AddOp(vm.PopVar, uintptr(i))
-
-}
-func (x *Compiler) ExitBinaryPlusExpr(c *parser.BinaryPlusExprContext) {
-	op := c.GetOp().GetText()
-	switch op { // TODO через id токена
-	case "+":
-		x.Bytecode.AddOp(vm.PlusInt)
-	case "-":
-		x.Bytecode.AddOp(vm.MinusInt)
-	}
-}
-func (x *Compiler) ExitBinaryPowerExpr(c *parser.BinaryPowerExprContext) {
-	op := c.GetOp().GetText()
-	switch op { // TODO через id токена
-	case "*":
-		x.Bytecode.AddOp(vm.MultInt)
-	case "/":
-		x.VM.Bytecode.AddOp(vm.DivInt)
-	case "MOD":
-		x.Bytecode.AddOp(vm.ModInt)
-	}
-}
-func (x *Compiler) ExitBinaryCompareExpr(c *parser.BinaryCompareExprContext) {
-	op := c.GetOp().GetText()
-	switch op { // TODO через id токена
-	case ">":
-		x.Bytecode.AddOp(vm.GtInt)
-	case ">=":
-		x.VM.Bytecode.AddOp(vm.GteInt)
-	case "<":
-		x.Bytecode.AddOp(vm.LtInt)
-	case "<=":
-		x.Bytecode.AddOp(vm.LteInt)
-	case "=":
-		x.Bytecode.AddOp(vm.EqInt)
-	case "<>":
-		x.Bytecode.AddOp(vm.NeqInt)
-	}
-}
-
-// ExitCondition implements parser.STListener.
-func (x *Compiler) ExitCondition(c *parser.ConditionContext) {
-	i := x.Bytecode.AddOp(vm.IfFalse, 0) // дозаполним после Then
-	x.ConditionJumpIndexes.Push(i)
-}
-func (x *Compiler) ExitThen_list(c *parser.Then_listContext) {
-	i := x.Bytecode.AddOp(vm.Jump, 0) // // дозаполним после Then ExitIf
-	x.ThenJumpIndexes.ChangeLast(func(v []int) []int { return append(v, i) })
-	jumpIndex := x.ConditionJumpIndexes.Pop()
-	x.Bytecode.ChangeOpArgs(jumpIndex, uintptr(len(x.Bytecode)))
-}
-func (x *Compiler) ExitElse_list(c *parser.Else_listContext) {}
-
-func (x *Compiler) ExitIf_statement(c *parser.If_statementContext) {
-	for _, jumpIndex := range x.ThenJumpIndexes.Pop() {
-		x.Bytecode.ChangeOpArgs(jumpIndex, uintptr(len(x.Bytecode)))
-	}
-}
-
-func (x *Compiler) ExitConstant(c *parser.ConstantContext)  {}
-func (*Compiler) ExitEveryRule(ctx antlr.ParserRuleContext) {}
-
-func (x *Compiler) ExitNumber(c *parser.NumberContext) {
-	if _, ok := c.GetParent().(*parser.Var_declarationContext); ok {
-		return // чтоб не класть на стек инициализацию
-	}
-	v := variant.NewAnyVariant(c.GetText())
-	x.Bytecode.AddOp(vm.PushConst, uintptr(len(x.Consts)))
-	x.Consts = append(x.Consts, v)
-}
-
-func (*Compiler) ExitParenExpr(c *parser.ParenExprContext)                         {}
-func (*Compiler) ExitProgram(c *parser.ProgramContext)                             {}
-func (*Compiler) ExitStatement(c *parser.StatementContext)                         {}
-func (*Compiler) ExitStatement_list(c *parser.Statement_listContext)               {}
-func (*Compiler) ExitType_name(c *parser.Type_nameContext)                         {}
-func (*Compiler) ExitVar_declaration(c *parser.Var_declarationContext)             {}
-func (*Compiler) ExitVar_declaration_block(c *parser.Var_declaration_blockContext) {}
-func (x *Compiler) ExitVar_declaration_blocks(c *parser.Var_declaration_blocksContext) {
-	log.Printf("variables %v, %v", x.varIndexes, x.Vars)
-}
-func (x *Compiler) ExitVariable(c *parser.VariableContext) {
-	varName := c.GetText()
-	i := x.varIndexes[varName]
-	x.Bytecode.AddOp(vm.PushVar, uintptr(i))
-}
-
-func (*Compiler) ExitInteger(c *parser.IntegerContext)               {}
-func (*Compiler) ExitSigned_integer(c *parser.Signed_integerContext) {}
-func (*Compiler) VisitErrorNode(node antlr.ErrorNode)                {}
-func (*Compiler) VisitTerminal(node antlr.TerminalNode)              {}
