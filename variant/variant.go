@@ -3,6 +3,7 @@ package variant
 import (
 	"fmt"
 	"strconv"
+	"unsafe"
 )
 
 type (
@@ -10,6 +11,7 @@ type (
 	Variant interface {
 		Type() Type
 		SetValue(Variant)
+		Pointer() uintptr
 		Bool() bool
 		Int() int64
 		Float64() float64
@@ -76,6 +78,7 @@ func IntVariant(v int64) *Int { return &Int{v, INT} }
 
 func (x *Int) Type() Type         { return INT }
 func (x *Int) SetValue(v Variant) { x.v = v.Int() }
+func (x *Int) Pointer() uintptr   { return uintptr(unsafe.Pointer(&(x.v))) }
 func (x *Int) Bool() bool         { return x.v != 0 }
 func (x *Int) Int() int64         { return x.v }
 func (x *Int) Float64() float64   { return float64(x.v) }
@@ -88,6 +91,7 @@ func BoolVariant(v bool) *Bool { return &Bool{v} }
 
 func (x *Bool) Type() Type         { return BOOL }
 func (x *Bool) SetValue(v Variant) { x.v = v.Bool() }
+func (x *Bool) Pointer() uintptr   { return uintptr(unsafe.Pointer(&x.v)) }
 func (x *Bool) Bool() bool         { return x.v }
 func (x *Bool) Int() int64 {
 	if x.v {
@@ -103,6 +107,7 @@ type String struct{ v string }
 
 func (x *String) Type() Type         { return STRING }
 func (x *String) SetValue(v Variant) { x.v = v.ToString() }
+func (x *String) Pointer() uintptr   { return uintptr(unsafe.Pointer(&x.v)) }
 func (x *String) Bool() bool         { r, _ := strconv.ParseBool(x.v); return r }
 func (x *String) Int() int64         { r, _ := strconv.ParseInt(x.v, 10, 64); return r }
 func (x *String) Float64() float64   { r, _ := strconv.ParseFloat(x.v, 64); return r }
@@ -113,6 +118,7 @@ type Float64 struct{ v float64 }
 
 func (x *Float64) Type() Type         { return LREAL }
 func (x *Float64) SetValue(v Variant) { x.v = v.Float64() }
+func (x *Float64) Pointer() uintptr   { return uintptr(unsafe.Pointer(&x.v)) }
 func (x *Float64) Bool() bool         { return x.v != 0 }
 func (x *Float64) Int() int64         { return int64(x.v) }
 func (x *Float64) Float64() float64   { return x.v }

@@ -12,23 +12,24 @@ func _() {
 	_ = x[PushVar-1]
 	_ = x[PopVar-2]
 	_ = x[Plus-3]
-	_ = x[Sub-4]
-	_ = x[Mult-5]
-	_ = x[Div-6]
-	_ = x[Mod-7]
-	_ = x[Gt-8]
-	_ = x[Gte-9]
-	_ = x[Lt-10]
-	_ = x[Lte-11]
-	_ = x[Eq-12]
-	_ = x[Neq-13]
-	_ = x[IfFalse-14]
-	_ = x[Jump-15]
+	_ = x[Plus_i16_p_c-4]
+	_ = x[Sub-5]
+	_ = x[Mult-6]
+	_ = x[Div-7]
+	_ = x[Mod-8]
+	_ = x[Gt-9]
+	_ = x[Gte-10]
+	_ = x[Lt-11]
+	_ = x[Lte-12]
+	_ = x[Eq-13]
+	_ = x[Neq-14]
+	_ = x[IfFalse-15]
+	_ = x[Jump-16]
 }
 
-const _Op_name = "PushConstPushVarPopVarPlusSubMultDivModGtGteLtLteEqNeqIfFalseJump"
+const _Op_name = "PushConstPushVarPopVarPlusPlus_i16_p_cSubMultDivModGtGteLtLteEqNeqIfFalseJump"
 
-var _Op_index = [...]uint8{0, 9, 16, 22, 26, 29, 33, 36, 39, 41, 44, 46, 49, 51, 54, 61, 65}
+var _Op_index = [...]uint8{0, 9, 16, 22, 26, 38, 41, 45, 48, 51, 53, 56, 58, 61, 63, 66, 73, 77}
 
 func (i Op) String() string {
 	if i >= Op(len(_Op_index)-1) {

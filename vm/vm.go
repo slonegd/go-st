@@ -19,7 +19,7 @@ type (
 	}
 	Op       uintptr
 	Bytecode []Action
-	Action   [2]uintptr
+	Action   [3]uintptr
 )
 
 func New() *VM {
@@ -103,7 +103,7 @@ func (x *VM) ExecuteOne(a Action) (jump int) {
 }
 
 func (x *Bytecode) AddOp(op Op, args ...uintptr) int {
-	a := [2]uintptr{uintptr(op), 0}
+	a := [3]uintptr{uintptr(op), 0, 0}
 	for i, arg := range args {
 		a[i+1] = arg
 	}
@@ -124,11 +124,12 @@ const (
 	PushVar             // положить переменную на стек
 	PopVar              // забрать переменную со стека
 
-	Plus // сумма 2 вариантов (обобщённый тип) на стеке
-	Sub  // разность...
-	Mult // переменожение...
-	Div  // деление...
-	Mod  // остаток от деления...
+	Plus         // сумма 2 вариантов (обобщённый тип) на стеке
+	Plus_i16_p_c // сумма int16, левый по указателю на переменную, второй аргументом
+	Sub          // разность...
+	Mult         // переменожение...
+	Div          // деление...
+	Mod          // остаток от деления...
 
 	Gt  // оператор больше для 2 интов на стеке
 	Gte // оператор больше либо равно для 2 интов на стеке
@@ -156,4 +157,8 @@ func (x *VM) Print() {
 			log.Printf("%04d: %s %v", i, op, a[1])
 		}
 	}
+}
+
+func (a Action) Op() Op {
+	return Op(a[0])
 }
