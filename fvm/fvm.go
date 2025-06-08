@@ -1,18 +1,14 @@
 package fvm
 
 import (
-	"errors"
-
 	"github.com/antlr4-go/antlr/v4"
 	parser "github.com/slonegd/go-st/antlr"
-	"github.com/slonegd/go-st/stack"
 	"github.com/slonegd/go-st/variant"
 )
 
 type (
 	FVM struct {
 		vars       map[string]variant.Variant
-		operators  stack.Stack[any] // any -> AnyOperator
 		statements []Statement
 	}
 	Operator[T any] struct {
@@ -40,20 +36,18 @@ func NewProgram(script string) (*FVM, error) {
 	// Create the Parser
 	p := parser.NewSTParser(stream)
 
+	p.BuildParseTrees = true
+
 	x := &FVM{vars: map[string]variant.Variant{}}
+	p.Program().Accept(x)
 	// listener := listener{Compiler: x}
 	// p.BaseRecognizer.AddErrorListener(listener)
 
 	// Finally parse the expression (by walking the tree)
-	antlr.ParseTreeWalkerDefault.Walk(x, p.Program())
-	if p.SynErr != nil && p.SynErr.GetMessage() != "" {
-		return nil, errors.New(p.SynErr.GetMessage())
-	}
-
-	x.statements = make([]Statement, 0, len(x.operators))
-	for _, s := range x.operators {
-		x.statements = append(x.statements, s.(Statement))
-	}
+	// antlr.ParseTreeWalkerDefault.Walk(x, p.Program())
+	// if p.SynErr != nil && p.SynErr.GetMessage() != "" {
+	// 	return nil, errors.New(p.SynErr.GetMessage())
+	// }
 
 	return x, nil // x.err
 }
