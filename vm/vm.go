@@ -15,7 +15,7 @@ type (
 		Consts   []variant.Variant // пока варианты, но потом лучше сделать просто гошные типы
 		Vars     []variant.Variant // тоже лучше гошные типы
 		VarNames map[int]string
-		stack    stack.Stack[variant.Variant]
+		stack    stack.Stack[any]
 	}
 	Op       uintptr
 	Bytecode []Action
@@ -42,62 +42,62 @@ func (x *VM) ExecuteOne(a Action) (jump int) {
 	op := Op(a[0])
 	switch op {
 	case PushConst:
-		x.stack.Push(x.Consts[a[1]])
+		x.stack.Push(x.Consts[a[1]].Int())
 	case PushVar:
-		x.stack.Push(x.Vars[a[1]])
+		x.stack.Push(x.Vars[a[1]].Int())
 	case PopVar:
-		x.Vars[a[1]] = x.stack.Pop()
+		*(*int64)(x.Vars[a[1]].Pointer()) = x.stack.Pop().(int64)
 	case Plus:
-		right := x.stack.Pop()
-		left := x.stack.Pop()
-		x.stack.Push(variant.Plus(left, right)) // лучше сумму без вариантов
+		right := x.stack.Pop().(int64)
+		left := x.stack.Pop().(int64)
+		x.stack.Push(left + right)
 	case Sub:
-		right := x.stack.Pop()
-		left := x.stack.Pop()
-		x.stack.Push(variant.Sub(left, right))
+		right := x.stack.Pop().(int64)
+		left := x.stack.Pop().(int64)
+		x.stack.Push(left - right)
 	case Mult:
-		right := x.stack.Pop()
-		left := x.stack.Pop()
-		x.stack.Push(variant.Mult(left, right))
+		right := x.stack.Pop().(int64)
+		left := x.stack.Pop().(int64)
+		x.stack.Push(left * right)
 	case Div:
-		right := x.stack.Pop()
-		left := x.stack.Pop()
-		x.stack.Push(variant.Divide(left, right))
+		right := x.stack.Pop().(int64)
+		left := x.stack.Pop().(int64)
+		x.stack.Push(left / right)
 	case Mod:
-		right := x.stack.Pop()
-		left := x.stack.Pop()
-		x.stack.Push(variant.Mod(left, right))
-	case IfFalse:
-		c := x.stack.Pop()
-		if !c.Bool() {
-			return int(a[1])
-		}
-	case Jump:
-		return int(a[1])
-	case Gt:
-		right := x.stack.Pop()
-		left := x.stack.Pop()
-		x.stack.Push(variant.Greather(left, right))
-	case Gte:
-		right := x.stack.Pop()
-		left := x.stack.Pop()
-		x.stack.Push(variant.GreatherOrEqual(left, right))
-	case Lt:
-		right := x.stack.Pop()
-		left := x.stack.Pop()
-		x.stack.Push(variant.Less(left, right))
-	case Lte:
-		right := x.stack.Pop()
-		left := x.stack.Pop()
-		x.stack.Push(variant.LessOrEqual(left, right))
-	case Eq:
-		right := x.stack.Pop()
-		left := x.stack.Pop()
-		x.stack.Push(variant.Equal(left, right))
-	case Neq:
-		right := x.stack.Pop()
-		left := x.stack.Pop()
-		x.stack.Push(variant.NotEqual(left, right))
+		right := x.stack.Pop().(int64)
+		left := x.stack.Pop().(int64)
+		x.stack.Push(left % right)
+		// case IfFalse:
+		// 	c := x.stack.Pop()
+		// 	if !c.Bool() {
+		// 		return int(a[1])
+		// 	}
+		// case Jump:
+		// 	return int(a[1])
+		// case Gt:
+		// 	right := x.stack.Pop()
+		// 	left := x.stack.Pop()
+		// 	x.stack.Push(variant.Greather(left, right))
+		// case Gte:
+		// 	right := x.stack.Pop()
+		// 	left := x.stack.Pop()
+		// 	x.stack.Push(variant.GreatherOrEqual(left, right))
+		// case Lt:
+		// 	right := x.stack.Pop()
+		// 	left := x.stack.Pop()
+		// 	x.stack.Push(variant.Less(left, right))
+		// case Lte:
+		// 	right := x.stack.Pop()
+		// 	left := x.stack.Pop()
+		// 	x.stack.Push(variant.LessOrEqual(left, right))
+		// case Eq:
+		// 	right := x.stack.Pop()
+		// 	left := x.stack.Pop()
+		// 	x.stack.Push(variant.Equal(left, right))
+		// case Neq:
+		// 	right := x.stack.Pop()
+		// 	left := x.stack.Pop()
+		// 	x.stack.Push(variant.NotEqual(left, right))
 	}
 	return 0
 }

@@ -3,6 +3,7 @@ package variant
 import (
 	"fmt"
 	"strconv"
+	"unsafe"
 )
 
 type (
@@ -15,6 +16,7 @@ type (
 		Float64() float64
 		ToString() string // преобразование
 		String() string   // для логирования
+		Pointer() unsafe.Pointer
 	}
 )
 
@@ -74,13 +76,14 @@ type Int struct {
 
 func IntVariant(v int64) *Int { return &Int{v, INT} }
 
-func (x *Int) Type() Type         { return INT }
-func (x *Int) SetValue(v Variant) { x.v = v.Int() }
-func (x *Int) Bool() bool         { return x.v != 0 }
-func (x *Int) Int() int64         { return x.v }
-func (x *Int) Float64() float64   { return float64(x.v) }
-func (x *Int) String() string     { return fmt.Sprintf("%s(%d)", x.t, x.v) }
-func (x *Int) ToString() string   { return fmt.Sprintf("%d", x.v) }
+func (x *Int) Type() Type              { return INT }
+func (x *Int) SetValue(v Variant)      { x.v = v.Int() }
+func (x *Int) Bool() bool              { return x.v != 0 }
+func (x *Int) Int() int64              { return x.v }
+func (x *Int) Float64() float64        { return float64(x.v) }
+func (x *Int) String() string          { return fmt.Sprintf("%s(%d)", x.t, x.v) }
+func (x *Int) ToString() string        { return fmt.Sprintf("%d", x.v) }
+func (x *Int) Pointer() unsafe.Pointer { return unsafe.Pointer(&x.v) }
 
 type Bool struct{ v bool }
 
@@ -95,29 +98,32 @@ func (x *Bool) Int() int64 {
 	}
 	return 0
 }
-func (x *Bool) Float64() float64 { return float64(x.Int()) }
-func (x *Bool) String() string   { return fmt.Sprintf("BOOL(%t)", x.v) }
-func (x *Bool) ToString() string { return fmt.Sprintf("%t", x.v) }
+func (x *Bool) Float64() float64        { return float64(x.Int()) }
+func (x *Bool) String() string          { return fmt.Sprintf("BOOL(%t)", x.v) }
+func (x *Bool) ToString() string        { return fmt.Sprintf("%t", x.v) }
+func (x *Bool) Pointer() unsafe.Pointer { return unsafe.Pointer(&x.v) }
 
 type String struct{ v string }
 
-func (x *String) Type() Type         { return STRING }
-func (x *String) SetValue(v Variant) { x.v = v.ToString() }
-func (x *String) Bool() bool         { r, _ := strconv.ParseBool(x.v); return r }
-func (x *String) Int() int64         { r, _ := strconv.ParseInt(x.v, 10, 64); return r }
-func (x *String) Float64() float64   { r, _ := strconv.ParseFloat(x.v, 64); return r }
-func (x *String) String() string     { return fmt.Sprintf("STRING(%q)", x.v) }
-func (x *String) ToString() string   { return x.v }
+func (x *String) Type() Type              { return STRING }
+func (x *String) SetValue(v Variant)      { x.v = v.ToString() }
+func (x *String) Bool() bool              { r, _ := strconv.ParseBool(x.v); return r }
+func (x *String) Int() int64              { r, _ := strconv.ParseInt(x.v, 10, 64); return r }
+func (x *String) Float64() float64        { r, _ := strconv.ParseFloat(x.v, 64); return r }
+func (x *String) String() string          { return fmt.Sprintf("STRING(%q)", x.v) }
+func (x *String) ToString() string        { return x.v }
+func (x *String) Pointer() unsafe.Pointer { return unsafe.Pointer(&x.v) }
 
 type Float64 struct{ v float64 }
 
-func (x *Float64) Type() Type         { return LREAL }
-func (x *Float64) SetValue(v Variant) { x.v = v.Float64() }
-func (x *Float64) Bool() bool         { return x.v != 0 }
-func (x *Float64) Int() int64         { return int64(x.v) }
-func (x *Float64) Float64() float64   { return x.v }
-func (x *Float64) String() string     { return fmt.Sprintf("REAL(%f)", x.v) }
-func (x *Float64) ToString() string   { return fmt.Sprintf("%f", x.v) }
+func (x *Float64) Type() Type              { return LREAL }
+func (x *Float64) SetValue(v Variant)      { x.v = v.Float64() }
+func (x *Float64) Bool() bool              { return x.v != 0 }
+func (x *Float64) Int() int64              { return int64(x.v) }
+func (x *Float64) Float64() float64        { return x.v }
+func (x *Float64) String() string          { return fmt.Sprintf("REAL(%f)", x.v) }
+func (x *Float64) ToString() string        { return fmt.Sprintf("%f", x.v) }
+func (x *Float64) Pointer() unsafe.Pointer { return unsafe.Pointer(&x.v) }
 
 type Any struct{ Variant }
 
