@@ -50,30 +50,30 @@ func (FVM) EnterSigned_integer(c *parser.Signed_integerContext)                 
 func (x *FVM) ExitAssignment_statement(c *parser.Assignment_statementContext) {
 	varName := c.GetLeft().GetText()
 	v := x.vars[varName]
-	x.runtime.Push(NewAssignStep((*int64)(v.Pointer()), x.runtime.Pop()))
+	x.operators.Push(NewAssignStep((*int64)(v.Pointer()), x.operators.Pop().(Int64Operator)))
 }
 func (x *FVM) ExitBinaryPlusExpr(c *parser.BinaryPlusExprContext) {
 	op := c.GetOp().GetText()
-	right := x.runtime.Pop()
-	left := x.runtime.Pop()
+	right := x.operators.Pop().(Int64Operator)
+	left := x.operators.Pop().(Int64Operator)
 	switch op { // TODO через id токена
 	case "+":
-		x.runtime.Push(NewBinaryPlusStep(left, right))
+		x.operators.Push(NewBinaryPlusStep(left, right))
 	case "-":
-		x.runtime.Push(NewBinarySubStep(left, right))
+		x.operators.Push(NewBinarySubStep(left, right))
 	}
 }
 func (x *FVM) ExitBinaryPowerExpr(c *parser.BinaryPowerExprContext) {
 	op := c.GetOp().GetText()
-	right := x.runtime.Pop()
-	left := x.runtime.Pop()
+	right := x.operators.Pop().(Int64Operator)
+	left := x.operators.Pop().(Int64Operator)
 	switch op { // TODO через id токена
 	case "*":
-		x.runtime.Push(NewBinaryMultStep(left, right))
+		x.operators.Push(NewBinaryMultStep(left, right))
 	case "/":
-		x.runtime.Push(NewBinaryDivStep(left, right))
+		x.operators.Push(NewBinaryDivStep(left, right))
 	case "MOD":
-		x.runtime.Push(NewBinaryModStep(left, right))
+		x.operators.Push(NewBinaryModStep(left, right))
 	}
 }
 func (x *FVM) ExitBinaryCompareExpr(c *parser.BinaryCompareExprContext) {
@@ -121,7 +121,7 @@ func (x *FVM) ExitNumber(c *parser.NumberContext) {
 		return // чтоб не класть на стек инициализацию
 	}
 	v := variant.NewAnyVariant(c.GetText())
-	x.runtime.Push(NewConstantStep(v.Int()))
+	x.operators.Push(NewConstantStep(v.Int()))
 }
 
 func (FVM) ExitParenExpr(c *parser.ParenExprContext)                         {}
@@ -137,7 +137,7 @@ func (x *FVM) ExitVar_declaration_blocks(c *parser.Var_declaration_blocksContext
 func (x *FVM) ExitVariable(c *parser.VariableContext) {
 	varName := c.GetText()
 	v := x.vars[varName]
-	x.runtime.Push(NewVarStep((*int64)(v.Pointer())))
+	x.operators.Push(NewVarStep((*int64)(v.Pointer())))
 }
 
 func (FVM) ExitInteger(c *parser.IntegerContext)               {}

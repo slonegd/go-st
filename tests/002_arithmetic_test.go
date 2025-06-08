@@ -53,13 +53,14 @@ func TestFVM_Execute_002(t *testing.T) {
 // на примере арифметики с int64 бенчмарк показал, что последовательный вызов функций быстрее байткода
 // cpu: Intel(R) Core(TM) i5-6400 CPU @ 2.70GHz
 
-// с прошлых коммитов
+// с прошлых экспериментов
 // BenchmarkProgram_Execute_002-4   1000000000    0.006594 ns/op // 1 вариант на колбеках и вариантом
 // BenchmarkCompiler_Execute_002-4  1000000000    0.004587 ns/op // байткод c variant стеком
 
-// коммит с int64 арифметикой
+// эксперимент с функциональным рантаймом с int64 арифметикой
 // BenchmarkProgram_Execute_002-4   1000000000    0.004498 ns/op // байткод c any стеком
 // BenchmarkFVM_Execute_002-4       1000000000    0.002985 ns/op // функции с any (пробовал uintptr - медленнее)
+// BenchmarkFVM_Execute_002-4       1000000000    0.0005666 ns/op // дженерик функции
 // BenchmarkGo_Execute_002-4        1000000000    0.0000611 ns/op // чистый го
 func BenchmarkProgram_Execute_002(b *testing.B) {
 	p, _ := st.NewProgram(arithmetic)

@@ -11,12 +11,19 @@ import (
 
 type (
 	FVM struct {
-		vars    map[string]variant.Variant
-		runtime stack.Stack[Step]
+		vars       map[string]variant.Variant
+		operators  stack.Stack[any] // any -> AnyOperator
+		statements []Statement
 	}
-	Step struct {
-		do    func() any
+	Operator[T any] struct {
+		do    func() T
 		descr string
+	}
+	Statement       = Operator[struct{}]
+	Int64Operator   = Operator[int64]
+	Float64Operator = Operator[float64]
+	AnyOperator     interface {
+		Statement | Int64Operator | Float64Operator
 	}
 )
 
@@ -43,6 +50,11 @@ func NewProgram(script string) (*FVM, error) {
 		return nil, errors.New(p.SynErr.GetMessage())
 	}
 
+	x.statements = make([]Statement, 0, len(x.operators))
+	for _, s := range x.operators {
+		x.statements = append(x.statements, s.(Statement))
+	}
+
 	return x, nil // x.err
 }
 
@@ -51,84 +63,84 @@ func (x *FVM) GetVar(name string) variant.Variant {
 }
 
 func (x *FVM) Execute() {
-	for _, s := range x.runtime {
+	for _, s := range x.statements {
 		s.do()
 	}
 }
 
-func (s *Step) WithDescription(v string) *Step { s.descr = v; return s }
+func (s *Operator[T]) WithDescription(v string) *Operator[T] { s.descr = v; return s }
 
-func NewConstantStep(v int64) Step {
-	s := Step{}
-	s.do = func() any {
+func NewConstantStep[T any](v T) Operator[T] {
+	s := Operator[T]{}
+	s.do = func() T {
 		return v
 	}
 	return s
 }
 
-func NewVarStep(v *int64) Step {
-	s := Step{}
-	s.do = func() any {
+func NewVarStep[T any](v *T) Operator[T] {
+	s := Operator[T]{}
+	s.do = func() T {
 		return *v
 	}
 	return s
 }
 
-func NewAssignStep(variable *int64, expr Step) Step {
-	s := Step{}
-	s.do = func() any {
-		v := expr.do().(int64)
+func NewAssignStep[T any](variable *T, expr Operator[T]) Statement {
+	s := Statement{}
+	s.do = func() struct{} {
+		v := expr.do()
 		*variable = v
 		return struct{}{}
 	}
 	return s
 }
 
-func NewBinaryPlusStep(left, right Step) Step {
-	s := Step{}
-	s.do = func() any {
-		l := left.do().(int64)
-		r := right.do().(int64)
+func NewBinaryPlusStep[T int64 | float64](left, right Operator[T]) Operator[T] {
+	s := Operator[T]{}
+	s.do = func() T {
+		l := left.do()
+		r := right.do()
 		return l + r
 	}
 	return s
 }
 
-func NewBinarySubStep(left, right Step) Step {
-	s := Step{}
-	s.do = func() any {
-		l := left.do().(int64)
-		r := right.do().(int64)
+func NewBinarySubStep[T int64 | float64](left, right Operator[T]) Operator[T] {
+	s := Operator[T]{}
+	s.do = func() T {
+		l := left.do()
+		r := right.do()
 		return l - r
 	}
 	return s
 }
 
-func NewBinaryMultStep(left, right Step) Step {
-	s := Step{}
-	s.do = func() any {
-		l := left.do().(int64)
-		r := right.do().(int64)
+func NewBinaryMultStep[T int64 | float64](left, right Operator[T]) Operator[T] {
+	s := Operator[T]{}
+	s.do = func() T {
+		l := left.do()
+		r := right.do()
 		return l * r
 	}
 	return s
 }
 
-func NewBinaryDivStep(left, right Step) Step {
-	s := Step{}
-	s.do = func() any {
-		l := left.do().(int64)
-		r := right.do().(int64)
+func NewBinaryDivStep[T int64 | float64](left, right Operator[T]) Operator[T] {
+	s := Operator[T]{}
+	s.do = func() T {
+		l := left.do()
+		r := right.do()
 		return l / r
 	}
 	return s
 }
 
-func NewBinaryModStep(left, right Step) Step {
-	s := Step{}
-	s.do = func() any {
-		l := left.do().(int64)
-		r := right.do().(int64)
+func NewBinaryModStep[T int64](left, right Operator[T]) Operator[T] {
+	s := Operator[T]{}
+	s.do = func() T {
+		l := left.do()
+		r := right.do()
 		return l % r
 	}
 	return s
