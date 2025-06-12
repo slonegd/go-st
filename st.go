@@ -3,20 +3,13 @@ package st
 import (
 	"fmt"
 
-	"github.com/slonegd/go-st/compiler"
+	"github.com/slonegd/go-st/ast"
 )
 
-type (
-	Program struct {
-		*compiler.Compiler
-	}
-)
-
-func NewProgram(script string) (*Program, error) {
-	p := &Program{Compiler: compiler.New()}
-	err := p.Compiler.Compile(script)
+func NewProgram(script string) (*ast.AST, error) {
+	r, err := ast.Parse(script)
 	if err != nil {
 		return nil, fmt.Errorf("compile: %w", err)
 	}
-	return p, nil
+	return r, nil
 }

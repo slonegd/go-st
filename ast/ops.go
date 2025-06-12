@@ -1,16 +1,6 @@
-package fvm
-
-import (
-	"github.com/antlr4-go/antlr/v4"
-	parser "github.com/slonegd/go-st/antlr"
-	"github.com/slonegd/go-st/variant"
-)
+package ast
 
 type (
-	FVM struct {
-		vars     map[string]variant.Variant
-		programm Statement
-	}
 	Operator[T any] struct {
 		do    func() T
 		descr string
@@ -24,43 +14,6 @@ type (
 		Statement | Int64Operator | Float64Operator | BoolOperator
 	}
 )
-
-func NewProgram(script string) (*FVM, error) {
-	// x.source = Source(script)
-
-	// Setup the input
-	is := antlr.NewInputStream(script)
-
-	// Create the Lexer
-	lexer := parser.NewSTLexer(is)
-	stream := antlr.NewCommonTokenStream(lexer, antlr.TokenDefaultChannel)
-
-	// Create the Parser
-	p := parser.NewSTParser(stream)
-
-	p.BuildParseTrees = true
-
-	x := &FVM{vars: map[string]variant.Variant{}}
-	x.programm = p.Program().Accept(x).(Statement)
-	// listener := listener{Compiler: x}
-	// p.BaseRecognizer.AddErrorListener(listener)
-
-	// Finally parse the expression (by walking the tree)
-	// antlr.ParseTreeWalkerDefault.Walk(x, p.Program())
-	// if p.SynErr != nil && p.SynErr.GetMessage() != "" {
-	// 	return nil, errors.New(p.SynErr.GetMessage())
-	// }
-
-	return x, nil // x.err
-}
-
-func (x *FVM) GetVar(name string) variant.Variant {
-	return x.vars[name]
-}
-
-func (x *FVM) Execute() {
-	x.programm.do()
-}
 
 func (s *Operator[T]) WithDescription(v string) *Operator[T] { s.descr = v; return s }
 

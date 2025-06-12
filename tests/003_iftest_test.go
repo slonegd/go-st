@@ -3,15 +3,14 @@ package main
 import (
 	"testing"
 
-	"github.com/slonegd/go-st"
-	"github.com/slonegd/go-st/fvm"
+	"github.com/slonegd/go-st/ast"
 	"github.com/stretchr/testify/require"
 )
 
 func TestCompiler_Execute_003(t *testing.T) {
 	require := require.New(t)
 
-	p, err := fvm.NewProgram(iftest)
+	p, err := ast.Parse(iftest)
 	require.NoError(err)
 	require.Equal(int64(0), p.GetVar("i").Int())
 	require.Equal(int64(0), p.GetVar("divisor").Int())
@@ -75,19 +74,10 @@ func TestCompiler_Execute_003(t *testing.T) {
 }
 
 // BenchmarkProgram_Execute_003-4   1000000000   0.01084 ns/op  // 1 вариант на колбэках
-// BenchmarkCompiler_Execute_003-4  1000000000   0.006692 ns/op // байткод со стеком на варианте
-// BenchmarkFvm_Execute_003-4   	1000000000	 0.001550 ns/op	// дженерик функции
+// BenchmarkProgram_Execute_003-4   1000000000   0.006692 ns/op // байткод со стеком на варианте
+// BenchmarkProgram_Execute_003-4   1000000000	 0.001550 ns/op	// дженерик функции
 func BenchmarkProgram_Execute_003(b *testing.B) {
-	p, _ := st.NewProgram(iftest)
-
-	b.ResetTimer()
-	for range 10000 {
-		p.Execute()
-	}
-}
-
-func BenchmarkFvm_Execute_003(b *testing.B) {
-	p, _ := fvm.NewProgram(iftest)
+	p, _ := ast.Parse(iftest)
 
 	b.ResetTimer()
 	for range 10000 {
