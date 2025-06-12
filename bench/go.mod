@@ -5,6 +5,7 @@ go 1.23.9
 replace github.com/slonegd/go-st => ..
 
 require (
+	github.com/Shopify/go-lua v0.0.0-20250605195627-15bbeb73041e
 	github.com/slonegd/go-st v0.0.0-00010101000000-000000000000
 	github.com/stretchr/testify v1.10.0
 	github.com/traefik/yaegi v0.16.1
