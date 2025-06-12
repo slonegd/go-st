@@ -1,4 +1,4 @@
-package compiler
+package ast
 
 import (
 	"fmt"
@@ -9,28 +9,28 @@ import (
 	"github.com/antlr4-go/antlr/v4"
 )
 
-func (x listener) ReportAmbiguity(recognizer antlr.Parser, dfa *antlr.DFA, startIndex int, stopIndex int, exact bool, ambigAlts *antlr.BitSet, configs *antlr.ATNConfigSet) {
+func (x visitor) ReportAmbiguity(recognizer antlr.Parser, dfa *antlr.DFA, startIndex int, stopIndex int, exact bool, ambigAlts *antlr.BitSet, configs *antlr.ATNConfigSet) {
 	if x.err != nil {
 		return
 	}
 	x.err = fmt.Errorf("some ReportAmbiguity (TODO)")
 }
 
-func (x listener) ReportAttemptingFullContext(recognizer antlr.Parser, dfa *antlr.DFA, startIndex int, stopIndex int, conflictingAlts *antlr.BitSet, configs *antlr.ATNConfigSet) {
+func (x visitor) ReportAttemptingFullContext(recognizer antlr.Parser, dfa *antlr.DFA, startIndex int, stopIndex int, conflictingAlts *antlr.BitSet, configs *antlr.ATNConfigSet) {
 	if x.err != nil {
 		return
 	}
 	x.err = fmt.Errorf("some ReportAttemptingFullContext (TODO)")
 }
 
-func (x listener) ReportContextSensitivity(recognizer antlr.Parser, dfa *antlr.DFA, startIndex int, stopIndex int, prediction int, configs *antlr.ATNConfigSet) {
+func (x visitor) ReportContextSensitivity(recognizer antlr.Parser, dfa *antlr.DFA, startIndex int, stopIndex int, prediction int, configs *antlr.ATNConfigSet) {
 	if x.err != nil {
 		return
 	}
 	x.err = fmt.Errorf("some ReportContextSensitivity (TODO)")
 }
 
-func (x listener) SyntaxError(recognizer antlr.Recognizer, offendingSymbol any, line int, column int, msg string, e antlr.RecognitionException) {
+func (x visitor) SyntaxError(recognizer antlr.Recognizer, offendingSymbol any, line int, column int, msg string, e antlr.RecognitionException) {
 	if x.err != nil {
 		return
 	}

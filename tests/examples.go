@@ -90,11 +90,9 @@ func tree(example string) {
 func program(example string) {
 	log.Printf("\n\n\t\t program")
 	program, _ := st.NewProgram(example)
-	program.Print()
 	program.Execute()
-	log.Printf("results: %+v", program.Variables())
-	program.Execute()
-	log.Printf("results: %+v", program.Variables())
+	log.Printf("results: %+v", program.GetVars())
+	log.Printf("results: %+v", program.GetVars())
 }
 
 func printChildren(node antlr.Tree, prefix string) {

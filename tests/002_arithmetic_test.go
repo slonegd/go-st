@@ -4,13 +4,14 @@ import (
 	"testing"
 
 	"github.com/slonegd/go-st"
+	"github.com/slonegd/go-st/ast"
 	"github.com/stretchr/testify/require"
 )
 
-func TestCompiler_Execute_002(t *testing.T) {
+func TestFVM_Execute_002(t *testing.T) {
 	require := require.New(t)
 
-	p, err := st.NewProgram(arithmetic)
+	p, err := ast.Parse(arithmetic)
 	require.NoError(err)
 
 	require.Equal(int64(0), p.GetVar("i").Int())
@@ -28,16 +29,18 @@ func TestCompiler_Execute_002(t *testing.T) {
 	require.Equal(int64(38), p.GetVar("k").Int())
 }
 
-// пока байткод оказался лучше колбэков
-// UPDATE использование фиксированного размера оператора с аргументами дало +20% прирост скорости
-// UPDATE использование типизированных операторов (пока только INT) дало +15% прирост скорости, пока убрал, будет в оптимизаторе
-// TODO можно на стек класть не варианты, а значения, типизированные операторы знают к чему привести
-// TODO для переменных на стеке можно использовать указатели на значения, но тогда надо больше операторов
-// чтоб отличить указатель от значения.
+// на примере арифметики с int64 бенчмарк показал, что последовательный вызов функций быстрее байткода
 // cpu: Intel(R) Core(TM) i5-6400 CPU @ 2.70GHz
-// BenchmarkProgram_Execute_002-4          1000000000               0.006594 ns/op // 1 вариант на колбеках
-// BenchmarkCompiler_Execute_002-4         1000000000               0.004587 ns/op // текущий вариант
-// BenchmarkGo_Execute_002-4               1000000000               0.0000611 ns/op
+
+// с прошлых экспериментов
+// BenchmarkProgram_Execute_002-4  1000000000    0.006594 ns/op // 1 вариант на колбеках и вариантом
+// BenchmarkProgram_Execute_002-4  1000000000    0.004587 ns/op // байткод c variant стеком
+
+// эксперимент с функциональным рантаймом с int64 арифметикой
+// BenchmarkProgram_Execute_002-4   1000000000    0.004498 ns/op // байткод c any стеком
+// BenchmarkProgram_Execute_002-4   1000000000    0.002985 ns/op // функции с any (пробовал uintptr - медленнее)
+// BenchmarkProgram_Execute_002-4   1000000000    0.0005666 ns/op // дженерик функции
+// BenchmarkGo_Execute_002-4        1000000000    0.0000611 ns/op // чистый го
 func BenchmarkProgram_Execute_002(b *testing.B) {
 	p, _ := st.NewProgram(arithmetic)
 
