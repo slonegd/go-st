@@ -62,7 +62,7 @@ func Benchmark_lua_001(b *testing.B) {
 	l.SetGlobal("exec")
 
 	b.ResetTimer()
-	for range 10000 {
+	for range iterations {
 		l.Global("exec")
 		l.Call(0, 0)
 	}
