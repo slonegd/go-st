@@ -34,14 +34,15 @@ func stParserInit() {
 	staticData := &STParserStaticData
 	staticData.LiteralNames = []string{
 		"", "'PROGRAM'", "'END_PROGRAM'", "'VAR'", "'END_VAR'", "':'", "':='",
-		"';'", "'INT'", "'REAL'", "'BOOL'", "'STRING'", "'IF'", "'THEN'", "'ELSIF'",
-		"'ELSE'", "'END_IF'", "'('", "')'", "'*'", "'/'", "'MOD'", "'>'", "'>='",
-		"'<'", "'<='", "'='", "'<>'", "", "", "'+'", "'-'",
+		"';'", "'SINT'", "'INT'", "'DINT'", "'LINT'", "'USINT'", "'UINT'", "'UDINT'",
+		"'ULINT'", "'REAL'", "'LREAL'", "'BOOL'", "'STRING'", "'IF'", "'THEN'",
+		"'ELSIF'", "'ELSE'", "'END_IF'", "'('", "')'", "'*'", "'/'", "'MOD'",
+		"'>'", "'>='", "'<'", "'<='", "'='", "'<>'", "", "", "'+'", "'-'",
 	}
 	staticData.SymbolicNames = []string{
 		"", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "",
-		"", "", "", "", "", "", "", "", "", "", "", "Integer", "ID", "PLUS",
-		"MINUS", "Comment", "WHITESPACE",
+		"", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "",
+		"", "", "Integer", "ID", "PLUS", "MINUS", "Comment", "WHITESPACE",
 	}
 	staticData.RuleNames = []string{
 		"program", "var_declaration_blocks", "var_declaration_block", "var_declaration",
@@ -51,7 +52,7 @@ func stParserInit() {
 	}
 	staticData.PredictionContextCache = antlr.NewPredictionContextCache()
 	staticData.serializedATN = []int32{
-		4, 1, 33, 147, 2, 0, 7, 0, 2, 1, 7, 1, 2, 2, 7, 2, 2, 3, 7, 3, 2, 4, 7,
+		4, 1, 41, 147, 2, 0, 7, 0, 2, 1, 7, 1, 2, 2, 7, 2, 2, 3, 7, 3, 2, 4, 7,
 		4, 2, 5, 7, 5, 2, 6, 7, 6, 2, 7, 7, 7, 2, 8, 7, 8, 2, 9, 7, 9, 2, 10, 7,
 		10, 2, 11, 7, 11, 2, 12, 7, 12, 2, 13, 7, 13, 2, 14, 7, 14, 2, 15, 7, 15,
 		1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 5, 1, 40, 8, 1, 10, 1, 12, 1,
@@ -66,19 +67,19 @@ func stParserInit() {
 		12, 1, 12, 1, 12, 1, 12, 5, 12, 130, 8, 12, 10, 12, 12, 12, 133, 9, 12,
 		1, 13, 1, 13, 3, 13, 137, 8, 13, 1, 14, 1, 14, 1, 14, 1, 14, 3, 14, 143,
 		8, 14, 1, 15, 1, 15, 1, 15, 0, 1, 24, 16, 0, 2, 4, 6, 8, 10, 12, 14, 16,
-		18, 20, 22, 24, 26, 28, 30, 0, 4, 1, 0, 8, 11, 1, 0, 19, 21, 1, 0, 30,
-		31, 1, 0, 22, 27, 146, 0, 32, 1, 0, 0, 0, 2, 41, 1, 0, 0, 0, 4, 44, 1,
+		18, 20, 22, 24, 26, 28, 30, 0, 4, 1, 0, 8, 19, 1, 0, 27, 29, 1, 0, 38,
+		39, 1, 0, 30, 35, 146, 0, 32, 1, 0, 0, 0, 2, 41, 1, 0, 0, 0, 4, 44, 1,
 		0, 0, 0, 6, 53, 1, 0, 0, 0, 8, 62, 1, 0, 0, 0, 10, 67, 1, 0, 0, 0, 12,
 		77, 1, 0, 0, 0, 14, 79, 1, 0, 0, 0, 16, 83, 1, 0, 0, 0, 18, 105, 1, 0,
 		0, 0, 20, 107, 1, 0, 0, 0, 22, 109, 1, 0, 0, 0, 24, 118, 1, 0, 0, 0, 26,
 		136, 1, 0, 0, 0, 28, 142, 1, 0, 0, 0, 30, 144, 1, 0, 0, 0, 32, 33, 5, 1,
-		0, 0, 33, 34, 5, 29, 0, 0, 34, 35, 3, 2, 1, 0, 35, 36, 3, 10, 5, 0, 36,
+		0, 0, 33, 34, 5, 37, 0, 0, 34, 35, 3, 2, 1, 0, 35, 36, 3, 10, 5, 0, 36,
 		37, 5, 2, 0, 0, 37, 1, 1, 0, 0, 0, 38, 40, 3, 4, 2, 0, 39, 38, 1, 0, 0,
 		0, 40, 43, 1, 0, 0, 0, 41, 39, 1, 0, 0, 0, 41, 42, 1, 0, 0, 0, 42, 3, 1,
 		0, 0, 0, 43, 41, 1, 0, 0, 0, 44, 48, 5, 3, 0, 0, 45, 47, 3, 6, 3, 0, 46,
 		45, 1, 0, 0, 0, 47, 50, 1, 0, 0, 0, 48, 46, 1, 0, 0, 0, 48, 49, 1, 0, 0,
 		0, 49, 51, 1, 0, 0, 0, 50, 48, 1, 0, 0, 0, 51, 52, 5, 4, 0, 0, 52, 5, 1,
-		0, 0, 0, 53, 54, 5, 29, 0, 0, 54, 55, 5, 5, 0, 0, 55, 58, 3, 8, 4, 0, 56,
+		0, 0, 0, 53, 54, 5, 37, 0, 0, 54, 55, 5, 5, 0, 0, 55, 58, 3, 8, 4, 0, 56,
 		57, 5, 6, 0, 0, 57, 59, 3, 26, 13, 0, 58, 56, 1, 0, 0, 0, 58, 59, 1, 0,
 		0, 0, 59, 60, 1, 0, 0, 0, 60, 61, 5, 7, 0, 0, 61, 7, 1, 0, 0, 0, 62, 63,
 		7, 0, 0, 0, 63, 9, 1, 0, 0, 0, 64, 66, 3, 12, 6, 0, 65, 64, 1, 0, 0, 0,
@@ -86,19 +87,19 @@ func stParserInit() {
 		0, 0, 0, 69, 67, 1, 0, 0, 0, 70, 71, 3, 14, 7, 0, 71, 72, 5, 7, 0, 0, 72,
 		78, 1, 0, 0, 0, 73, 75, 3, 16, 8, 0, 74, 76, 5, 7, 0, 0, 75, 74, 1, 0,
 		0, 0, 75, 76, 1, 0, 0, 0, 76, 78, 1, 0, 0, 0, 77, 70, 1, 0, 0, 0, 77, 73,
-		1, 0, 0, 0, 78, 13, 1, 0, 0, 0, 79, 80, 5, 29, 0, 0, 80, 81, 5, 6, 0, 0,
-		81, 82, 3, 24, 12, 0, 82, 15, 1, 0, 0, 0, 83, 84, 5, 12, 0, 0, 84, 85,
-		3, 18, 9, 0, 85, 86, 5, 13, 0, 0, 86, 94, 3, 20, 10, 0, 87, 88, 5, 14,
-		0, 0, 88, 89, 3, 18, 9, 0, 89, 90, 5, 13, 0, 0, 90, 91, 3, 20, 10, 0, 91,
+		1, 0, 0, 0, 78, 13, 1, 0, 0, 0, 79, 80, 5, 37, 0, 0, 80, 81, 5, 6, 0, 0,
+		81, 82, 3, 24, 12, 0, 82, 15, 1, 0, 0, 0, 83, 84, 5, 20, 0, 0, 84, 85,
+		3, 18, 9, 0, 85, 86, 5, 21, 0, 0, 86, 94, 3, 20, 10, 0, 87, 88, 5, 22,
+		0, 0, 88, 89, 3, 18, 9, 0, 89, 90, 5, 21, 0, 0, 90, 91, 3, 20, 10, 0, 91,
 		93, 1, 0, 0, 0, 92, 87, 1, 0, 0, 0, 93, 96, 1, 0, 0, 0, 94, 92, 1, 0, 0,
 		0, 94, 95, 1, 0, 0, 0, 95, 99, 1, 0, 0, 0, 96, 94, 1, 0, 0, 0, 97, 98,
-		5, 15, 0, 0, 98, 100, 3, 22, 11, 0, 99, 97, 1, 0, 0, 0, 99, 100, 1, 0,
-		0, 0, 100, 101, 1, 0, 0, 0, 101, 103, 5, 16, 0, 0, 102, 104, 5, 7, 0, 0,
+		5, 23, 0, 0, 98, 100, 3, 22, 11, 0, 99, 97, 1, 0, 0, 0, 99, 100, 1, 0,
+		0, 0, 100, 101, 1, 0, 0, 0, 101, 103, 5, 24, 0, 0, 102, 104, 5, 7, 0, 0,
 		103, 102, 1, 0, 0, 0, 103, 104, 1, 0, 0, 0, 104, 17, 1, 0, 0, 0, 105, 106,
 		3, 24, 12, 0, 106, 19, 1, 0, 0, 0, 107, 108, 3, 10, 5, 0, 108, 21, 1, 0,
 		0, 0, 109, 110, 3, 10, 5, 0, 110, 23, 1, 0, 0, 0, 111, 112, 6, 12, -1,
-		0, 112, 119, 3, 26, 13, 0, 113, 119, 5, 29, 0, 0, 114, 115, 5, 17, 0, 0,
-		115, 116, 3, 24, 12, 0, 116, 117, 5, 18, 0, 0, 117, 119, 1, 0, 0, 0, 118,
+		0, 112, 119, 3, 26, 13, 0, 113, 119, 5, 37, 0, 0, 114, 115, 5, 25, 0, 0,
+		115, 116, 3, 24, 12, 0, 116, 117, 5, 26, 0, 0, 117, 119, 1, 0, 0, 0, 118,
 		111, 1, 0, 0, 0, 118, 113, 1, 0, 0, 0, 118, 114, 1, 0, 0, 0, 119, 131,
 		1, 0, 0, 0, 120, 121, 10, 3, 0, 0, 121, 122, 7, 1, 0, 0, 122, 130, 3, 24,
 		12, 4, 123, 124, 10, 2, 0, 0, 124, 125, 7, 2, 0, 0, 125, 130, 3, 24, 12,
@@ -107,9 +108,9 @@ func stParserInit() {
 		133, 1, 0, 0, 0, 131, 129, 1, 0, 0, 0, 131, 132, 1, 0, 0, 0, 132, 25, 1,
 		0, 0, 0, 133, 131, 1, 0, 0, 0, 134, 137, 3, 28, 14, 0, 135, 137, 3, 30,
 		15, 0, 136, 134, 1, 0, 0, 0, 136, 135, 1, 0, 0, 0, 137, 27, 1, 0, 0, 0,
-		138, 139, 5, 30, 0, 0, 139, 143, 3, 30, 15, 0, 140, 141, 5, 31, 0, 0, 141,
+		138, 139, 5, 38, 0, 0, 139, 143, 3, 30, 15, 0, 140, 141, 5, 39, 0, 0, 141,
 		143, 3, 30, 15, 0, 142, 138, 1, 0, 0, 0, 142, 140, 1, 0, 0, 0, 143, 29,
-		1, 0, 0, 0, 144, 145, 5, 28, 0, 0, 145, 31, 1, 0, 0, 0, 14, 41, 48, 58,
+		1, 0, 0, 0, 144, 145, 5, 36, 0, 0, 145, 31, 1, 0, 0, 0, 14, 41, 48, 58,
 		67, 75, 77, 94, 99, 103, 118, 129, 131, 136, 142,
 	}
 	deserializer := antlr.NewATNDeserializer(nil)
@@ -176,12 +177,20 @@ const (
 	STParserT__24      = 25
 	STParserT__25      = 26
 	STParserT__26      = 27
-	STParserInteger    = 28
-	STParserID         = 29
-	STParserPLUS       = 30
-	STParserMINUS      = 31
-	STParserComment    = 32
-	STParserWHITESPACE = 33
+	STParserT__27      = 28
+	STParserT__28      = 29
+	STParserT__29      = 30
+	STParserT__30      = 31
+	STParserT__31      = 32
+	STParserT__32      = 33
+	STParserT__33      = 34
+	STParserT__34      = 35
+	STParserInteger    = 36
+	STParserID         = 37
+	STParserPLUS       = 38
+	STParserMINUS      = 39
+	STParserComment    = 40
+	STParserWHITESPACE = 41
 )
 
 // STParser rules.
@@ -1021,7 +1030,7 @@ func (p *STParser) Type_name() (localctx IType_nameContext) {
 		p.SetState(62)
 		_la = p.GetTokenStream().LA(1)
 
-		if !((int64(_la) & ^0x3f) == 0 && ((int64(1)<<_la)&3840) != 0) {
+		if !((int64(_la) & ^0x3f) == 0 && ((int64(1)<<_la)&1048320) != 0) {
 			p.GetErrorHandler().RecoverInline(p)
 		} else {
 			p.GetErrorHandler().ReportMatch(p)
@@ -1173,7 +1182,7 @@ func (p *STParser) Statement_list() (localctx IStatement_listContext) {
 	}
 	_la = p.GetTokenStream().LA(1)
 
-	for _la == STParserT__11 || _la == STParserID {
+	for _la == STParserT__19 || _la == STParserID {
 		{
 			p.SetState(64)
 			p.Statement()
@@ -1336,7 +1345,7 @@ func (p *STParser) Statement() (localctx IStatementContext) {
 			}
 		}
 
-	case STParserT__11:
+	case STParserT__19:
 		p.EnterOuterAlt(localctx, 2)
 		{
 			p.SetState(73)
@@ -1783,7 +1792,7 @@ func (p *STParser) If_statement() (localctx IIf_statementContext) {
 	p.EnterOuterAlt(localctx, 1)
 	{
 		p.SetState(83)
-		p.Match(STParserT__11)
+		p.Match(STParserT__19)
 		if p.HasError() {
 			// Recognition error - abort rule
 			goto errorExit
@@ -1799,7 +1808,7 @@ func (p *STParser) If_statement() (localctx IIf_statementContext) {
 	localctx.(*If_statementContext).cond = append(localctx.(*If_statementContext).cond, localctx.(*If_statementContext)._condition)
 	{
 		p.SetState(85)
-		p.Match(STParserT__12)
+		p.Match(STParserT__20)
 		if p.HasError() {
 			// Recognition error - abort rule
 			goto errorExit
@@ -1820,10 +1829,10 @@ func (p *STParser) If_statement() (localctx IIf_statementContext) {
 	}
 	_la = p.GetTokenStream().LA(1)
 
-	for _la == STParserT__13 {
+	for _la == STParserT__21 {
 		{
 			p.SetState(87)
-			p.Match(STParserT__13)
+			p.Match(STParserT__21)
 			if p.HasError() {
 				// Recognition error - abort rule
 				goto errorExit
@@ -1839,7 +1848,7 @@ func (p *STParser) If_statement() (localctx IIf_statementContext) {
 		localctx.(*If_statementContext).cond = append(localctx.(*If_statementContext).cond, localctx.(*If_statementContext)._condition)
 		{
 			p.SetState(89)
-			p.Match(STParserT__12)
+			p.Match(STParserT__20)
 			if p.HasError() {
 				// Recognition error - abort rule
 				goto errorExit
@@ -1868,10 +1877,10 @@ func (p *STParser) If_statement() (localctx IIf_statementContext) {
 	}
 	_la = p.GetTokenStream().LA(1)
 
-	if _la == STParserT__14 {
+	if _la == STParserT__22 {
 		{
 			p.SetState(97)
-			p.Match(STParserT__14)
+			p.Match(STParserT__22)
 			if p.HasError() {
 				// Recognition error - abort rule
 				goto errorExit
@@ -1888,7 +1897,7 @@ func (p *STParser) If_statement() (localctx IIf_statementContext) {
 	}
 	{
 		p.SetState(101)
-		p.Match(STParserT__15)
+		p.Match(STParserT__23)
 		if p.HasError() {
 			// Recognition error - abort rule
 			goto errorExit
@@ -2825,13 +2834,13 @@ func (p *STParser) expression(_p int) (localctx IExpressionContext) {
 			}
 		}
 
-	case STParserT__16:
+	case STParserT__24:
 		localctx = NewParenExprContext(p, localctx)
 		p.SetParserRuleContext(localctx)
 		_prevctx = localctx
 		{
 			p.SetState(114)
-			p.Match(STParserT__16)
+			p.Match(STParserT__24)
 			if p.HasError() {
 				// Recognition error - abort rule
 				goto errorExit
@@ -2846,7 +2855,7 @@ func (p *STParser) expression(_p int) (localctx IExpressionContext) {
 		}
 		{
 			p.SetState(116)
-			p.Match(STParserT__17)
+			p.Match(STParserT__25)
 			if p.HasError() {
 				// Recognition error - abort rule
 				goto errorExit
@@ -2900,7 +2909,7 @@ func (p *STParser) expression(_p int) (localctx IExpressionContext) {
 
 					_la = p.GetTokenStream().LA(1)
 
-					if !((int64(_la) & ^0x3f) == 0 && ((int64(1)<<_la)&3670016) != 0) {
+					if !((int64(_la) & ^0x3f) == 0 && ((int64(1)<<_la)&939524096) != 0) {
 						var _ri = p.GetErrorHandler().RecoverInline(p)
 
 						localctx.(*BinaryPowerExprContext).op = _ri
@@ -2974,7 +2983,7 @@ func (p *STParser) expression(_p int) (localctx IExpressionContext) {
 
 					_la = p.GetTokenStream().LA(1)
 
-					if !((int64(_la) & ^0x3f) == 0 && ((int64(1)<<_la)&264241152) != 0) {
+					if !((int64(_la) & ^0x3f) == 0 && ((int64(1)<<_la)&67645734912) != 0) {
 						var _ri = p.GetErrorHandler().RecoverInline(p)
 
 						localctx.(*BinaryCompareExprContext).op = _ri

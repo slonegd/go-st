@@ -17,8 +17,16 @@ var_declaration_block :
 
 var_declaration : identifier=ID ':' type=type_name ( ':=' default=number )? ';'; 
 
-type_name: 'INT'
+type_name: 'SINT'
+         | 'INT'
+         | 'DINT'
+         | 'LINT'
+         | 'USINT'
+         | 'UINT'
+         | 'UDINT'
+         | 'ULINT'
          | 'REAL'
+         | 'LREAL'
          | 'BOOL'
          | 'STRING'
 ; // TODO другие типы

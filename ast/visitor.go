@@ -56,28 +56,76 @@ func (x visitor) VisitBinaryPlusExpr(ctx *parser.BinaryPlusExprContext) any {
 	op := ctx.GetOp().GetText()
 	right := ctx.GetRight().Accept(x).(Int64Operator)
 	left := ctx.GetLeft().Accept(x).(Int64Operator)
-	switch op { // TODO через id токена
-	case "+":
-		return NewPlusOp(left, right)
-	case "-":
-		return NewSubOp(left, right)
+	resultType, err := validateTypes(right, left)
+	if err != nil {
+		// TODO прервать с ошибкой
 	}
-	panic(ctx)
+	opFunc := binaryOps[binaryOpKey{op, resultType}]
+	return opFunc(left, right)
+}
+
+type binaryOpKey struct {
+	op string
+	t  variant.Type
+}
+
+var binaryOps = map[binaryOpKey]func(left, right Int64Operator) any{
+	{"+", variant.SINT}:  func(left, right Int64Operator) any { return NewPlusOp[int8](left, right) },
+	{"+", variant.INT}:   func(left, right Int64Operator) any { return NewPlusOp[int16](left, right) },
+	{"+", variant.DINT}:  func(left, right Int64Operator) any { return NewPlusOp[int32](left, right) },
+	{"+", variant.LINT}:  func(left, right Int64Operator) any { return NewPlusOp[int64](left, right) },
+	{"+", variant.USINT}: func(left, right Int64Operator) any { return NewPlusOp[uint8](left, right) },
+	{"+", variant.UINT}:  func(left, right Int64Operator) any { return NewPlusOp[uint16](left, right) },
+	{"+", variant.UDINT}: func(left, right Int64Operator) any { return NewPlusOp[uint32](left, right) },
+	{"+", variant.ULINT}: func(left, right Int64Operator) any { return NewPlusOp[uint64](left, right) },
+
+	{"-", variant.SINT}:  func(left, right Int64Operator) any { return NewSubOp[int8](left, right) },
+	{"-", variant.INT}:   func(left, right Int64Operator) any { return NewSubOp[int16](left, right) },
+	{"-", variant.DINT}:  func(left, right Int64Operator) any { return NewSubOp[int32](left, right) },
+	{"-", variant.LINT}:  func(left, right Int64Operator) any { return NewSubOp[int64](left, right) },
+	{"-", variant.USINT}: func(left, right Int64Operator) any { return NewSubOp[uint8](left, right) },
+	{"-", variant.UINT}:  func(left, right Int64Operator) any { return NewSubOp[uint16](left, right) },
+	{"-", variant.UDINT}: func(left, right Int64Operator) any { return NewSubOp[uint32](left, right) },
+	{"-", variant.ULINT}: func(left, right Int64Operator) any { return NewSubOp[uint64](left, right) },
+
+	{"*", variant.SINT}:  func(left, right Int64Operator) any { return NewMultOp[int8](left, right) },
+	{"*", variant.INT}:   func(left, right Int64Operator) any { return NewMultOp[int16](left, right) },
+	{"*", variant.DINT}:  func(left, right Int64Operator) any { return NewMultOp[int32](left, right) },
+	{"*", variant.LINT}:  func(left, right Int64Operator) any { return NewMultOp[int64](left, right) },
+	{"*", variant.USINT}: func(left, right Int64Operator) any { return NewMultOp[uint8](left, right) },
+	{"*", variant.UINT}:  func(left, right Int64Operator) any { return NewMultOp[uint16](left, right) },
+	{"*", variant.UDINT}: func(left, right Int64Operator) any { return NewMultOp[uint32](left, right) },
+	{"*", variant.ULINT}: func(left, right Int64Operator) any { return NewMultOp[uint64](left, right) },
+
+	{"/", variant.SINT}:  func(left, right Int64Operator) any { return NewDivOp[int8](left, right) },
+	{"/", variant.INT}:   func(left, right Int64Operator) any { return NewDivOp[int16](left, right) },
+	{"/", variant.DINT}:  func(left, right Int64Operator) any { return NewDivOp[int32](left, right) },
+	{"/", variant.LINT}:  func(left, right Int64Operator) any { return NewDivOp[int64](left, right) },
+	{"/", variant.USINT}: func(left, right Int64Operator) any { return NewDivOp[uint8](left, right) },
+	{"/", variant.UINT}:  func(left, right Int64Operator) any { return NewDivOp[uint16](left, right) },
+	{"/", variant.UDINT}: func(left, right Int64Operator) any { return NewDivOp[uint32](left, right) },
+	{"/", variant.ULINT}: func(left, right Int64Operator) any { return NewDivOp[uint64](left, right) },
+
+	{"MOD", variant.SINT}:  func(left, right Int64Operator) any { return NewModOp[int8](left, right) },
+	{"MOD", variant.INT}:   func(left, right Int64Operator) any { return NewModOp[int16](left, right) },
+	{"MOD", variant.DINT}:  func(left, right Int64Operator) any { return NewModOp[int32](left, right) },
+	{"MOD", variant.LINT}:  func(left, right Int64Operator) any { return NewModOp[int64](left, right) },
+	{"MOD", variant.USINT}: func(left, right Int64Operator) any { return NewModOp[uint8](left, right) },
+	{"MOD", variant.UINT}:  func(left, right Int64Operator) any { return NewModOp[uint16](left, right) },
+	{"MOD", variant.UDINT}: func(left, right Int64Operator) any { return NewModOp[uint32](left, right) },
+	{"MOD", variant.ULINT}: func(left, right Int64Operator) any { return NewModOp[uint64](left, right) },
 }
 
 func (x visitor) VisitBinaryPowerExpr(ctx *parser.BinaryPowerExprContext) any {
 	op := ctx.GetOp().GetText()
-	right := ctx.GetRight().Accept(x).(Int64Operator) // x.operators.Pop().(Int64Operator)
-	left := ctx.GetLeft().Accept(x).(Int64Operator)   //  x.operators.Pop().(Int64Operator)
-	switch op {                                       // TODO через id токена
-	case "*":
-		return NewMultOp(left, right)
-	case "/":
-		return NewDivOp(left, right)
-	case "MOD":
-		return NewModOp(left, right)
+	right := ctx.GetRight().Accept(x).(Int64Operator)
+	left := ctx.GetLeft().Accept(x).(Int64Operator)
+	resultType, err := validateTypes(right, left)
+	if err != nil {
+		// TODO прервать с ошибкой
 	}
-	panic(ctx)
+	opFunc := binaryOps[binaryOpKey{op, resultType}]
+	return opFunc(left, right)
 }
 
 func (x visitor) VisitChildren(node antlr.RuleNode) any {
@@ -211,5 +259,5 @@ func (x visitor) VisitVar_declaration_blocks(ctx *parser.Var_declaration_blocksC
 func (x visitor) VisitVariable(ctx *parser.VariableContext) any {
 	varName := ctx.GetText()
 	v := x.vars[varName]
-	return NewVarOp((*int64)(v.Pointer()))
+	return NewVarOp[int64](v)
 }

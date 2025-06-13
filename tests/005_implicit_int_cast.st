@@ -1,0 +1,20 @@
+PROGRAM simpliest
+  VAR
+    i8   : SINT;
+    i16  : INT;
+    i32  : DINT;
+    i64  : LINT;
+    ui8  : USINT;
+    ui16 : UINT;
+    ui32 : UDINT;
+    ui64 : ULINT;
+  END_VAR
+  i8 := i8-1;
+  i16 := i16-1;
+  i32 := i32-1;
+  i64 := i64-1;
+  ui8 := ui8-1;
+  ui16 := ui16-1;
+  ui32 := ui32-1;
+  ui64 := ui64-1;
+END_PROGRAM

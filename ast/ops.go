@@ -1,9 +1,23 @@
 package ast
 
+import (
+	"fmt"
+
+	"github.com/slonegd/go-st/variant"
+	"golang.org/x/exp/constraints"
+)
+
 type (
 	Operator[T any] struct {
 		do    func() T
 		descr string
+		// инты передаю всегда через int64
+		// это поле говорит об ограничениях, например INT -> int16
+		// эти ограничения надо учитывать для возможного неявного приведения
+		resultType variant.Type
+		// у константы тип приводиться к аргументу не константе
+		// TODO константы вообще можно не через оператор передавать, а сразу аргументом
+		isConstant bool
 	}
 	Statement       = Operator[struct{}]
 	Statements      []Statement
@@ -13,20 +27,42 @@ type (
 	AnyOperator     interface {
 		Statement | Int64Operator | Float64Operator | BoolOperator
 	}
+	// только такие типы могут быть результатом оператора
+	// специально ограничил, чтобы было меньше ветвлений
+	// с типами меньшего размера буду приводить при вычислении
+	OpTypes interface {
+		int64 | float64 | string | bool
+	}
 )
 
 func (s *Operator[T]) WithDescription(v string) *Operator[T] { s.descr = v; return s }
 
-func NewConstantOp[T any](v T) Operator[T] {
-	op := Operator[T]{}
+func NewConstantOp[T OpTypes](v T) Operator[T] {
+	op := Operator[T]{
+		isConstant: true,
+	}
+	var tmp any = v
+	switch tmp.(type) {
+	case int64:
+		op.resultType = variant.LINT
+	case float64:
+		op.resultType = variant.LREAL
+	case string:
+		op.resultType = variant.STRING
+	case bool:
+		op.resultType = variant.BOOL
+	}
 	op.do = func() T {
 		return v
 	}
 	return op
 }
 
-func NewVarOp[T any](v *T) Operator[T] {
-	op := Operator[T]{}
+func NewVarOp[T any](variable variant.Variant) Operator[T] {
+	op := Operator[T]{
+		resultType: variable.Type(),
+	}
+	v := (*T)(variable.Pointer())
 	op.do = func() T {
 		return *v
 	}
@@ -34,6 +70,7 @@ func NewVarOp[T any](v *T) Operator[T] {
 }
 
 func NewAssignOp[T any](variable *T, expr Operator[T]) Statement {
+	// TODO проверить тип
 	op := Statement{}
 	op.do = func() struct{} {
 		v := expr.do()
@@ -54,52 +91,93 @@ func NewStatments(s Statements) Statement {
 	return op
 }
 
-func NewPlusOp[T int64 | float64](left, right Operator[T]) Operator[T] {
-	op := Operator[T]{}
-	op.do = func() T {
-		l := left.do()
-		r := right.do()
-		return l + r
+// T для ограничения размера инта
+func NewPlusOp[T constraints.Integer, R int64 | float64](left, right Operator[R]) Operator[R] {
+	op := Operator[R]{
+		resultType: VariantType[T](),
+		isConstant: left.isConstant && right.isConstant,
+	}
+	op.do = func() R {
+		l := T(left.do())
+		r := T(right.do())
+		return R(l + r)
 	}
 	return op
 }
 
-func NewSubOp[T int64 | float64](left, right Operator[T]) Operator[T] {
-	op := Operator[T]{}
-	op.do = func() T {
-		l := left.do()
-		r := right.do()
-		return l - r
+func VariantType[T constraints.Integer]() variant.Type {
+	var v T
+	var tmp any = v
+	switch tmp.(type) {
+	case int8:
+		return variant.SINT
+	case int16:
+		return variant.INT
+	case int32:
+		return variant.DINT
+	case int64:
+		return variant.LINT
+	case uint8:
+		return variant.USINT
+	case uint16:
+		return variant.UINT
+	case uint32:
+		return variant.UDINT
+	case uint64:
+		return variant.ULINT
+	default:
+		panic(fmt.Sprintf("cant find type from %T", v))
+	}
+}
+
+func NewSubOp[T constraints.Integer, R int64 | float64](left, right Operator[R]) Operator[R] {
+	op := Operator[R]{
+		resultType: VariantType[T](),
+		isConstant: left.isConstant && right.isConstant,
+	}
+	op.do = func() R {
+		l := T(left.do())
+		r := T(right.do())
+		return R(l - r)
 	}
 	return op
 }
 
-func NewMultOp[T int64 | float64](left, right Operator[T]) Operator[T] {
-	op := Operator[T]{}
-	op.do = func() T {
-		l := left.do()
-		r := right.do()
-		return l * r
+func NewMultOp[T constraints.Integer, R int64 | float64](left, right Operator[R]) Operator[R] {
+	op := Operator[R]{
+		resultType: VariantType[T](),
+		isConstant: left.isConstant && right.isConstant,
+	}
+	op.do = func() R {
+		l := T(left.do())
+		r := T(right.do())
+		return R(l * r)
 	}
 	return op
 }
 
-func NewDivOp[T int64 | float64](left, right Operator[T]) Operator[T] {
-	op := Operator[T]{}
-	op.do = func() T {
-		l := left.do()
-		r := right.do()
-		return l / r
+func NewDivOp[T constraints.Integer, R int64 | float64](left, right Operator[R]) Operator[R] {
+	op := Operator[R]{
+		resultType: VariantType[T](),
+		isConstant: left.isConstant && right.isConstant,
+	}
+	op.do = func() R {
+		l := T(left.do())
+		r := T(right.do())
+		return R(l / r)
 	}
 	return op
 }
 
-func NewModOp[T int64](left, right Operator[T]) Operator[T] {
-	op := Operator[T]{}
-	op.do = func() T {
-		l := left.do()
-		r := right.do()
-		return l % r
+func NewModOp[T constraints.Integer, R int64](left, right Operator[R]) Operator[R] {
+	op := Operator[R]{
+		resultType: VariantType[T](),
+		isConstant: left.isConstant && right.isConstant,
+	}
+	op.do = func() R {
+		l := T(left.do())
+		r := T(right.do())
+		return R(l % r)
 	}
 	return op
 }
