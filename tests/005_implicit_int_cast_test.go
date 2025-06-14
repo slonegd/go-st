@@ -34,4 +34,6 @@ func Test_Execute_005(t *testing.T) {
 	require.Equal(int64(-32768), p.GetVar("i16").Int())
 	require.Equal(int64(-2147483648), p.GetVar("i32").Int())
 	require.Equal(int64(-9223372036854775808), p.GetVar("i64").Int())
+	require.Equal(int64(32768), p.GetVar("ui16").Int())
+	require.Equal(int64(0b1000_0000_0000_0000), p.GetVar("ui16").Int())
 }

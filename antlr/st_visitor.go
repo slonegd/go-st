@@ -59,6 +59,9 @@ type STVisitor interface {
 	// Visit a parse tree produced by STParser#binaryPlusExpr.
 	VisitBinaryPlusExpr(ctx *BinaryPlusExprContext) interface{}
 
+	// Visit a parse tree produced by STParser#callExpr.
+	VisitCallExpr(ctx *CallExprContext) interface{}
+
 	// Visit a parse tree produced by STParser#parenExpr.
 	VisitParenExpr(ctx *ParenExprContext) interface{}
 

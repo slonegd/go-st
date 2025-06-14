@@ -48,11 +48,12 @@ if_statement
 ;
 
 // семантически нужно отличать (для ветвления)
-condition : expression; // TODO bool_expression
+condition : expression;
 then_list : statement_list;
 else_list: statement_list;
 
 expression : number                                                             #constant
+           | id=ID '(' sub=expression ')'                                       #callExpr
            | ID                                                                 #variable
            | '(' sub=expression ')'                                             #parenExpr
            | left=expression op =('*'|'/'|'MOD') right=expression               #binaryPowerExpr
@@ -70,9 +71,9 @@ signed_integer: PLUS integer
 
 integer: Integer | Hex_Int;
 
-Integer : ('0'..'9')('0'..'9')*; // TODO другие записи целого числа: 16#
-Hex_Int         : '16#' ( '_' ? Hex_Digit )+;
-Hex_Digit   : '0'..'9' | 'A'..'F';
+Integer   : ('0'..'9')('0'..'9')*;
+Hex_Int   : '16#' ( '_' ? Hex_Digit )+;
+Hex_Digit : '0'..'9' | 'A'..'F';
 
 ID : ([a-zA-Z_]) ([$a-zA-Z0-9_])*;
 

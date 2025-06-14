@@ -37,14 +37,14 @@ func stParserInit() {
 		"';'", "'SINT'", "'INT'", "'DINT'", "'LINT'", "'USINT'", "'UINT'", "'UDINT'",
 		"'ULINT'", "'REAL'", "'LREAL'", "'BOOL'", "'STRING'", "'IF'", "'THEN'",
 		"'ELSIF'", "'ELSE'", "'END_IF'", "'('", "')'", "'*'", "'/'", "'MOD'",
-		"'>'", "'>='", "'<'", "'<='", "'='", "'<>'", "", "", "", "", "'+'",
-		"'-'",
+		"'>'", "'>='", "'<'", "'<='", "'='", "'<>'", "'_TO_'", "", "", "", "",
+		"'+'", "'-'",
 	}
 	staticData.SymbolicNames = []string{
 		"", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "",
 		"", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "",
-		"", "", "Integer", "Hex_Int", "Hex_Digit", "ID", "PLUS", "MINUS", "Comment",
-		"WHITESPACE",
+		"", "", "Cast", "Integer", "Hex_Int", "Hex_Digit", "ID", "PLUS", "MINUS",
+		"Comment", "WHITESPACE",
 	}
 	staticData.RuleNames = []string{
 		"program", "var_declaration_blocks", "var_declaration_block", "var_declaration",
@@ -54,7 +54,7 @@ func stParserInit() {
 	}
 	staticData.PredictionContextCache = antlr.NewPredictionContextCache()
 	staticData.serializedATN = []int32{
-		4, 1, 43, 147, 2, 0, 7, 0, 2, 1, 7, 1, 2, 2, 7, 2, 2, 3, 7, 3, 2, 4, 7,
+		4, 1, 44, 152, 2, 0, 7, 0, 2, 1, 7, 1, 2, 2, 7, 2, 2, 3, 7, 3, 2, 4, 7,
 		4, 2, 5, 7, 5, 2, 6, 7, 6, 2, 7, 7, 7, 2, 8, 7, 8, 2, 9, 7, 9, 2, 10, 7,
 		10, 2, 11, 7, 11, 2, 12, 7, 12, 2, 13, 7, 13, 2, 14, 7, 14, 2, 15, 7, 15,
 		1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 5, 1, 40, 8, 1, 10, 1, 12, 1,
@@ -65,55 +65,58 @@ func stParserInit() {
 		1, 8, 1, 8, 1, 8, 1, 8, 1, 8, 1, 8, 1, 8, 5, 8, 93, 8, 8, 10, 8, 12, 8,
 		96, 9, 8, 1, 8, 1, 8, 3, 8, 100, 8, 8, 1, 8, 1, 8, 3, 8, 104, 8, 8, 1,
 		9, 1, 9, 1, 10, 1, 10, 1, 11, 1, 11, 1, 12, 1, 12, 1, 12, 1, 12, 1, 12,
-		1, 12, 1, 12, 3, 12, 119, 8, 12, 1, 12, 1, 12, 1, 12, 1, 12, 1, 12, 1,
-		12, 1, 12, 1, 12, 1, 12, 5, 12, 130, 8, 12, 10, 12, 12, 12, 133, 9, 12,
-		1, 13, 1, 13, 3, 13, 137, 8, 13, 1, 14, 1, 14, 1, 14, 1, 14, 3, 14, 143,
-		8, 14, 1, 15, 1, 15, 1, 15, 0, 1, 24, 16, 0, 2, 4, 6, 8, 10, 12, 14, 16,
-		18, 20, 22, 24, 26, 28, 30, 0, 5, 1, 0, 8, 19, 1, 0, 27, 29, 1, 0, 40,
-		41, 1, 0, 30, 35, 1, 0, 36, 37, 146, 0, 32, 1, 0, 0, 0, 2, 41, 1, 0, 0,
-		0, 4, 44, 1, 0, 0, 0, 6, 53, 1, 0, 0, 0, 8, 62, 1, 0, 0, 0, 10, 67, 1,
-		0, 0, 0, 12, 77, 1, 0, 0, 0, 14, 79, 1, 0, 0, 0, 16, 83, 1, 0, 0, 0, 18,
-		105, 1, 0, 0, 0, 20, 107, 1, 0, 0, 0, 22, 109, 1, 0, 0, 0, 24, 118, 1,
-		0, 0, 0, 26, 136, 1, 0, 0, 0, 28, 142, 1, 0, 0, 0, 30, 144, 1, 0, 0, 0,
-		32, 33, 5, 1, 0, 0, 33, 34, 5, 39, 0, 0, 34, 35, 3, 2, 1, 0, 35, 36, 3,
-		10, 5, 0, 36, 37, 5, 2, 0, 0, 37, 1, 1, 0, 0, 0, 38, 40, 3, 4, 2, 0, 39,
-		38, 1, 0, 0, 0, 40, 43, 1, 0, 0, 0, 41, 39, 1, 0, 0, 0, 41, 42, 1, 0, 0,
-		0, 42, 3, 1, 0, 0, 0, 43, 41, 1, 0, 0, 0, 44, 48, 5, 3, 0, 0, 45, 47, 3,
-		6, 3, 0, 46, 45, 1, 0, 0, 0, 47, 50, 1, 0, 0, 0, 48, 46, 1, 0, 0, 0, 48,
-		49, 1, 0, 0, 0, 49, 51, 1, 0, 0, 0, 50, 48, 1, 0, 0, 0, 51, 52, 5, 4, 0,
-		0, 52, 5, 1, 0, 0, 0, 53, 54, 5, 39, 0, 0, 54, 55, 5, 5, 0, 0, 55, 58,
-		3, 8, 4, 0, 56, 57, 5, 6, 0, 0, 57, 59, 3, 26, 13, 0, 58, 56, 1, 0, 0,
-		0, 58, 59, 1, 0, 0, 0, 59, 60, 1, 0, 0, 0, 60, 61, 5, 7, 0, 0, 61, 7, 1,
-		0, 0, 0, 62, 63, 7, 0, 0, 0, 63, 9, 1, 0, 0, 0, 64, 66, 3, 12, 6, 0, 65,
-		64, 1, 0, 0, 0, 66, 69, 1, 0, 0, 0, 67, 65, 1, 0, 0, 0, 67, 68, 1, 0, 0,
-		0, 68, 11, 1, 0, 0, 0, 69, 67, 1, 0, 0, 0, 70, 71, 3, 14, 7, 0, 71, 72,
-		5, 7, 0, 0, 72, 78, 1, 0, 0, 0, 73, 75, 3, 16, 8, 0, 74, 76, 5, 7, 0, 0,
-		75, 74, 1, 0, 0, 0, 75, 76, 1, 0, 0, 0, 76, 78, 1, 0, 0, 0, 77, 70, 1,
-		0, 0, 0, 77, 73, 1, 0, 0, 0, 78, 13, 1, 0, 0, 0, 79, 80, 5, 39, 0, 0, 80,
-		81, 5, 6, 0, 0, 81, 82, 3, 24, 12, 0, 82, 15, 1, 0, 0, 0, 83, 84, 5, 20,
-		0, 0, 84, 85, 3, 18, 9, 0, 85, 86, 5, 21, 0, 0, 86, 94, 3, 20, 10, 0, 87,
-		88, 5, 22, 0, 0, 88, 89, 3, 18, 9, 0, 89, 90, 5, 21, 0, 0, 90, 91, 3, 20,
-		10, 0, 91, 93, 1, 0, 0, 0, 92, 87, 1, 0, 0, 0, 93, 96, 1, 0, 0, 0, 94,
-		92, 1, 0, 0, 0, 94, 95, 1, 0, 0, 0, 95, 99, 1, 0, 0, 0, 96, 94, 1, 0, 0,
-		0, 97, 98, 5, 23, 0, 0, 98, 100, 3, 22, 11, 0, 99, 97, 1, 0, 0, 0, 99,
-		100, 1, 0, 0, 0, 100, 101, 1, 0, 0, 0, 101, 103, 5, 24, 0, 0, 102, 104,
-		5, 7, 0, 0, 103, 102, 1, 0, 0, 0, 103, 104, 1, 0, 0, 0, 104, 17, 1, 0,
-		0, 0, 105, 106, 3, 24, 12, 0, 106, 19, 1, 0, 0, 0, 107, 108, 3, 10, 5,
-		0, 108, 21, 1, 0, 0, 0, 109, 110, 3, 10, 5, 0, 110, 23, 1, 0, 0, 0, 111,
-		112, 6, 12, -1, 0, 112, 119, 3, 26, 13, 0, 113, 119, 5, 39, 0, 0, 114,
-		115, 5, 25, 0, 0, 115, 116, 3, 24, 12, 0, 116, 117, 5, 26, 0, 0, 117, 119,
-		1, 0, 0, 0, 118, 111, 1, 0, 0, 0, 118, 113, 1, 0, 0, 0, 118, 114, 1, 0,
-		0, 0, 119, 131, 1, 0, 0, 0, 120, 121, 10, 3, 0, 0, 121, 122, 7, 1, 0, 0,
-		122, 130, 3, 24, 12, 4, 123, 124, 10, 2, 0, 0, 124, 125, 7, 2, 0, 0, 125,
-		130, 3, 24, 12, 3, 126, 127, 10, 1, 0, 0, 127, 128, 7, 3, 0, 0, 128, 130,
-		3, 24, 12, 2, 129, 120, 1, 0, 0, 0, 129, 123, 1, 0, 0, 0, 129, 126, 1,
-		0, 0, 0, 130, 133, 1, 0, 0, 0, 131, 129, 1, 0, 0, 0, 131, 132, 1, 0, 0,
-		0, 132, 25, 1, 0, 0, 0, 133, 131, 1, 0, 0, 0, 134, 137, 3, 28, 14, 0, 135,
-		137, 3, 30, 15, 0, 136, 134, 1, 0, 0, 0, 136, 135, 1, 0, 0, 0, 137, 27,
-		1, 0, 0, 0, 138, 139, 5, 40, 0, 0, 139, 143, 3, 30, 15, 0, 140, 141, 5,
-		41, 0, 0, 141, 143, 3, 30, 15, 0, 142, 138, 1, 0, 0, 0, 142, 140, 1, 0,
-		0, 0, 143, 29, 1, 0, 0, 0, 144, 145, 7, 4, 0, 0, 145, 31, 1, 0, 0, 0, 14,
-		41, 48, 58, 67, 75, 77, 94, 99, 103, 118, 129, 131, 136, 142,
+		1, 12, 1, 12, 1, 12, 1, 12, 1, 12, 1, 12, 1, 12, 3, 12, 124, 8, 12, 1,
+		12, 1, 12, 1, 12, 1, 12, 1, 12, 1, 12, 1, 12, 1, 12, 1, 12, 5, 12, 135,
+		8, 12, 10, 12, 12, 12, 138, 9, 12, 1, 13, 1, 13, 3, 13, 142, 8, 13, 1,
+		14, 1, 14, 1, 14, 1, 14, 3, 14, 148, 8, 14, 1, 15, 1, 15, 1, 15, 0, 1,
+		24, 16, 0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 0, 5,
+		1, 0, 8, 19, 1, 0, 27, 29, 1, 0, 41, 42, 1, 0, 30, 35, 1, 0, 37, 38, 152,
+		0, 32, 1, 0, 0, 0, 2, 41, 1, 0, 0, 0, 4, 44, 1, 0, 0, 0, 6, 53, 1, 0, 0,
+		0, 8, 62, 1, 0, 0, 0, 10, 67, 1, 0, 0, 0, 12, 77, 1, 0, 0, 0, 14, 79, 1,
+		0, 0, 0, 16, 83, 1, 0, 0, 0, 18, 105, 1, 0, 0, 0, 20, 107, 1, 0, 0, 0,
+		22, 109, 1, 0, 0, 0, 24, 123, 1, 0, 0, 0, 26, 141, 1, 0, 0, 0, 28, 147,
+		1, 0, 0, 0, 30, 149, 1, 0, 0, 0, 32, 33, 5, 1, 0, 0, 33, 34, 5, 40, 0,
+		0, 34, 35, 3, 2, 1, 0, 35, 36, 3, 10, 5, 0, 36, 37, 5, 2, 0, 0, 37, 1,
+		1, 0, 0, 0, 38, 40, 3, 4, 2, 0, 39, 38, 1, 0, 0, 0, 40, 43, 1, 0, 0, 0,
+		41, 39, 1, 0, 0, 0, 41, 42, 1, 0, 0, 0, 42, 3, 1, 0, 0, 0, 43, 41, 1, 0,
+		0, 0, 44, 48, 5, 3, 0, 0, 45, 47, 3, 6, 3, 0, 46, 45, 1, 0, 0, 0, 47, 50,
+		1, 0, 0, 0, 48, 46, 1, 0, 0, 0, 48, 49, 1, 0, 0, 0, 49, 51, 1, 0, 0, 0,
+		50, 48, 1, 0, 0, 0, 51, 52, 5, 4, 0, 0, 52, 5, 1, 0, 0, 0, 53, 54, 5, 40,
+		0, 0, 54, 55, 5, 5, 0, 0, 55, 58, 3, 8, 4, 0, 56, 57, 5, 6, 0, 0, 57, 59,
+		3, 26, 13, 0, 58, 56, 1, 0, 0, 0, 58, 59, 1, 0, 0, 0, 59, 60, 1, 0, 0,
+		0, 60, 61, 5, 7, 0, 0, 61, 7, 1, 0, 0, 0, 62, 63, 7, 0, 0, 0, 63, 9, 1,
+		0, 0, 0, 64, 66, 3, 12, 6, 0, 65, 64, 1, 0, 0, 0, 66, 69, 1, 0, 0, 0, 67,
+		65, 1, 0, 0, 0, 67, 68, 1, 0, 0, 0, 68, 11, 1, 0, 0, 0, 69, 67, 1, 0, 0,
+		0, 70, 71, 3, 14, 7, 0, 71, 72, 5, 7, 0, 0, 72, 78, 1, 0, 0, 0, 73, 75,
+		3, 16, 8, 0, 74, 76, 5, 7, 0, 0, 75, 74, 1, 0, 0, 0, 75, 76, 1, 0, 0, 0,
+		76, 78, 1, 0, 0, 0, 77, 70, 1, 0, 0, 0, 77, 73, 1, 0, 0, 0, 78, 13, 1,
+		0, 0, 0, 79, 80, 5, 40, 0, 0, 80, 81, 5, 6, 0, 0, 81, 82, 3, 24, 12, 0,
+		82, 15, 1, 0, 0, 0, 83, 84, 5, 20, 0, 0, 84, 85, 3, 18, 9, 0, 85, 86, 5,
+		21, 0, 0, 86, 94, 3, 20, 10, 0, 87, 88, 5, 22, 0, 0, 88, 89, 3, 18, 9,
+		0, 89, 90, 5, 21, 0, 0, 90, 91, 3, 20, 10, 0, 91, 93, 1, 0, 0, 0, 92, 87,
+		1, 0, 0, 0, 93, 96, 1, 0, 0, 0, 94, 92, 1, 0, 0, 0, 94, 95, 1, 0, 0, 0,
+		95, 99, 1, 0, 0, 0, 96, 94, 1, 0, 0, 0, 97, 98, 5, 23, 0, 0, 98, 100, 3,
+		22, 11, 0, 99, 97, 1, 0, 0, 0, 99, 100, 1, 0, 0, 0, 100, 101, 1, 0, 0,
+		0, 101, 103, 5, 24, 0, 0, 102, 104, 5, 7, 0, 0, 103, 102, 1, 0, 0, 0, 103,
+		104, 1, 0, 0, 0, 104, 17, 1, 0, 0, 0, 105, 106, 3, 24, 12, 0, 106, 19,
+		1, 0, 0, 0, 107, 108, 3, 10, 5, 0, 108, 21, 1, 0, 0, 0, 109, 110, 3, 10,
+		5, 0, 110, 23, 1, 0, 0, 0, 111, 112, 6, 12, -1, 0, 112, 124, 3, 26, 13,
+		0, 113, 114, 5, 40, 0, 0, 114, 115, 5, 25, 0, 0, 115, 116, 3, 24, 12, 0,
+		116, 117, 5, 26, 0, 0, 117, 124, 1, 0, 0, 0, 118, 124, 5, 40, 0, 0, 119,
+		120, 5, 25, 0, 0, 120, 121, 3, 24, 12, 0, 121, 122, 5, 26, 0, 0, 122, 124,
+		1, 0, 0, 0, 123, 111, 1, 0, 0, 0, 123, 113, 1, 0, 0, 0, 123, 118, 1, 0,
+		0, 0, 123, 119, 1, 0, 0, 0, 124, 136, 1, 0, 0, 0, 125, 126, 10, 3, 0, 0,
+		126, 127, 7, 1, 0, 0, 127, 135, 3, 24, 12, 4, 128, 129, 10, 2, 0, 0, 129,
+		130, 7, 2, 0, 0, 130, 135, 3, 24, 12, 3, 131, 132, 10, 1, 0, 0, 132, 133,
+		7, 3, 0, 0, 133, 135, 3, 24, 12, 2, 134, 125, 1, 0, 0, 0, 134, 128, 1,
+		0, 0, 0, 134, 131, 1, 0, 0, 0, 135, 138, 1, 0, 0, 0, 136, 134, 1, 0, 0,
+		0, 136, 137, 1, 0, 0, 0, 137, 25, 1, 0, 0, 0, 138, 136, 1, 0, 0, 0, 139,
+		142, 3, 28, 14, 0, 140, 142, 3, 30, 15, 0, 141, 139, 1, 0, 0, 0, 141, 140,
+		1, 0, 0, 0, 142, 27, 1, 0, 0, 0, 143, 144, 5, 41, 0, 0, 144, 148, 3, 30,
+		15, 0, 145, 146, 5, 42, 0, 0, 146, 148, 3, 30, 15, 0, 147, 143, 1, 0, 0,
+		0, 147, 145, 1, 0, 0, 0, 148, 29, 1, 0, 0, 0, 149, 150, 7, 4, 0, 0, 150,
+		31, 1, 0, 0, 0, 14, 41, 48, 58, 67, 75, 77, 94, 99, 103, 123, 134, 136,
+		141, 147,
 	}
 	deserializer := antlr.NewATNDeserializer(nil)
 	staticData.atn = deserializer.Deserialize(staticData.serializedATN)
@@ -187,14 +190,15 @@ const (
 	STParserT__32      = 33
 	STParserT__33      = 34
 	STParserT__34      = 35
-	STParserInteger    = 36
-	STParserHex_Int    = 37
-	STParserHex_Digit  = 38
-	STParserID         = 39
-	STParserPLUS       = 40
-	STParserMINUS      = 41
-	STParserComment    = 42
-	STParserWHITESPACE = 43
+	STParserCast       = 36
+	STParserInteger    = 37
+	STParserHex_Int    = 38
+	STParserHex_Digit  = 39
+	STParserID         = 40
+	STParserPLUS       = 41
+	STParserMINUS      = 42
+	STParserComment    = 43
+	STParserWHITESPACE = 44
 )
 
 // STParser rules.
@@ -318,18 +322,6 @@ func (s *ProgramContext) GetRuleContext() antlr.RuleContext {
 
 func (s *ProgramContext) ToStringTree(ruleNames []string, recog antlr.Recognizer) string {
 	return antlr.TreesStringTree(s, ruleNames, recog)
-}
-
-func (s *ProgramContext) EnterRule(listener antlr.ParseTreeListener) {
-	if listenerT, ok := listener.(STListener); ok {
-		listenerT.EnterProgram(s)
-	}
-}
-
-func (s *ProgramContext) ExitRule(listener antlr.ParseTreeListener) {
-	if listenerT, ok := listener.(STListener); ok {
-		listenerT.ExitProgram(s)
-	}
 }
 
 func (s *ProgramContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
@@ -491,18 +483,6 @@ func (s *Var_declaration_blocksContext) ToStringTree(ruleNames []string, recog a
 	return antlr.TreesStringTree(s, ruleNames, recog)
 }
 
-func (s *Var_declaration_blocksContext) EnterRule(listener antlr.ParseTreeListener) {
-	if listenerT, ok := listener.(STListener); ok {
-		listenerT.EnterVar_declaration_blocks(s)
-	}
-}
-
-func (s *Var_declaration_blocksContext) ExitRule(listener antlr.ParseTreeListener) {
-	if listenerT, ok := listener.(STListener); ok {
-		listenerT.ExitVar_declaration_blocks(s)
-	}
-}
-
 func (s *Var_declaration_blocksContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
 	switch t := visitor.(type) {
 	case STVisitor:
@@ -647,18 +627,6 @@ func (s *Var_declaration_blockContext) GetRuleContext() antlr.RuleContext {
 
 func (s *Var_declaration_blockContext) ToStringTree(ruleNames []string, recog antlr.Recognizer) string {
 	return antlr.TreesStringTree(s, ruleNames, recog)
-}
-
-func (s *Var_declaration_blockContext) EnterRule(listener antlr.ParseTreeListener) {
-	if listenerT, ok := listener.(STListener); ok {
-		listenerT.EnterVar_declaration_block(s)
-	}
-}
-
-func (s *Var_declaration_blockContext) ExitRule(listener antlr.ParseTreeListener) {
-	if listenerT, ok := listener.(STListener); ok {
-		listenerT.ExitVar_declaration_block(s)
-	}
 }
 
 func (s *Var_declaration_blockContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
@@ -852,18 +820,6 @@ func (s *Var_declarationContext) ToStringTree(ruleNames []string, recog antlr.Re
 	return antlr.TreesStringTree(s, ruleNames, recog)
 }
 
-func (s *Var_declarationContext) EnterRule(listener antlr.ParseTreeListener) {
-	if listenerT, ok := listener.(STListener); ok {
-		listenerT.EnterVar_declaration(s)
-	}
-}
-
-func (s *Var_declarationContext) ExitRule(listener antlr.ParseTreeListener) {
-	if listenerT, ok := listener.(STListener); ok {
-		listenerT.ExitVar_declaration(s)
-	}
-}
-
 func (s *Var_declarationContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
 	switch t := visitor.(type) {
 	case STVisitor:
@@ -1000,18 +956,6 @@ func (s *Type_nameContext) GetRuleContext() antlr.RuleContext {
 
 func (s *Type_nameContext) ToStringTree(ruleNames []string, recog antlr.Recognizer) string {
 	return antlr.TreesStringTree(s, ruleNames, recog)
-}
-
-func (s *Type_nameContext) EnterRule(listener antlr.ParseTreeListener) {
-	if listenerT, ok := listener.(STListener); ok {
-		listenerT.EnterType_name(s)
-	}
-}
-
-func (s *Type_nameContext) ExitRule(listener antlr.ParseTreeListener) {
-	if listenerT, ok := listener.(STListener); ok {
-		listenerT.ExitType_name(s)
-	}
 }
 
 func (s *Type_nameContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
@@ -1151,18 +1095,6 @@ func (s *Statement_listContext) ToStringTree(ruleNames []string, recog antlr.Rec
 	return antlr.TreesStringTree(s, ruleNames, recog)
 }
 
-func (s *Statement_listContext) EnterRule(listener antlr.ParseTreeListener) {
-	if listenerT, ok := listener.(STListener); ok {
-		listenerT.EnterStatement_list(s)
-	}
-}
-
-func (s *Statement_listContext) ExitRule(listener antlr.ParseTreeListener) {
-	if listenerT, ok := listener.(STListener); ok {
-		listenerT.ExitStatement_list(s)
-	}
-}
-
 func (s *Statement_listContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
 	switch t := visitor.(type) {
 	case STVisitor:
@@ -1298,18 +1230,6 @@ func (s *StatementContext) GetRuleContext() antlr.RuleContext {
 
 func (s *StatementContext) ToStringTree(ruleNames []string, recog antlr.Recognizer) string {
 	return antlr.TreesStringTree(s, ruleNames, recog)
-}
-
-func (s *StatementContext) EnterRule(listener antlr.ParseTreeListener) {
-	if listenerT, ok := listener.(STListener); ok {
-		listenerT.EnterStatement(s)
-	}
-}
-
-func (s *StatementContext) ExitRule(listener antlr.ParseTreeListener) {
-	if listenerT, ok := listener.(STListener); ok {
-		listenerT.ExitStatement(s)
-	}
 }
 
 func (s *StatementContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
@@ -1487,18 +1407,6 @@ func (s *Assignment_statementContext) GetRuleContext() antlr.RuleContext {
 
 func (s *Assignment_statementContext) ToStringTree(ruleNames []string, recog antlr.Recognizer) string {
 	return antlr.TreesStringTree(s, ruleNames, recog)
-}
-
-func (s *Assignment_statementContext) EnterRule(listener antlr.ParseTreeListener) {
-	if listenerT, ok := listener.(STListener); ok {
-		listenerT.EnterAssignment_statement(s)
-	}
-}
-
-func (s *Assignment_statementContext) ExitRule(listener antlr.ParseTreeListener) {
-	if listenerT, ok := listener.(STListener); ok {
-		listenerT.ExitAssignment_statement(s)
-	}
 }
 
 func (s *Assignment_statementContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
@@ -1766,18 +1674,6 @@ func (s *If_statementContext) ToStringTree(ruleNames []string, recog antlr.Recog
 	return antlr.TreesStringTree(s, ruleNames, recog)
 }
 
-func (s *If_statementContext) EnterRule(listener antlr.ParseTreeListener) {
-	if listenerT, ok := listener.(STListener); ok {
-		listenerT.EnterIf_statement(s)
-	}
-}
-
-func (s *If_statementContext) ExitRule(listener antlr.ParseTreeListener) {
-	if listenerT, ok := listener.(STListener); ok {
-		listenerT.ExitIf_statement(s)
-	}
-}
-
 func (s *If_statementContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
 	switch t := visitor.(type) {
 	case STVisitor:
@@ -2007,18 +1903,6 @@ func (s *ConditionContext) ToStringTree(ruleNames []string, recog antlr.Recogniz
 	return antlr.TreesStringTree(s, ruleNames, recog)
 }
 
-func (s *ConditionContext) EnterRule(listener antlr.ParseTreeListener) {
-	if listenerT, ok := listener.(STListener); ok {
-		listenerT.EnterCondition(s)
-	}
-}
-
-func (s *ConditionContext) ExitRule(listener antlr.ParseTreeListener) {
-	if listenerT, ok := listener.(STListener); ok {
-		listenerT.ExitCondition(s)
-	}
-}
-
 func (s *ConditionContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
 	switch t := visitor.(type) {
 	case STVisitor:
@@ -2121,18 +2005,6 @@ func (s *Then_listContext) ToStringTree(ruleNames []string, recog antlr.Recogniz
 	return antlr.TreesStringTree(s, ruleNames, recog)
 }
 
-func (s *Then_listContext) EnterRule(listener antlr.ParseTreeListener) {
-	if listenerT, ok := listener.(STListener); ok {
-		listenerT.EnterThen_list(s)
-	}
-}
-
-func (s *Then_listContext) ExitRule(listener antlr.ParseTreeListener) {
-	if listenerT, ok := listener.(STListener); ok {
-		listenerT.ExitThen_list(s)
-	}
-}
-
 func (s *Then_listContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
 	switch t := visitor.(type) {
 	case STVisitor:
@@ -2233,18 +2105,6 @@ func (s *Else_listContext) GetRuleContext() antlr.RuleContext {
 
 func (s *Else_listContext) ToStringTree(ruleNames []string, recog antlr.Recognizer) string {
 	return antlr.TreesStringTree(s, ruleNames, recog)
-}
-
-func (s *Else_listContext) EnterRule(listener antlr.ParseTreeListener) {
-	if listenerT, ok := listener.(STListener); ok {
-		listenerT.EnterElse_list(s)
-	}
-}
-
-func (s *Else_listContext) ExitRule(listener antlr.ParseTreeListener) {
-	if listenerT, ok := listener.(STListener); ok {
-		listenerT.ExitElse_list(s)
-	}
 }
 
 func (s *Else_listContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
@@ -2407,18 +2267,6 @@ func (s *BinaryCompareExprContext) Expression(i int) IExpressionContext {
 	return t.(IExpressionContext)
 }
 
-func (s *BinaryCompareExprContext) EnterRule(listener antlr.ParseTreeListener) {
-	if listenerT, ok := listener.(STListener); ok {
-		listenerT.EnterBinaryCompareExpr(s)
-	}
-}
-
-func (s *BinaryCompareExprContext) ExitRule(listener antlr.ParseTreeListener) {
-	if listenerT, ok := listener.(STListener); ok {
-		listenerT.ExitBinaryCompareExpr(s)
-	}
-}
-
 func (s *BinaryCompareExprContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
 	switch t := visitor.(type) {
 	case STVisitor:
@@ -2461,18 +2309,6 @@ func (s *ConstantContext) Number() INumberContext {
 	}
 
 	return t.(INumberContext)
-}
-
-func (s *ConstantContext) EnterRule(listener antlr.ParseTreeListener) {
-	if listenerT, ok := listener.(STListener); ok {
-		listenerT.EnterConstant(s)
-	}
-}
-
-func (s *ConstantContext) ExitRule(listener antlr.ParseTreeListener) {
-	if listenerT, ok := listener.(STListener); ok {
-		listenerT.ExitConstant(s)
-	}
 }
 
 func (s *ConstantContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
@@ -2559,18 +2395,6 @@ func (s *BinaryPowerExprContext) Expression(i int) IExpressionContext {
 	return t.(IExpressionContext)
 }
 
-func (s *BinaryPowerExprContext) EnterRule(listener antlr.ParseTreeListener) {
-	if listenerT, ok := listener.(STListener); ok {
-		listenerT.EnterBinaryPowerExpr(s)
-	}
-}
-
-func (s *BinaryPowerExprContext) ExitRule(listener antlr.ParseTreeListener) {
-	if listenerT, ok := listener.(STListener); ok {
-		listenerT.ExitBinaryPowerExpr(s)
-	}
-}
-
 func (s *BinaryPowerExprContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
 	switch t := visitor.(type) {
 	case STVisitor:
@@ -2601,18 +2425,6 @@ func (s *VariableContext) GetRuleContext() antlr.RuleContext {
 
 func (s *VariableContext) ID() antlr.TerminalNode {
 	return s.GetToken(STParserID, 0)
-}
-
-func (s *VariableContext) EnterRule(listener antlr.ParseTreeListener) {
-	if listenerT, ok := listener.(STListener); ok {
-		listenerT.EnterVariable(s)
-	}
-}
-
-func (s *VariableContext) ExitRule(listener antlr.ParseTreeListener) {
-	if listenerT, ok := listener.(STListener); ok {
-		listenerT.ExitVariable(s)
-	}
 }
 
 func (s *VariableContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
@@ -2707,22 +2519,68 @@ func (s *BinaryPlusExprContext) MINUS() antlr.TerminalNode {
 	return s.GetToken(STParserMINUS, 0)
 }
 
-func (s *BinaryPlusExprContext) EnterRule(listener antlr.ParseTreeListener) {
-	if listenerT, ok := listener.(STListener); ok {
-		listenerT.EnterBinaryPlusExpr(s)
-	}
-}
-
-func (s *BinaryPlusExprContext) ExitRule(listener antlr.ParseTreeListener) {
-	if listenerT, ok := listener.(STListener); ok {
-		listenerT.ExitBinaryPlusExpr(s)
-	}
-}
-
 func (s *BinaryPlusExprContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
 	switch t := visitor.(type) {
 	case STVisitor:
 		return t.VisitBinaryPlusExpr(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
+type CallExprContext struct {
+	ExpressionContext
+	id  antlr.Token
+	sub IExpressionContext
+}
+
+func NewCallExprContext(parser antlr.Parser, ctx antlr.ParserRuleContext) *CallExprContext {
+	var p = new(CallExprContext)
+
+	InitEmptyExpressionContext(&p.ExpressionContext)
+	p.parser = parser
+	p.CopyAll(ctx.(*ExpressionContext))
+
+	return p
+}
+
+func (s *CallExprContext) GetId() antlr.Token { return s.id }
+
+func (s *CallExprContext) SetId(v antlr.Token) { s.id = v }
+
+func (s *CallExprContext) GetSub() IExpressionContext { return s.sub }
+
+func (s *CallExprContext) SetSub(v IExpressionContext) { s.sub = v }
+
+func (s *CallExprContext) GetRuleContext() antlr.RuleContext {
+	return s
+}
+
+func (s *CallExprContext) ID() antlr.TerminalNode {
+	return s.GetToken(STParserID, 0)
+}
+
+func (s *CallExprContext) Expression() IExpressionContext {
+	var t antlr.RuleContext
+	for _, ctx := range s.GetChildren() {
+		if _, ok := ctx.(IExpressionContext); ok {
+			t = ctx.(antlr.RuleContext)
+			break
+		}
+	}
+
+	if t == nil {
+		return nil
+	}
+
+	return t.(IExpressionContext)
+}
+
+func (s *CallExprContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case STVisitor:
+		return t.VisitCallExpr(s)
 
 	default:
 		return t.VisitChildren(s)
@@ -2768,18 +2626,6 @@ func (s *ParenExprContext) Expression() IExpressionContext {
 	return t.(IExpressionContext)
 }
 
-func (s *ParenExprContext) EnterRule(listener antlr.ParseTreeListener) {
-	if listenerT, ok := listener.(STListener); ok {
-		listenerT.EnterParenExpr(s)
-	}
-}
-
-func (s *ParenExprContext) ExitRule(listener antlr.ParseTreeListener) {
-	if listenerT, ok := listener.(STListener); ok {
-		listenerT.ExitParenExpr(s)
-	}
-}
-
 func (s *ParenExprContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
 	switch t := visitor.(type) {
 	case STVisitor:
@@ -2808,14 +2654,14 @@ func (p *STParser) expression(_p int) (localctx IExpressionContext) {
 	var _alt int
 
 	p.EnterOuterAlt(localctx, 1)
-	p.SetState(118)
+	p.SetState(123)
 	p.GetErrorHandler().Sync(p)
 	if p.HasError() {
 		goto errorExit
 	}
 
-	switch p.GetTokenStream().LA(1) {
-	case STParserInteger, STParserHex_Int, STParserPLUS, STParserMINUS:
+	switch p.GetInterpreter().AdaptivePredict(p.BaseParser, p.GetTokenStream(), 9, p.GetParserRuleContext()) {
+	case 1:
 		localctx = NewConstantContext(p, localctx)
 		p.SetParserRuleContext(localctx)
 		_prevctx = localctx
@@ -2825,23 +2671,21 @@ func (p *STParser) expression(_p int) (localctx IExpressionContext) {
 			p.Number()
 		}
 
-	case STParserID:
-		localctx = NewVariableContext(p, localctx)
+	case 2:
+		localctx = NewCallExprContext(p, localctx)
 		p.SetParserRuleContext(localctx)
 		_prevctx = localctx
 		{
 			p.SetState(113)
-			p.Match(STParserID)
+
+			var _m = p.Match(STParserID)
+
+			localctx.(*CallExprContext).id = _m
 			if p.HasError() {
 				// Recognition error - abort rule
 				goto errorExit
 			}
 		}
-
-	case STParserT__24:
-		localctx = NewParenExprContext(p, localctx)
-		p.SetParserRuleContext(localctx)
-		_prevctx = localctx
 		{
 			p.SetState(114)
 			p.Match(STParserT__24)
@@ -2855,7 +2699,7 @@ func (p *STParser) expression(_p int) (localctx IExpressionContext) {
 
 			var _x = p.expression(0)
 
-			localctx.(*ParenExprContext).sub = _x
+			localctx.(*CallExprContext).sub = _x
 		}
 		{
 			p.SetState(116)
@@ -2866,12 +2710,52 @@ func (p *STParser) expression(_p int) (localctx IExpressionContext) {
 			}
 		}
 
-	default:
-		p.SetError(antlr.NewNoViableAltException(p, nil, nil, nil, nil, nil))
+	case 3:
+		localctx = NewVariableContext(p, localctx)
+		p.SetParserRuleContext(localctx)
+		_prevctx = localctx
+		{
+			p.SetState(118)
+			p.Match(STParserID)
+			if p.HasError() {
+				// Recognition error - abort rule
+				goto errorExit
+			}
+		}
+
+	case 4:
+		localctx = NewParenExprContext(p, localctx)
+		p.SetParserRuleContext(localctx)
+		_prevctx = localctx
+		{
+			p.SetState(119)
+			p.Match(STParserT__24)
+			if p.HasError() {
+				// Recognition error - abort rule
+				goto errorExit
+			}
+		}
+		{
+			p.SetState(120)
+
+			var _x = p.expression(0)
+
+			localctx.(*ParenExprContext).sub = _x
+		}
+		{
+			p.SetState(121)
+			p.Match(STParserT__25)
+			if p.HasError() {
+				// Recognition error - abort rule
+				goto errorExit
+			}
+		}
+
+	case antlr.ATNInvalidAltNumber:
 		goto errorExit
 	}
 	p.GetParserRuleContext().SetStop(p.GetTokenStream().LT(-1))
-	p.SetState(131)
+	p.SetState(136)
 	p.GetErrorHandler().Sync(p)
 	if p.HasError() {
 		goto errorExit
@@ -2886,7 +2770,7 @@ func (p *STParser) expression(_p int) (localctx IExpressionContext) {
 				p.TriggerExitRuleEvent()
 			}
 			_prevctx = localctx
-			p.SetState(129)
+			p.SetState(134)
 			p.GetErrorHandler().Sync(p)
 			if p.HasError() {
 				goto errorExit
@@ -2898,14 +2782,14 @@ func (p *STParser) expression(_p int) (localctx IExpressionContext) {
 				localctx.(*BinaryPowerExprContext).left = _prevctx
 
 				p.PushNewRecursionContext(localctx, _startState, STParserRULE_expression)
-				p.SetState(120)
+				p.SetState(125)
 
 				if !(p.Precpred(p.GetParserRuleContext(), 3)) {
 					p.SetError(antlr.NewFailedPredicateException(p, "p.Precpred(p.GetParserRuleContext(), 3)", ""))
 					goto errorExit
 				}
 				{
-					p.SetState(121)
+					p.SetState(126)
 
 					var _lt = p.GetTokenStream().LT(1)
 
@@ -2923,7 +2807,7 @@ func (p *STParser) expression(_p int) (localctx IExpressionContext) {
 					}
 				}
 				{
-					p.SetState(122)
+					p.SetState(127)
 
 					var _x = p.expression(4)
 
@@ -2935,14 +2819,14 @@ func (p *STParser) expression(_p int) (localctx IExpressionContext) {
 				localctx.(*BinaryPlusExprContext).left = _prevctx
 
 				p.PushNewRecursionContext(localctx, _startState, STParserRULE_expression)
-				p.SetState(123)
+				p.SetState(128)
 
 				if !(p.Precpred(p.GetParserRuleContext(), 2)) {
 					p.SetError(antlr.NewFailedPredicateException(p, "p.Precpred(p.GetParserRuleContext(), 2)", ""))
 					goto errorExit
 				}
 				{
-					p.SetState(124)
+					p.SetState(129)
 
 					var _lt = p.GetTokenStream().LT(1)
 
@@ -2960,7 +2844,7 @@ func (p *STParser) expression(_p int) (localctx IExpressionContext) {
 					}
 				}
 				{
-					p.SetState(125)
+					p.SetState(130)
 
 					var _x = p.expression(3)
 
@@ -2972,14 +2856,14 @@ func (p *STParser) expression(_p int) (localctx IExpressionContext) {
 				localctx.(*BinaryCompareExprContext).left = _prevctx
 
 				p.PushNewRecursionContext(localctx, _startState, STParserRULE_expression)
-				p.SetState(126)
+				p.SetState(131)
 
 				if !(p.Precpred(p.GetParserRuleContext(), 1)) {
 					p.SetError(antlr.NewFailedPredicateException(p, "p.Precpred(p.GetParserRuleContext(), 1)", ""))
 					goto errorExit
 				}
 				{
-					p.SetState(127)
+					p.SetState(132)
 
 					var _lt = p.GetTokenStream().LT(1)
 
@@ -2997,7 +2881,7 @@ func (p *STParser) expression(_p int) (localctx IExpressionContext) {
 					}
 				}
 				{
-					p.SetState(128)
+					p.SetState(133)
 
 					var _x = p.expression(2)
 
@@ -3009,7 +2893,7 @@ func (p *STParser) expression(_p int) (localctx IExpressionContext) {
 			}
 
 		}
-		p.SetState(133)
+		p.SetState(138)
 		p.GetErrorHandler().Sync(p)
 		if p.HasError() {
 			goto errorExit
@@ -3120,18 +3004,6 @@ func (s *NumberContext) ToStringTree(ruleNames []string, recog antlr.Recognizer)
 	return antlr.TreesStringTree(s, ruleNames, recog)
 }
 
-func (s *NumberContext) EnterRule(listener antlr.ParseTreeListener) {
-	if listenerT, ok := listener.(STListener); ok {
-		listenerT.EnterNumber(s)
-	}
-}
-
-func (s *NumberContext) ExitRule(listener antlr.ParseTreeListener) {
-	if listenerT, ok := listener.(STListener); ok {
-		listenerT.ExitNumber(s)
-	}
-}
-
 func (s *NumberContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
 	switch t := visitor.(type) {
 	case STVisitor:
@@ -3145,7 +3017,7 @@ func (s *NumberContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
 func (p *STParser) Number() (localctx INumberContext) {
 	localctx = NewNumberContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 26, STParserRULE_number)
-	p.SetState(136)
+	p.SetState(141)
 	p.GetErrorHandler().Sync(p)
 	if p.HasError() {
 		goto errorExit
@@ -3155,14 +3027,14 @@ func (p *STParser) Number() (localctx INumberContext) {
 	case STParserPLUS, STParserMINUS:
 		p.EnterOuterAlt(localctx, 1)
 		{
-			p.SetState(134)
+			p.SetState(139)
 			p.Signed_integer()
 		}
 
 	case STParserInteger, STParserHex_Int:
 		p.EnterOuterAlt(localctx, 2)
 		{
-			p.SetState(135)
+			p.SetState(140)
 			p.Integer()
 		}
 
@@ -3264,18 +3136,6 @@ func (s *Signed_integerContext) ToStringTree(ruleNames []string, recog antlr.Rec
 	return antlr.TreesStringTree(s, ruleNames, recog)
 }
 
-func (s *Signed_integerContext) EnterRule(listener antlr.ParseTreeListener) {
-	if listenerT, ok := listener.(STListener); ok {
-		listenerT.EnterSigned_integer(s)
-	}
-}
-
-func (s *Signed_integerContext) ExitRule(listener antlr.ParseTreeListener) {
-	if listenerT, ok := listener.(STListener); ok {
-		listenerT.ExitSigned_integer(s)
-	}
-}
-
 func (s *Signed_integerContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
 	switch t := visitor.(type) {
 	case STVisitor:
@@ -3289,7 +3149,7 @@ func (s *Signed_integerContext) Accept(visitor antlr.ParseTreeVisitor) interface
 func (p *STParser) Signed_integer() (localctx ISigned_integerContext) {
 	localctx = NewSigned_integerContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 28, STParserRULE_signed_integer)
-	p.SetState(142)
+	p.SetState(147)
 	p.GetErrorHandler().Sync(p)
 	if p.HasError() {
 		goto errorExit
@@ -3299,7 +3159,7 @@ func (p *STParser) Signed_integer() (localctx ISigned_integerContext) {
 	case STParserPLUS:
 		p.EnterOuterAlt(localctx, 1)
 		{
-			p.SetState(138)
+			p.SetState(143)
 			p.Match(STParserPLUS)
 			if p.HasError() {
 				// Recognition error - abort rule
@@ -3307,14 +3167,14 @@ func (p *STParser) Signed_integer() (localctx ISigned_integerContext) {
 			}
 		}
 		{
-			p.SetState(139)
+			p.SetState(144)
 			p.Integer()
 		}
 
 	case STParserMINUS:
 		p.EnterOuterAlt(localctx, 2)
 		{
-			p.SetState(140)
+			p.SetState(145)
 			p.Match(STParserMINUS)
 			if p.HasError() {
 				// Recognition error - abort rule
@@ -3322,7 +3182,7 @@ func (p *STParser) Signed_integer() (localctx ISigned_integerContext) {
 			}
 		}
 		{
-			p.SetState(141)
+			p.SetState(146)
 			p.Integer()
 		}
 
@@ -3407,18 +3267,6 @@ func (s *IntegerContext) ToStringTree(ruleNames []string, recog antlr.Recognizer
 	return antlr.TreesStringTree(s, ruleNames, recog)
 }
 
-func (s *IntegerContext) EnterRule(listener antlr.ParseTreeListener) {
-	if listenerT, ok := listener.(STListener); ok {
-		listenerT.EnterInteger(s)
-	}
-}
-
-func (s *IntegerContext) ExitRule(listener antlr.ParseTreeListener) {
-	if listenerT, ok := listener.(STListener); ok {
-		listenerT.ExitInteger(s)
-	}
-}
-
 func (s *IntegerContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
 	switch t := visitor.(type) {
 	case STVisitor:
@@ -3436,7 +3284,7 @@ func (p *STParser) Integer() (localctx IIntegerContext) {
 
 	p.EnterOuterAlt(localctx, 1)
 	{
-		p.SetState(144)
+		p.SetState(149)
 		_la = p.GetTokenStream().LA(1)
 
 		if !(_la == STParserInteger || _la == STParserHex_Int) {

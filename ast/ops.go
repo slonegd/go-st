@@ -70,7 +70,6 @@ func NewVarOp[T any](variable variant.Variant) Operator[T] {
 }
 
 func NewAssignOp[T constraints.Integer, R int64](variable variant.Variant, expr Operator[R]) Statement {
-	// TODO проверить тип
 	op := Statement{}
 	val := (*R)(variable.Pointer())
 
@@ -102,6 +101,29 @@ func NewStatments(s Statements) Statement {
 		return struct{}{}
 	}
 	return op
+}
+
+func NewCastOp[T constraints.Integer, R int64](expr Operator[R]) Operator[R] {
+	op := Operator[R]{
+		isConstant: expr.isConstant,
+		resultType: VariantType[T](),
+	}
+	op.do = func() R {
+		v := T(expr.do())
+		return R(v)
+	}
+	return op
+}
+
+var castOps = map[variant.Type]func(expr Int64Operator) any{
+	variant.SINT:  func(expr Int64Operator) any { return NewCastOp[int8](expr) },
+	variant.INT:   func(expr Int64Operator) any { return NewCastOp[int16](expr) },
+	variant.DINT:  func(expr Int64Operator) any { return NewCastOp[int32](expr) },
+	variant.LINT:  func(expr Int64Operator) any { return NewCastOp[int64](expr) },
+	variant.USINT: func(expr Int64Operator) any { return NewCastOp[uint8](expr) },
+	variant.UINT:  func(expr Int64Operator) any { return NewCastOp[uint16](expr) },
+	variant.UDINT: func(expr Int64Operator) any { return NewCastOp[uint32](expr) },
+	variant.ULINT: func(expr Int64Operator) any { return NewCastOp[uint64](expr) },
 }
 
 // T для ограничения размера инта

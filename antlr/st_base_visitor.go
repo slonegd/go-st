@@ -76,6 +76,10 @@ func (v *BaseSTVisitor) VisitBinaryPlusExpr(ctx *BinaryPlusExprContext) interfac
 	return v.VisitChildren(ctx)
 }
 
+func (v *BaseSTVisitor) VisitCallExpr(ctx *CallExprContext) interface{} {
+	return v.VisitChildren(ctx)
+}
+
 func (v *BaseSTVisitor) VisitParenExpr(ctx *ParenExprContext) interface{} {
 	return v.VisitChildren(ctx)
 }

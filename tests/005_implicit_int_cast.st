@@ -36,5 +36,7 @@ PROGRAM simpliest
     i16 := i16 + 1;
     i32 := i32 + 1;
     i64 := i64 + 1;
+    ui16 := INT_TO_UINT(i16);
+    // ui16 := DINT_TO_UINT(i16); // если раскомментировать, можно увидеть ошибку
   END_IF
 END_PROGRAM

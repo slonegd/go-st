@@ -2,6 +2,8 @@ package ast
 
 import (
 	"errors"
+	"fmt"
+	"strings"
 
 	"github.com/antlr4-go/antlr/v4"
 	parser "github.com/slonegd/go-st/antlr"
@@ -80,6 +82,28 @@ func (x visitor) VisitBinaryPowerExpr(ctx *parser.BinaryPowerExprContext) any {
 	x.CheckError(ctx, err)
 	opFunc := binaryOps[binaryOpKey{op, resultType}]
 	return opFunc(left, right)
+}
+
+func (x visitor) VisitCallExpr(ctx *parser.CallExprContext) any {
+	expr := ctx.GetSub().Accept(x).(Int64Operator)
+	name := ctx.GetId().GetText()
+	parts := strings.Split(name, "_TO_")
+	if len(parts) != 2 {
+		x.CheckError(ctx, errors.New("unknown function"))
+	}
+	from := variant.TypeFromString(parts[0])
+	if from == variant.ANY {
+		x.CheckError(ctx, errors.New("unknown function"))
+	}
+	to := variant.TypeFromString(parts[1])
+	if to == variant.ANY {
+		x.CheckError(ctx, errors.New("unknown function"))
+	}
+	if from != expr.resultType {
+		x.CheckError(ctx, fmt.Errorf("expression has %s type", expr.resultType))
+	}
+
+	return castOps[to](expr)
 }
 
 func (x visitor) VisitChildren(node antlr.RuleNode) any {
