@@ -37,86 +37,92 @@ func stParserInit() {
 		"';'", "'SINT'", "'INT'", "'DINT'", "'LINT'", "'USINT'", "'UINT'", "'UDINT'",
 		"'ULINT'", "'REAL'", "'LREAL'", "'BOOL'", "'STRING'", "'IF'", "'THEN'",
 		"'ELSIF'", "'ELSE'", "'END_IF'", "'('", "')'", "'*'", "'/'", "'MOD'",
-		"'>'", "'>='", "'<'", "'<='", "'='", "'<>'", "'_TO_'", "", "", "", "",
-		"'+'", "'-'",
+		"'>'", "'>='", "'<'", "'<='", "'='", "'<>'", "'.'", "'E'", "", "", "",
+		"", "'+'", "'-'",
 	}
 	staticData.SymbolicNames = []string{
 		"", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "",
 		"", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "",
-		"", "", "Cast", "Integer", "Hex_Int", "Hex_Digit", "ID", "PLUS", "MINUS",
+		"", "", "", "", "Integer", "Hex_Int", "Hex_Digit", "ID", "PLUS", "MINUS",
 		"Comment", "WHITESPACE",
 	}
 	staticData.RuleNames = []string{
 		"program", "var_declaration_blocks", "var_declaration_block", "var_declaration",
 		"type_name", "statement_list", "statement", "assignment_statement",
 		"if_statement", "condition", "then_list", "else_list", "expression",
-		"number", "signed_integer", "integer",
+		"number", "real", "integer", "signed_integer", "unsign_integer",
 	}
 	staticData.PredictionContextCache = antlr.NewPredictionContextCache()
 	staticData.serializedATN = []int32{
-		4, 1, 44, 152, 2, 0, 7, 0, 2, 1, 7, 1, 2, 2, 7, 2, 2, 3, 7, 3, 2, 4, 7,
+		4, 1, 45, 166, 2, 0, 7, 0, 2, 1, 7, 1, 2, 2, 7, 2, 2, 3, 7, 3, 2, 4, 7,
 		4, 2, 5, 7, 5, 2, 6, 7, 6, 2, 7, 7, 7, 2, 8, 7, 8, 2, 9, 7, 9, 2, 10, 7,
 		10, 2, 11, 7, 11, 2, 12, 7, 12, 2, 13, 7, 13, 2, 14, 7, 14, 2, 15, 7, 15,
-		1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 5, 1, 40, 8, 1, 10, 1, 12, 1,
-		43, 9, 1, 1, 2, 1, 2, 5, 2, 47, 8, 2, 10, 2, 12, 2, 50, 9, 2, 1, 2, 1,
-		2, 1, 3, 1, 3, 1, 3, 1, 3, 1, 3, 3, 3, 59, 8, 3, 1, 3, 1, 3, 1, 4, 1, 4,
-		1, 5, 5, 5, 66, 8, 5, 10, 5, 12, 5, 69, 9, 5, 1, 6, 1, 6, 1, 6, 1, 6, 1,
-		6, 3, 6, 76, 8, 6, 3, 6, 78, 8, 6, 1, 7, 1, 7, 1, 7, 1, 7, 1, 8, 1, 8,
-		1, 8, 1, 8, 1, 8, 1, 8, 1, 8, 1, 8, 1, 8, 5, 8, 93, 8, 8, 10, 8, 12, 8,
-		96, 9, 8, 1, 8, 1, 8, 3, 8, 100, 8, 8, 1, 8, 1, 8, 3, 8, 104, 8, 8, 1,
-		9, 1, 9, 1, 10, 1, 10, 1, 11, 1, 11, 1, 12, 1, 12, 1, 12, 1, 12, 1, 12,
-		1, 12, 1, 12, 1, 12, 1, 12, 1, 12, 1, 12, 1, 12, 3, 12, 124, 8, 12, 1,
-		12, 1, 12, 1, 12, 1, 12, 1, 12, 1, 12, 1, 12, 1, 12, 1, 12, 5, 12, 135,
-		8, 12, 10, 12, 12, 12, 138, 9, 12, 1, 13, 1, 13, 3, 13, 142, 8, 13, 1,
-		14, 1, 14, 1, 14, 1, 14, 3, 14, 148, 8, 14, 1, 15, 1, 15, 1, 15, 0, 1,
-		24, 16, 0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 0, 5,
-		1, 0, 8, 19, 1, 0, 27, 29, 1, 0, 41, 42, 1, 0, 30, 35, 1, 0, 37, 38, 152,
-		0, 32, 1, 0, 0, 0, 2, 41, 1, 0, 0, 0, 4, 44, 1, 0, 0, 0, 6, 53, 1, 0, 0,
-		0, 8, 62, 1, 0, 0, 0, 10, 67, 1, 0, 0, 0, 12, 77, 1, 0, 0, 0, 14, 79, 1,
-		0, 0, 0, 16, 83, 1, 0, 0, 0, 18, 105, 1, 0, 0, 0, 20, 107, 1, 0, 0, 0,
-		22, 109, 1, 0, 0, 0, 24, 123, 1, 0, 0, 0, 26, 141, 1, 0, 0, 0, 28, 147,
-		1, 0, 0, 0, 30, 149, 1, 0, 0, 0, 32, 33, 5, 1, 0, 0, 33, 34, 5, 40, 0,
-		0, 34, 35, 3, 2, 1, 0, 35, 36, 3, 10, 5, 0, 36, 37, 5, 2, 0, 0, 37, 1,
-		1, 0, 0, 0, 38, 40, 3, 4, 2, 0, 39, 38, 1, 0, 0, 0, 40, 43, 1, 0, 0, 0,
-		41, 39, 1, 0, 0, 0, 41, 42, 1, 0, 0, 0, 42, 3, 1, 0, 0, 0, 43, 41, 1, 0,
-		0, 0, 44, 48, 5, 3, 0, 0, 45, 47, 3, 6, 3, 0, 46, 45, 1, 0, 0, 0, 47, 50,
-		1, 0, 0, 0, 48, 46, 1, 0, 0, 0, 48, 49, 1, 0, 0, 0, 49, 51, 1, 0, 0, 0,
-		50, 48, 1, 0, 0, 0, 51, 52, 5, 4, 0, 0, 52, 5, 1, 0, 0, 0, 53, 54, 5, 40,
-		0, 0, 54, 55, 5, 5, 0, 0, 55, 58, 3, 8, 4, 0, 56, 57, 5, 6, 0, 0, 57, 59,
-		3, 26, 13, 0, 58, 56, 1, 0, 0, 0, 58, 59, 1, 0, 0, 0, 59, 60, 1, 0, 0,
-		0, 60, 61, 5, 7, 0, 0, 61, 7, 1, 0, 0, 0, 62, 63, 7, 0, 0, 0, 63, 9, 1,
-		0, 0, 0, 64, 66, 3, 12, 6, 0, 65, 64, 1, 0, 0, 0, 66, 69, 1, 0, 0, 0, 67,
-		65, 1, 0, 0, 0, 67, 68, 1, 0, 0, 0, 68, 11, 1, 0, 0, 0, 69, 67, 1, 0, 0,
-		0, 70, 71, 3, 14, 7, 0, 71, 72, 5, 7, 0, 0, 72, 78, 1, 0, 0, 0, 73, 75,
-		3, 16, 8, 0, 74, 76, 5, 7, 0, 0, 75, 74, 1, 0, 0, 0, 75, 76, 1, 0, 0, 0,
-		76, 78, 1, 0, 0, 0, 77, 70, 1, 0, 0, 0, 77, 73, 1, 0, 0, 0, 78, 13, 1,
-		0, 0, 0, 79, 80, 5, 40, 0, 0, 80, 81, 5, 6, 0, 0, 81, 82, 3, 24, 12, 0,
-		82, 15, 1, 0, 0, 0, 83, 84, 5, 20, 0, 0, 84, 85, 3, 18, 9, 0, 85, 86, 5,
-		21, 0, 0, 86, 94, 3, 20, 10, 0, 87, 88, 5, 22, 0, 0, 88, 89, 3, 18, 9,
-		0, 89, 90, 5, 21, 0, 0, 90, 91, 3, 20, 10, 0, 91, 93, 1, 0, 0, 0, 92, 87,
-		1, 0, 0, 0, 93, 96, 1, 0, 0, 0, 94, 92, 1, 0, 0, 0, 94, 95, 1, 0, 0, 0,
-		95, 99, 1, 0, 0, 0, 96, 94, 1, 0, 0, 0, 97, 98, 5, 23, 0, 0, 98, 100, 3,
-		22, 11, 0, 99, 97, 1, 0, 0, 0, 99, 100, 1, 0, 0, 0, 100, 101, 1, 0, 0,
-		0, 101, 103, 5, 24, 0, 0, 102, 104, 5, 7, 0, 0, 103, 102, 1, 0, 0, 0, 103,
-		104, 1, 0, 0, 0, 104, 17, 1, 0, 0, 0, 105, 106, 3, 24, 12, 0, 106, 19,
-		1, 0, 0, 0, 107, 108, 3, 10, 5, 0, 108, 21, 1, 0, 0, 0, 109, 110, 3, 10,
-		5, 0, 110, 23, 1, 0, 0, 0, 111, 112, 6, 12, -1, 0, 112, 124, 3, 26, 13,
-		0, 113, 114, 5, 40, 0, 0, 114, 115, 5, 25, 0, 0, 115, 116, 3, 24, 12, 0,
-		116, 117, 5, 26, 0, 0, 117, 124, 1, 0, 0, 0, 118, 124, 5, 40, 0, 0, 119,
-		120, 5, 25, 0, 0, 120, 121, 3, 24, 12, 0, 121, 122, 5, 26, 0, 0, 122, 124,
-		1, 0, 0, 0, 123, 111, 1, 0, 0, 0, 123, 113, 1, 0, 0, 0, 123, 118, 1, 0,
-		0, 0, 123, 119, 1, 0, 0, 0, 124, 136, 1, 0, 0, 0, 125, 126, 10, 3, 0, 0,
-		126, 127, 7, 1, 0, 0, 127, 135, 3, 24, 12, 4, 128, 129, 10, 2, 0, 0, 129,
-		130, 7, 2, 0, 0, 130, 135, 3, 24, 12, 3, 131, 132, 10, 1, 0, 0, 132, 133,
-		7, 3, 0, 0, 133, 135, 3, 24, 12, 2, 134, 125, 1, 0, 0, 0, 134, 128, 1,
-		0, 0, 0, 134, 131, 1, 0, 0, 0, 135, 138, 1, 0, 0, 0, 136, 134, 1, 0, 0,
-		0, 136, 137, 1, 0, 0, 0, 137, 25, 1, 0, 0, 0, 138, 136, 1, 0, 0, 0, 139,
-		142, 3, 28, 14, 0, 140, 142, 3, 30, 15, 0, 141, 139, 1, 0, 0, 0, 141, 140,
-		1, 0, 0, 0, 142, 27, 1, 0, 0, 0, 143, 144, 5, 41, 0, 0, 144, 148, 3, 30,
-		15, 0, 145, 146, 5, 42, 0, 0, 146, 148, 3, 30, 15, 0, 147, 143, 1, 0, 0,
-		0, 147, 145, 1, 0, 0, 0, 148, 29, 1, 0, 0, 0, 149, 150, 7, 4, 0, 0, 150,
-		31, 1, 0, 0, 0, 14, 41, 48, 58, 67, 75, 77, 94, 99, 103, 123, 134, 136,
-		141, 147,
+		2, 16, 7, 16, 2, 17, 7, 17, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 5,
+		1, 44, 8, 1, 10, 1, 12, 1, 47, 9, 1, 1, 2, 1, 2, 5, 2, 51, 8, 2, 10, 2,
+		12, 2, 54, 9, 2, 1, 2, 1, 2, 1, 3, 1, 3, 1, 3, 1, 3, 1, 3, 3, 3, 63, 8,
+		3, 1, 3, 1, 3, 1, 4, 1, 4, 1, 5, 5, 5, 70, 8, 5, 10, 5, 12, 5, 73, 9, 5,
+		1, 6, 1, 6, 1, 6, 1, 6, 1, 6, 3, 6, 80, 8, 6, 3, 6, 82, 8, 6, 1, 7, 1,
+		7, 1, 7, 1, 7, 1, 8, 1, 8, 1, 8, 1, 8, 1, 8, 1, 8, 1, 8, 1, 8, 1, 8, 5,
+		8, 97, 8, 8, 10, 8, 12, 8, 100, 9, 8, 1, 8, 1, 8, 3, 8, 104, 8, 8, 1, 8,
+		1, 8, 3, 8, 108, 8, 8, 1, 9, 1, 9, 1, 10, 1, 10, 1, 11, 1, 11, 1, 12, 1,
+		12, 1, 12, 1, 12, 1, 12, 1, 12, 1, 12, 1, 12, 1, 12, 1, 12, 1, 12, 1, 12,
+		3, 12, 128, 8, 12, 1, 12, 1, 12, 1, 12, 1, 12, 1, 12, 1, 12, 1, 12, 1,
+		12, 1, 12, 5, 12, 139, 8, 12, 10, 12, 12, 12, 142, 9, 12, 1, 13, 1, 13,
+		3, 13, 146, 8, 13, 1, 14, 1, 14, 1, 14, 3, 14, 151, 8, 14, 1, 14, 1, 14,
+		3, 14, 155, 8, 14, 1, 15, 1, 15, 3, 15, 159, 8, 15, 1, 16, 1, 16, 1, 16,
+		1, 17, 1, 17, 1, 17, 0, 1, 24, 18, 0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20,
+		22, 24, 26, 28, 30, 32, 34, 0, 5, 1, 0, 8, 19, 1, 0, 27, 29, 1, 0, 42,
+		43, 1, 0, 30, 35, 1, 0, 38, 39, 166, 0, 36, 1, 0, 0, 0, 2, 45, 1, 0, 0,
+		0, 4, 48, 1, 0, 0, 0, 6, 57, 1, 0, 0, 0, 8, 66, 1, 0, 0, 0, 10, 71, 1,
+		0, 0, 0, 12, 81, 1, 0, 0, 0, 14, 83, 1, 0, 0, 0, 16, 87, 1, 0, 0, 0, 18,
+		109, 1, 0, 0, 0, 20, 111, 1, 0, 0, 0, 22, 113, 1, 0, 0, 0, 24, 127, 1,
+		0, 0, 0, 26, 145, 1, 0, 0, 0, 28, 147, 1, 0, 0, 0, 30, 158, 1, 0, 0, 0,
+		32, 160, 1, 0, 0, 0, 34, 163, 1, 0, 0, 0, 36, 37, 5, 1, 0, 0, 37, 38, 5,
+		41, 0, 0, 38, 39, 3, 2, 1, 0, 39, 40, 3, 10, 5, 0, 40, 41, 5, 2, 0, 0,
+		41, 1, 1, 0, 0, 0, 42, 44, 3, 4, 2, 0, 43, 42, 1, 0, 0, 0, 44, 47, 1, 0,
+		0, 0, 45, 43, 1, 0, 0, 0, 45, 46, 1, 0, 0, 0, 46, 3, 1, 0, 0, 0, 47, 45,
+		1, 0, 0, 0, 48, 52, 5, 3, 0, 0, 49, 51, 3, 6, 3, 0, 50, 49, 1, 0, 0, 0,
+		51, 54, 1, 0, 0, 0, 52, 50, 1, 0, 0, 0, 52, 53, 1, 0, 0, 0, 53, 55, 1,
+		0, 0, 0, 54, 52, 1, 0, 0, 0, 55, 56, 5, 4, 0, 0, 56, 5, 1, 0, 0, 0, 57,
+		58, 5, 41, 0, 0, 58, 59, 5, 5, 0, 0, 59, 62, 3, 8, 4, 0, 60, 61, 5, 6,
+		0, 0, 61, 63, 3, 26, 13, 0, 62, 60, 1, 0, 0, 0, 62, 63, 1, 0, 0, 0, 63,
+		64, 1, 0, 0, 0, 64, 65, 5, 7, 0, 0, 65, 7, 1, 0, 0, 0, 66, 67, 7, 0, 0,
+		0, 67, 9, 1, 0, 0, 0, 68, 70, 3, 12, 6, 0, 69, 68, 1, 0, 0, 0, 70, 73,
+		1, 0, 0, 0, 71, 69, 1, 0, 0, 0, 71, 72, 1, 0, 0, 0, 72, 11, 1, 0, 0, 0,
+		73, 71, 1, 0, 0, 0, 74, 75, 3, 14, 7, 0, 75, 76, 5, 7, 0, 0, 76, 82, 1,
+		0, 0, 0, 77, 79, 3, 16, 8, 0, 78, 80, 5, 7, 0, 0, 79, 78, 1, 0, 0, 0, 79,
+		80, 1, 0, 0, 0, 80, 82, 1, 0, 0, 0, 81, 74, 1, 0, 0, 0, 81, 77, 1, 0, 0,
+		0, 82, 13, 1, 0, 0, 0, 83, 84, 5, 41, 0, 0, 84, 85, 5, 6, 0, 0, 85, 86,
+		3, 24, 12, 0, 86, 15, 1, 0, 0, 0, 87, 88, 5, 20, 0, 0, 88, 89, 3, 18, 9,
+		0, 89, 90, 5, 21, 0, 0, 90, 98, 3, 20, 10, 0, 91, 92, 5, 22, 0, 0, 92,
+		93, 3, 18, 9, 0, 93, 94, 5, 21, 0, 0, 94, 95, 3, 20, 10, 0, 95, 97, 1,
+		0, 0, 0, 96, 91, 1, 0, 0, 0, 97, 100, 1, 0, 0, 0, 98, 96, 1, 0, 0, 0, 98,
+		99, 1, 0, 0, 0, 99, 103, 1, 0, 0, 0, 100, 98, 1, 0, 0, 0, 101, 102, 5,
+		23, 0, 0, 102, 104, 3, 22, 11, 0, 103, 101, 1, 0, 0, 0, 103, 104, 1, 0,
+		0, 0, 104, 105, 1, 0, 0, 0, 105, 107, 5, 24, 0, 0, 106, 108, 5, 7, 0, 0,
+		107, 106, 1, 0, 0, 0, 107, 108, 1, 0, 0, 0, 108, 17, 1, 0, 0, 0, 109, 110,
+		3, 24, 12, 0, 110, 19, 1, 0, 0, 0, 111, 112, 3, 10, 5, 0, 112, 21, 1, 0,
+		0, 0, 113, 114, 3, 10, 5, 0, 114, 23, 1, 0, 0, 0, 115, 116, 6, 12, -1,
+		0, 116, 128, 3, 26, 13, 0, 117, 118, 5, 41, 0, 0, 118, 119, 5, 25, 0, 0,
+		119, 120, 3, 24, 12, 0, 120, 121, 5, 26, 0, 0, 121, 128, 1, 0, 0, 0, 122,
+		128, 5, 41, 0, 0, 123, 124, 5, 25, 0, 0, 124, 125, 3, 24, 12, 0, 125, 126,
+		5, 26, 0, 0, 126, 128, 1, 0, 0, 0, 127, 115, 1, 0, 0, 0, 127, 117, 1, 0,
+		0, 0, 127, 122, 1, 0, 0, 0, 127, 123, 1, 0, 0, 0, 128, 140, 1, 0, 0, 0,
+		129, 130, 10, 3, 0, 0, 130, 131, 7, 1, 0, 0, 131, 139, 3, 24, 12, 4, 132,
+		133, 10, 2, 0, 0, 133, 134, 7, 2, 0, 0, 134, 139, 3, 24, 12, 3, 135, 136,
+		10, 1, 0, 0, 136, 137, 7, 3, 0, 0, 137, 139, 3, 24, 12, 2, 138, 129, 1,
+		0, 0, 0, 138, 132, 1, 0, 0, 0, 138, 135, 1, 0, 0, 0, 139, 142, 1, 0, 0,
+		0, 140, 138, 1, 0, 0, 0, 140, 141, 1, 0, 0, 0, 141, 25, 1, 0, 0, 0, 142,
+		140, 1, 0, 0, 0, 143, 146, 3, 28, 14, 0, 144, 146, 3, 30, 15, 0, 145, 143,
+		1, 0, 0, 0, 145, 144, 1, 0, 0, 0, 146, 27, 1, 0, 0, 0, 147, 148, 3, 30,
+		15, 0, 148, 150, 5, 36, 0, 0, 149, 151, 3, 34, 17, 0, 150, 149, 1, 0, 0,
+		0, 150, 151, 1, 0, 0, 0, 151, 154, 1, 0, 0, 0, 152, 153, 5, 37, 0, 0, 153,
+		155, 3, 30, 15, 0, 154, 152, 1, 0, 0, 0, 154, 155, 1, 0, 0, 0, 155, 29,
+		1, 0, 0, 0, 156, 159, 3, 32, 16, 0, 157, 159, 3, 34, 17, 0, 158, 156, 1,
+		0, 0, 0, 158, 157, 1, 0, 0, 0, 159, 31, 1, 0, 0, 0, 160, 161, 7, 2, 0,
+		0, 161, 162, 3, 34, 17, 0, 162, 33, 1, 0, 0, 0, 163, 164, 7, 4, 0, 0, 164,
+		35, 1, 0, 0, 0, 16, 45, 52, 62, 71, 79, 81, 98, 103, 107, 127, 138, 140,
+		145, 150, 154, 158,
 	}
 	deserializer := antlr.NewATNDeserializer(nil)
 	staticData.atn = deserializer.Deserialize(staticData.serializedATN)
@@ -190,15 +196,16 @@ const (
 	STParserT__32      = 33
 	STParserT__33      = 34
 	STParserT__34      = 35
-	STParserCast       = 36
-	STParserInteger    = 37
-	STParserHex_Int    = 38
-	STParserHex_Digit  = 39
-	STParserID         = 40
-	STParserPLUS       = 41
-	STParserMINUS      = 42
-	STParserComment    = 43
-	STParserWHITESPACE = 44
+	STParserT__35      = 36
+	STParserT__36      = 37
+	STParserInteger    = 38
+	STParserHex_Int    = 39
+	STParserHex_Digit  = 40
+	STParserID         = 41
+	STParserPLUS       = 42
+	STParserMINUS      = 43
+	STParserComment    = 44
+	STParserWHITESPACE = 45
 )
 
 // STParser rules.
@@ -217,8 +224,10 @@ const (
 	STParserRULE_else_list              = 11
 	STParserRULE_expression             = 12
 	STParserRULE_number                 = 13
-	STParserRULE_signed_integer         = 14
+	STParserRULE_real                   = 14
 	STParserRULE_integer                = 15
+	STParserRULE_signed_integer         = 16
+	STParserRULE_unsign_integer         = 17
 )
 
 // IProgramContext is an interface to support dynamic dispatch.
@@ -339,7 +348,7 @@ func (p *STParser) Program() (localctx IProgramContext) {
 	p.EnterRule(localctx, 0, STParserRULE_program)
 	p.EnterOuterAlt(localctx, 1)
 	{
-		p.SetState(32)
+		p.SetState(36)
 		p.Match(STParserT__0)
 		if p.HasError() {
 			// Recognition error - abort rule
@@ -347,7 +356,7 @@ func (p *STParser) Program() (localctx IProgramContext) {
 		}
 	}
 	{
-		p.SetState(33)
+		p.SetState(37)
 
 		var _m = p.Match(STParserID)
 
@@ -358,15 +367,15 @@ func (p *STParser) Program() (localctx IProgramContext) {
 		}
 	}
 	{
-		p.SetState(34)
+		p.SetState(38)
 		p.Var_declaration_blocks()
 	}
 	{
-		p.SetState(35)
+		p.SetState(39)
 		p.Statement_list()
 	}
 	{
-		p.SetState(36)
+		p.SetState(40)
 		p.Match(STParserT__1)
 		if p.HasError() {
 			// Recognition error - abort rule
@@ -499,7 +508,7 @@ func (p *STParser) Var_declaration_blocks() (localctx IVar_declaration_blocksCon
 	var _la int
 
 	p.EnterOuterAlt(localctx, 1)
-	p.SetState(41)
+	p.SetState(45)
 	p.GetErrorHandler().Sync(p)
 	if p.HasError() {
 		goto errorExit
@@ -508,11 +517,11 @@ func (p *STParser) Var_declaration_blocks() (localctx IVar_declaration_blocksCon
 
 	for _la == STParserT__2 {
 		{
-			p.SetState(38)
+			p.SetState(42)
 			p.Var_declaration_block()
 		}
 
-		p.SetState(43)
+		p.SetState(47)
 		p.GetErrorHandler().Sync(p)
 		if p.HasError() {
 			goto errorExit
@@ -646,14 +655,14 @@ func (p *STParser) Var_declaration_block() (localctx IVar_declaration_blockConte
 
 	p.EnterOuterAlt(localctx, 1)
 	{
-		p.SetState(44)
+		p.SetState(48)
 		p.Match(STParserT__2)
 		if p.HasError() {
 			// Recognition error - abort rule
 			goto errorExit
 		}
 	}
-	p.SetState(48)
+	p.SetState(52)
 	p.GetErrorHandler().Sync(p)
 	if p.HasError() {
 		goto errorExit
@@ -662,11 +671,11 @@ func (p *STParser) Var_declaration_block() (localctx IVar_declaration_blockConte
 
 	for _la == STParserID {
 		{
-			p.SetState(45)
+			p.SetState(49)
 			p.Var_declaration()
 		}
 
-		p.SetState(50)
+		p.SetState(54)
 		p.GetErrorHandler().Sync(p)
 		if p.HasError() {
 			goto errorExit
@@ -674,7 +683,7 @@ func (p *STParser) Var_declaration_block() (localctx IVar_declaration_blockConte
 		_la = p.GetTokenStream().LA(1)
 	}
 	{
-		p.SetState(51)
+		p.SetState(55)
 		p.Match(STParserT__3)
 		if p.HasError() {
 			// Recognition error - abort rule
@@ -837,7 +846,7 @@ func (p *STParser) Var_declaration() (localctx IVar_declarationContext) {
 
 	p.EnterOuterAlt(localctx, 1)
 	{
-		p.SetState(53)
+		p.SetState(57)
 
 		var _m = p.Match(STParserID)
 
@@ -848,7 +857,7 @@ func (p *STParser) Var_declaration() (localctx IVar_declarationContext) {
 		}
 	}
 	{
-		p.SetState(54)
+		p.SetState(58)
 		p.Match(STParserT__4)
 		if p.HasError() {
 			// Recognition error - abort rule
@@ -856,13 +865,13 @@ func (p *STParser) Var_declaration() (localctx IVar_declarationContext) {
 		}
 	}
 	{
-		p.SetState(55)
+		p.SetState(59)
 
 		var _x = p.Type_name()
 
 		localctx.(*Var_declarationContext).type_ = _x
 	}
-	p.SetState(58)
+	p.SetState(62)
 	p.GetErrorHandler().Sync(p)
 	if p.HasError() {
 		goto errorExit
@@ -871,7 +880,7 @@ func (p *STParser) Var_declaration() (localctx IVar_declarationContext) {
 
 	if _la == STParserT__5 {
 		{
-			p.SetState(56)
+			p.SetState(60)
 			p.Match(STParserT__5)
 			if p.HasError() {
 				// Recognition error - abort rule
@@ -879,7 +888,7 @@ func (p *STParser) Var_declaration() (localctx IVar_declarationContext) {
 			}
 		}
 		{
-			p.SetState(57)
+			p.SetState(61)
 
 			var _x = p.Number()
 
@@ -888,7 +897,7 @@ func (p *STParser) Var_declaration() (localctx IVar_declarationContext) {
 
 	}
 	{
-		p.SetState(60)
+		p.SetState(64)
 		p.Match(STParserT__6)
 		if p.HasError() {
 			// Recognition error - abort rule
@@ -975,7 +984,7 @@ func (p *STParser) Type_name() (localctx IType_nameContext) {
 
 	p.EnterOuterAlt(localctx, 1)
 	{
-		p.SetState(62)
+		p.SetState(66)
 		_la = p.GetTokenStream().LA(1)
 
 		if !((int64(_la) & ^0x3f) == 0 && ((int64(1)<<_la)&1048320) != 0) {
@@ -1111,7 +1120,7 @@ func (p *STParser) Statement_list() (localctx IStatement_listContext) {
 	var _la int
 
 	p.EnterOuterAlt(localctx, 1)
-	p.SetState(67)
+	p.SetState(71)
 	p.GetErrorHandler().Sync(p)
 	if p.HasError() {
 		goto errorExit
@@ -1120,11 +1129,11 @@ func (p *STParser) Statement_list() (localctx IStatement_listContext) {
 
 	for _la == STParserT__19 || _la == STParserID {
 		{
-			p.SetState(64)
+			p.SetState(68)
 			p.Statement()
 		}
 
-		p.SetState(69)
+		p.SetState(73)
 		p.GetErrorHandler().Sync(p)
 		if p.HasError() {
 			goto errorExit
@@ -1247,7 +1256,7 @@ func (p *STParser) Statement() (localctx IStatementContext) {
 	p.EnterRule(localctx, 12, STParserRULE_statement)
 	var _la int
 
-	p.SetState(77)
+	p.SetState(81)
 	p.GetErrorHandler().Sync(p)
 	if p.HasError() {
 		goto errorExit
@@ -1257,11 +1266,11 @@ func (p *STParser) Statement() (localctx IStatementContext) {
 	case STParserID:
 		p.EnterOuterAlt(localctx, 1)
 		{
-			p.SetState(70)
+			p.SetState(74)
 			p.Assignment_statement()
 		}
 		{
-			p.SetState(71)
+			p.SetState(75)
 			p.Match(STParserT__6)
 			if p.HasError() {
 				// Recognition error - abort rule
@@ -1272,10 +1281,10 @@ func (p *STParser) Statement() (localctx IStatementContext) {
 	case STParserT__19:
 		p.EnterOuterAlt(localctx, 2)
 		{
-			p.SetState(73)
+			p.SetState(77)
 			p.If_statement()
 		}
-		p.SetState(75)
+		p.SetState(79)
 		p.GetErrorHandler().Sync(p)
 		if p.HasError() {
 			goto errorExit
@@ -1284,7 +1293,7 @@ func (p *STParser) Statement() (localctx IStatementContext) {
 
 		if _la == STParserT__6 {
 			{
-				p.SetState(74)
+				p.SetState(78)
 				p.Match(STParserT__6)
 				if p.HasError() {
 					// Recognition error - abort rule
@@ -1424,7 +1433,7 @@ func (p *STParser) Assignment_statement() (localctx IAssignment_statementContext
 	p.EnterRule(localctx, 14, STParserRULE_assignment_statement)
 	p.EnterOuterAlt(localctx, 1)
 	{
-		p.SetState(79)
+		p.SetState(83)
 
 		var _m = p.Match(STParserID)
 
@@ -1435,7 +1444,7 @@ func (p *STParser) Assignment_statement() (localctx IAssignment_statementContext
 		}
 	}
 	{
-		p.SetState(80)
+		p.SetState(84)
 		p.Match(STParserT__5)
 		if p.HasError() {
 			// Recognition error - abort rule
@@ -1443,7 +1452,7 @@ func (p *STParser) Assignment_statement() (localctx IAssignment_statementContext
 		}
 	}
 	{
-		p.SetState(81)
+		p.SetState(85)
 
 		var _x = p.expression(0)
 
@@ -1691,7 +1700,7 @@ func (p *STParser) If_statement() (localctx IIf_statementContext) {
 
 	p.EnterOuterAlt(localctx, 1)
 	{
-		p.SetState(83)
+		p.SetState(87)
 		p.Match(STParserT__19)
 		if p.HasError() {
 			// Recognition error - abort rule
@@ -1699,7 +1708,7 @@ func (p *STParser) If_statement() (localctx IIf_statementContext) {
 		}
 	}
 	{
-		p.SetState(84)
+		p.SetState(88)
 
 		var _x = p.Condition()
 
@@ -1707,7 +1716,7 @@ func (p *STParser) If_statement() (localctx IIf_statementContext) {
 	}
 	localctx.(*If_statementContext).cond = append(localctx.(*If_statementContext).cond, localctx.(*If_statementContext)._condition)
 	{
-		p.SetState(85)
+		p.SetState(89)
 		p.Match(STParserT__20)
 		if p.HasError() {
 			// Recognition error - abort rule
@@ -1715,14 +1724,14 @@ func (p *STParser) If_statement() (localctx IIf_statementContext) {
 		}
 	}
 	{
-		p.SetState(86)
+		p.SetState(90)
 
 		var _x = p.Then_list()
 
 		localctx.(*If_statementContext)._then_list = _x
 	}
 	localctx.(*If_statementContext).thenlist = append(localctx.(*If_statementContext).thenlist, localctx.(*If_statementContext)._then_list)
-	p.SetState(94)
+	p.SetState(98)
 	p.GetErrorHandler().Sync(p)
 	if p.HasError() {
 		goto errorExit
@@ -1731,7 +1740,7 @@ func (p *STParser) If_statement() (localctx IIf_statementContext) {
 
 	for _la == STParserT__21 {
 		{
-			p.SetState(87)
+			p.SetState(91)
 			p.Match(STParserT__21)
 			if p.HasError() {
 				// Recognition error - abort rule
@@ -1739,7 +1748,7 @@ func (p *STParser) If_statement() (localctx IIf_statementContext) {
 			}
 		}
 		{
-			p.SetState(88)
+			p.SetState(92)
 
 			var _x = p.Condition()
 
@@ -1747,7 +1756,7 @@ func (p *STParser) If_statement() (localctx IIf_statementContext) {
 		}
 		localctx.(*If_statementContext).cond = append(localctx.(*If_statementContext).cond, localctx.(*If_statementContext)._condition)
 		{
-			p.SetState(89)
+			p.SetState(93)
 			p.Match(STParserT__20)
 			if p.HasError() {
 				// Recognition error - abort rule
@@ -1755,7 +1764,7 @@ func (p *STParser) If_statement() (localctx IIf_statementContext) {
 			}
 		}
 		{
-			p.SetState(90)
+			p.SetState(94)
 
 			var _x = p.Then_list()
 
@@ -1763,14 +1772,14 @@ func (p *STParser) If_statement() (localctx IIf_statementContext) {
 		}
 		localctx.(*If_statementContext).thenlist = append(localctx.(*If_statementContext).thenlist, localctx.(*If_statementContext)._then_list)
 
-		p.SetState(96)
+		p.SetState(100)
 		p.GetErrorHandler().Sync(p)
 		if p.HasError() {
 			goto errorExit
 		}
 		_la = p.GetTokenStream().LA(1)
 	}
-	p.SetState(99)
+	p.SetState(103)
 	p.GetErrorHandler().Sync(p)
 	if p.HasError() {
 		goto errorExit
@@ -1779,7 +1788,7 @@ func (p *STParser) If_statement() (localctx IIf_statementContext) {
 
 	if _la == STParserT__22 {
 		{
-			p.SetState(97)
+			p.SetState(101)
 			p.Match(STParserT__22)
 			if p.HasError() {
 				// Recognition error - abort rule
@@ -1787,7 +1796,7 @@ func (p *STParser) If_statement() (localctx IIf_statementContext) {
 			}
 		}
 		{
-			p.SetState(98)
+			p.SetState(102)
 
 			var _x = p.Else_list()
 
@@ -1796,19 +1805,19 @@ func (p *STParser) If_statement() (localctx IIf_statementContext) {
 
 	}
 	{
-		p.SetState(101)
+		p.SetState(105)
 		p.Match(STParserT__23)
 		if p.HasError() {
 			// Recognition error - abort rule
 			goto errorExit
 		}
 	}
-	p.SetState(103)
+	p.SetState(107)
 	p.GetErrorHandler().Sync(p)
 
 	if p.GetInterpreter().AdaptivePredict(p.BaseParser, p.GetTokenStream(), 8, p.GetParserRuleContext()) == 1 {
 		{
-			p.SetState(102)
+			p.SetState(106)
 			p.Match(STParserT__6)
 			if p.HasError() {
 				// Recognition error - abort rule
@@ -1918,7 +1927,7 @@ func (p *STParser) Condition() (localctx IConditionContext) {
 	p.EnterRule(localctx, 18, STParserRULE_condition)
 	p.EnterOuterAlt(localctx, 1)
 	{
-		p.SetState(105)
+		p.SetState(109)
 		p.expression(0)
 	}
 
@@ -2020,7 +2029,7 @@ func (p *STParser) Then_list() (localctx IThen_listContext) {
 	p.EnterRule(localctx, 20, STParserRULE_then_list)
 	p.EnterOuterAlt(localctx, 1)
 	{
-		p.SetState(107)
+		p.SetState(111)
 		p.Statement_list()
 	}
 
@@ -2122,7 +2131,7 @@ func (p *STParser) Else_list() (localctx IElse_listContext) {
 	p.EnterRule(localctx, 22, STParserRULE_else_list)
 	p.EnterOuterAlt(localctx, 1)
 	{
-		p.SetState(109)
+		p.SetState(113)
 		p.Statement_list()
 	}
 
@@ -2654,7 +2663,7 @@ func (p *STParser) expression(_p int) (localctx IExpressionContext) {
 	var _alt int
 
 	p.EnterOuterAlt(localctx, 1)
-	p.SetState(123)
+	p.SetState(127)
 	p.GetErrorHandler().Sync(p)
 	if p.HasError() {
 		goto errorExit
@@ -2667,7 +2676,7 @@ func (p *STParser) expression(_p int) (localctx IExpressionContext) {
 		_prevctx = localctx
 
 		{
-			p.SetState(112)
+			p.SetState(116)
 			p.Number()
 		}
 
@@ -2676,7 +2685,7 @@ func (p *STParser) expression(_p int) (localctx IExpressionContext) {
 		p.SetParserRuleContext(localctx)
 		_prevctx = localctx
 		{
-			p.SetState(113)
+			p.SetState(117)
 
 			var _m = p.Match(STParserID)
 
@@ -2687,7 +2696,7 @@ func (p *STParser) expression(_p int) (localctx IExpressionContext) {
 			}
 		}
 		{
-			p.SetState(114)
+			p.SetState(118)
 			p.Match(STParserT__24)
 			if p.HasError() {
 				// Recognition error - abort rule
@@ -2695,14 +2704,14 @@ func (p *STParser) expression(_p int) (localctx IExpressionContext) {
 			}
 		}
 		{
-			p.SetState(115)
+			p.SetState(119)
 
 			var _x = p.expression(0)
 
 			localctx.(*CallExprContext).sub = _x
 		}
 		{
-			p.SetState(116)
+			p.SetState(120)
 			p.Match(STParserT__25)
 			if p.HasError() {
 				// Recognition error - abort rule
@@ -2715,7 +2724,7 @@ func (p *STParser) expression(_p int) (localctx IExpressionContext) {
 		p.SetParserRuleContext(localctx)
 		_prevctx = localctx
 		{
-			p.SetState(118)
+			p.SetState(122)
 			p.Match(STParserID)
 			if p.HasError() {
 				// Recognition error - abort rule
@@ -2728,7 +2737,7 @@ func (p *STParser) expression(_p int) (localctx IExpressionContext) {
 		p.SetParserRuleContext(localctx)
 		_prevctx = localctx
 		{
-			p.SetState(119)
+			p.SetState(123)
 			p.Match(STParserT__24)
 			if p.HasError() {
 				// Recognition error - abort rule
@@ -2736,14 +2745,14 @@ func (p *STParser) expression(_p int) (localctx IExpressionContext) {
 			}
 		}
 		{
-			p.SetState(120)
+			p.SetState(124)
 
 			var _x = p.expression(0)
 
 			localctx.(*ParenExprContext).sub = _x
 		}
 		{
-			p.SetState(121)
+			p.SetState(125)
 			p.Match(STParserT__25)
 			if p.HasError() {
 				// Recognition error - abort rule
@@ -2755,7 +2764,7 @@ func (p *STParser) expression(_p int) (localctx IExpressionContext) {
 		goto errorExit
 	}
 	p.GetParserRuleContext().SetStop(p.GetTokenStream().LT(-1))
-	p.SetState(136)
+	p.SetState(140)
 	p.GetErrorHandler().Sync(p)
 	if p.HasError() {
 		goto errorExit
@@ -2770,7 +2779,7 @@ func (p *STParser) expression(_p int) (localctx IExpressionContext) {
 				p.TriggerExitRuleEvent()
 			}
 			_prevctx = localctx
-			p.SetState(134)
+			p.SetState(138)
 			p.GetErrorHandler().Sync(p)
 			if p.HasError() {
 				goto errorExit
@@ -2782,14 +2791,14 @@ func (p *STParser) expression(_p int) (localctx IExpressionContext) {
 				localctx.(*BinaryPowerExprContext).left = _prevctx
 
 				p.PushNewRecursionContext(localctx, _startState, STParserRULE_expression)
-				p.SetState(125)
+				p.SetState(129)
 
 				if !(p.Precpred(p.GetParserRuleContext(), 3)) {
 					p.SetError(antlr.NewFailedPredicateException(p, "p.Precpred(p.GetParserRuleContext(), 3)", ""))
 					goto errorExit
 				}
 				{
-					p.SetState(126)
+					p.SetState(130)
 
 					var _lt = p.GetTokenStream().LT(1)
 
@@ -2807,7 +2816,7 @@ func (p *STParser) expression(_p int) (localctx IExpressionContext) {
 					}
 				}
 				{
-					p.SetState(127)
+					p.SetState(131)
 
 					var _x = p.expression(4)
 
@@ -2819,14 +2828,14 @@ func (p *STParser) expression(_p int) (localctx IExpressionContext) {
 				localctx.(*BinaryPlusExprContext).left = _prevctx
 
 				p.PushNewRecursionContext(localctx, _startState, STParserRULE_expression)
-				p.SetState(128)
+				p.SetState(132)
 
 				if !(p.Precpred(p.GetParserRuleContext(), 2)) {
 					p.SetError(antlr.NewFailedPredicateException(p, "p.Precpred(p.GetParserRuleContext(), 2)", ""))
 					goto errorExit
 				}
 				{
-					p.SetState(129)
+					p.SetState(133)
 
 					var _lt = p.GetTokenStream().LT(1)
 
@@ -2844,7 +2853,7 @@ func (p *STParser) expression(_p int) (localctx IExpressionContext) {
 					}
 				}
 				{
-					p.SetState(130)
+					p.SetState(134)
 
 					var _x = p.expression(3)
 
@@ -2856,14 +2865,14 @@ func (p *STParser) expression(_p int) (localctx IExpressionContext) {
 				localctx.(*BinaryCompareExprContext).left = _prevctx
 
 				p.PushNewRecursionContext(localctx, _startState, STParserRULE_expression)
-				p.SetState(131)
+				p.SetState(135)
 
 				if !(p.Precpred(p.GetParserRuleContext(), 1)) {
 					p.SetError(antlr.NewFailedPredicateException(p, "p.Precpred(p.GetParserRuleContext(), 1)", ""))
 					goto errorExit
 				}
 				{
-					p.SetState(132)
+					p.SetState(136)
 
 					var _lt = p.GetTokenStream().LT(1)
 
@@ -2881,7 +2890,7 @@ func (p *STParser) expression(_p int) (localctx IExpressionContext) {
 					}
 				}
 				{
-					p.SetState(133)
+					p.SetState(137)
 
 					var _x = p.expression(2)
 
@@ -2893,7 +2902,7 @@ func (p *STParser) expression(_p int) (localctx IExpressionContext) {
 			}
 
 		}
-		p.SetState(138)
+		p.SetState(142)
 		p.GetErrorHandler().Sync(p)
 		if p.HasError() {
 			goto errorExit
@@ -2925,7 +2934,7 @@ type INumberContext interface {
 	GetParser() antlr.Parser
 
 	// Getter signatures
-	Signed_integer() ISigned_integerContext
+	Real_() IRealContext
 	Integer() IIntegerContext
 
 	// IsNumberContext differentiates from other interfaces.
@@ -2964,10 +2973,10 @@ func NewNumberContext(parser antlr.Parser, parent antlr.ParserRuleContext, invok
 
 func (s *NumberContext) GetParser() antlr.Parser { return s.parser }
 
-func (s *NumberContext) Signed_integer() ISigned_integerContext {
+func (s *NumberContext) Real_() IRealContext {
 	var t antlr.RuleContext
 	for _, ctx := range s.GetChildren() {
-		if _, ok := ctx.(ISigned_integerContext); ok {
+		if _, ok := ctx.(IRealContext); ok {
 			t = ctx.(antlr.RuleContext)
 			break
 		}
@@ -2977,7 +2986,7 @@ func (s *NumberContext) Signed_integer() ISigned_integerContext {
 		return nil
 	}
 
-	return t.(ISigned_integerContext)
+	return t.(IRealContext)
 }
 
 func (s *NumberContext) Integer() IIntegerContext {
@@ -3017,29 +3026,28 @@ func (s *NumberContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
 func (p *STParser) Number() (localctx INumberContext) {
 	localctx = NewNumberContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 26, STParserRULE_number)
-	p.SetState(141)
+	p.SetState(145)
 	p.GetErrorHandler().Sync(p)
 	if p.HasError() {
 		goto errorExit
 	}
 
-	switch p.GetTokenStream().LA(1) {
-	case STParserPLUS, STParserMINUS:
+	switch p.GetInterpreter().AdaptivePredict(p.BaseParser, p.GetTokenStream(), 12, p.GetParserRuleContext()) {
+	case 1:
 		p.EnterOuterAlt(localctx, 1)
 		{
-			p.SetState(139)
-			p.Signed_integer()
+			p.SetState(143)
+			p.Real_()
 		}
 
-	case STParserInteger, STParserHex_Int:
+	case 2:
 		p.EnterOuterAlt(localctx, 2)
 		{
-			p.SetState(140)
+			p.SetState(144)
 			p.Integer()
 		}
 
-	default:
-		p.SetError(antlr.NewNoViableAltException(p, nil, nil, nil, nil, nil))
+	case antlr.ATNInvalidAltNumber:
 		goto errorExit
 	}
 
@@ -3056,64 +3064,118 @@ errorExit:
 	goto errorExit // Trick to prevent compiler error if the label is not used
 }
 
-// ISigned_integerContext is an interface to support dynamic dispatch.
-type ISigned_integerContext interface {
+// IRealContext is an interface to support dynamic dispatch.
+type IRealContext interface {
 	antlr.ParserRuleContext
 
 	// GetParser returns the parser.
 	GetParser() antlr.Parser
 
+	// GetIntPart returns the intPart rule contexts.
+	GetIntPart() IIntegerContext
+
+	// GetFracPart returns the fracPart rule contexts.
+	GetFracPart() IUnsign_integerContext
+
+	// GetExponent returns the exponent rule contexts.
+	GetExponent() IIntegerContext
+
+	// SetIntPart sets the intPart rule contexts.
+	SetIntPart(IIntegerContext)
+
+	// SetFracPart sets the fracPart rule contexts.
+	SetFracPart(IUnsign_integerContext)
+
+	// SetExponent sets the exponent rule contexts.
+	SetExponent(IIntegerContext)
+
 	// Getter signatures
-	PLUS() antlr.TerminalNode
-	Integer() IIntegerContext
-	MINUS() antlr.TerminalNode
+	AllInteger() []IIntegerContext
+	Integer(i int) IIntegerContext
+	Unsign_integer() IUnsign_integerContext
 
-	// IsSigned_integerContext differentiates from other interfaces.
-	IsSigned_integerContext()
+	// IsRealContext differentiates from other interfaces.
+	IsRealContext()
 }
 
-type Signed_integerContext struct {
+type RealContext struct {
 	antlr.BaseParserRuleContext
-	parser antlr.Parser
+	parser   antlr.Parser
+	intPart  IIntegerContext
+	fracPart IUnsign_integerContext
+	exponent IIntegerContext
 }
 
-func NewEmptySigned_integerContext() *Signed_integerContext {
-	var p = new(Signed_integerContext)
+func NewEmptyRealContext() *RealContext {
+	var p = new(RealContext)
 	antlr.InitBaseParserRuleContext(&p.BaseParserRuleContext, nil, -1)
-	p.RuleIndex = STParserRULE_signed_integer
+	p.RuleIndex = STParserRULE_real
 	return p
 }
 
-func InitEmptySigned_integerContext(p *Signed_integerContext) {
+func InitEmptyRealContext(p *RealContext) {
 	antlr.InitBaseParserRuleContext(&p.BaseParserRuleContext, nil, -1)
-	p.RuleIndex = STParserRULE_signed_integer
+	p.RuleIndex = STParserRULE_real
 }
 
-func (*Signed_integerContext) IsSigned_integerContext() {}
+func (*RealContext) IsRealContext() {}
 
-func NewSigned_integerContext(parser antlr.Parser, parent antlr.ParserRuleContext, invokingState int) *Signed_integerContext {
-	var p = new(Signed_integerContext)
+func NewRealContext(parser antlr.Parser, parent antlr.ParserRuleContext, invokingState int) *RealContext {
+	var p = new(RealContext)
 
 	antlr.InitBaseParserRuleContext(&p.BaseParserRuleContext, parent, invokingState)
 
 	p.parser = parser
-	p.RuleIndex = STParserRULE_signed_integer
+	p.RuleIndex = STParserRULE_real
 
 	return p
 }
 
-func (s *Signed_integerContext) GetParser() antlr.Parser { return s.parser }
+func (s *RealContext) GetParser() antlr.Parser { return s.parser }
 
-func (s *Signed_integerContext) PLUS() antlr.TerminalNode {
-	return s.GetToken(STParserPLUS, 0)
+func (s *RealContext) GetIntPart() IIntegerContext { return s.intPart }
+
+func (s *RealContext) GetFracPart() IUnsign_integerContext { return s.fracPart }
+
+func (s *RealContext) GetExponent() IIntegerContext { return s.exponent }
+
+func (s *RealContext) SetIntPart(v IIntegerContext) { s.intPart = v }
+
+func (s *RealContext) SetFracPart(v IUnsign_integerContext) { s.fracPart = v }
+
+func (s *RealContext) SetExponent(v IIntegerContext) { s.exponent = v }
+
+func (s *RealContext) AllInteger() []IIntegerContext {
+	children := s.GetChildren()
+	len := 0
+	for _, ctx := range children {
+		if _, ok := ctx.(IIntegerContext); ok {
+			len++
+		}
+	}
+
+	tst := make([]IIntegerContext, len)
+	i := 0
+	for _, ctx := range children {
+		if t, ok := ctx.(IIntegerContext); ok {
+			tst[i] = t.(IIntegerContext)
+			i++
+		}
+	}
+
+	return tst
 }
 
-func (s *Signed_integerContext) Integer() IIntegerContext {
+func (s *RealContext) Integer(i int) IIntegerContext {
 	var t antlr.RuleContext
+	j := 0
 	for _, ctx := range s.GetChildren() {
 		if _, ok := ctx.(IIntegerContext); ok {
-			t = ctx.(antlr.RuleContext)
-			break
+			if j == i {
+				t = ctx.(antlr.RuleContext)
+				break
+			}
+			j++
 		}
 	}
 
@@ -3124,70 +3186,95 @@ func (s *Signed_integerContext) Integer() IIntegerContext {
 	return t.(IIntegerContext)
 }
 
-func (s *Signed_integerContext) MINUS() antlr.TerminalNode {
-	return s.GetToken(STParserMINUS, 0)
+func (s *RealContext) Unsign_integer() IUnsign_integerContext {
+	var t antlr.RuleContext
+	for _, ctx := range s.GetChildren() {
+		if _, ok := ctx.(IUnsign_integerContext); ok {
+			t = ctx.(antlr.RuleContext)
+			break
+		}
+	}
+
+	if t == nil {
+		return nil
+	}
+
+	return t.(IUnsign_integerContext)
 }
 
-func (s *Signed_integerContext) GetRuleContext() antlr.RuleContext {
+func (s *RealContext) GetRuleContext() antlr.RuleContext {
 	return s
 }
 
-func (s *Signed_integerContext) ToStringTree(ruleNames []string, recog antlr.Recognizer) string {
+func (s *RealContext) ToStringTree(ruleNames []string, recog antlr.Recognizer) string {
 	return antlr.TreesStringTree(s, ruleNames, recog)
 }
 
-func (s *Signed_integerContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+func (s *RealContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
 	switch t := visitor.(type) {
 	case STVisitor:
-		return t.VisitSigned_integer(s)
+		return t.VisitReal(s)
 
 	default:
 		return t.VisitChildren(s)
 	}
 }
 
-func (p *STParser) Signed_integer() (localctx ISigned_integerContext) {
-	localctx = NewSigned_integerContext(p, p.GetParserRuleContext(), p.GetState())
-	p.EnterRule(localctx, 28, STParserRULE_signed_integer)
-	p.SetState(147)
+func (p *STParser) Real_() (localctx IRealContext) {
+	localctx = NewRealContext(p, p.GetParserRuleContext(), p.GetState())
+	p.EnterRule(localctx, 28, STParserRULE_real)
+	p.EnterOuterAlt(localctx, 1)
+	{
+		p.SetState(147)
+
+		var _x = p.Integer()
+
+		localctx.(*RealContext).intPart = _x
+	}
+	{
+		p.SetState(148)
+		p.Match(STParserT__35)
+		if p.HasError() {
+			// Recognition error - abort rule
+			goto errorExit
+		}
+	}
+	p.SetState(150)
 	p.GetErrorHandler().Sync(p)
-	if p.HasError() {
+
+	if p.GetInterpreter().AdaptivePredict(p.BaseParser, p.GetTokenStream(), 13, p.GetParserRuleContext()) == 1 {
+		{
+			p.SetState(149)
+
+			var _x = p.Unsign_integer()
+
+			localctx.(*RealContext).fracPart = _x
+		}
+
+	} else if p.HasError() { // JIM
 		goto errorExit
 	}
+	p.SetState(154)
+	p.GetErrorHandler().Sync(p)
 
-	switch p.GetTokenStream().LA(1) {
-	case STParserPLUS:
-		p.EnterOuterAlt(localctx, 1)
+	if p.GetInterpreter().AdaptivePredict(p.BaseParser, p.GetTokenStream(), 14, p.GetParserRuleContext()) == 1 {
 		{
-			p.SetState(143)
-			p.Match(STParserPLUS)
+			p.SetState(152)
+			p.Match(STParserT__36)
 			if p.HasError() {
 				// Recognition error - abort rule
 				goto errorExit
 			}
 		}
 		{
-			p.SetState(144)
-			p.Integer()
+			p.SetState(153)
+
+			var _x = p.Integer()
+
+			localctx.(*RealContext).exponent = _x
 		}
 
-	case STParserMINUS:
-		p.EnterOuterAlt(localctx, 2)
-		{
-			p.SetState(145)
-			p.Match(STParserMINUS)
-			if p.HasError() {
-				// Recognition error - abort rule
-				goto errorExit
-			}
-		}
-		{
-			p.SetState(146)
-			p.Integer()
-		}
-
-	default:
-		p.SetError(antlr.NewNoViableAltException(p, nil, nil, nil, nil, nil))
+	} else if p.HasError() { // JIM
 		goto errorExit
 	}
 
@@ -3212,8 +3299,8 @@ type IIntegerContext interface {
 	GetParser() antlr.Parser
 
 	// Getter signatures
-	Integer() antlr.TerminalNode
-	Hex_Int() antlr.TerminalNode
+	Signed_integer() ISigned_integerContext
+	Unsign_integer() IUnsign_integerContext
 
 	// IsIntegerContext differentiates from other interfaces.
 	IsIntegerContext()
@@ -3251,12 +3338,36 @@ func NewIntegerContext(parser antlr.Parser, parent antlr.ParserRuleContext, invo
 
 func (s *IntegerContext) GetParser() antlr.Parser { return s.parser }
 
-func (s *IntegerContext) Integer() antlr.TerminalNode {
-	return s.GetToken(STParserInteger, 0)
+func (s *IntegerContext) Signed_integer() ISigned_integerContext {
+	var t antlr.RuleContext
+	for _, ctx := range s.GetChildren() {
+		if _, ok := ctx.(ISigned_integerContext); ok {
+			t = ctx.(antlr.RuleContext)
+			break
+		}
+	}
+
+	if t == nil {
+		return nil
+	}
+
+	return t.(ISigned_integerContext)
 }
 
-func (s *IntegerContext) Hex_Int() antlr.TerminalNode {
-	return s.GetToken(STParserHex_Int, 0)
+func (s *IntegerContext) Unsign_integer() IUnsign_integerContext {
+	var t antlr.RuleContext
+	for _, ctx := range s.GetChildren() {
+		if _, ok := ctx.(IUnsign_integerContext); ok {
+			t = ctx.(antlr.RuleContext)
+			break
+		}
+	}
+
+	if t == nil {
+		return nil
+	}
+
+	return t.(IUnsign_integerContext)
 }
 
 func (s *IntegerContext) GetRuleContext() antlr.RuleContext {
@@ -3280,11 +3391,268 @@ func (s *IntegerContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
 func (p *STParser) Integer() (localctx IIntegerContext) {
 	localctx = NewIntegerContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 30, STParserRULE_integer)
+	p.EnterOuterAlt(localctx, 1)
+	p.SetState(158)
+	p.GetErrorHandler().Sync(p)
+	if p.HasError() {
+		goto errorExit
+	}
+
+	switch p.GetTokenStream().LA(1) {
+	case STParserPLUS, STParserMINUS:
+		{
+			p.SetState(156)
+			p.Signed_integer()
+		}
+
+	case STParserInteger, STParserHex_Int:
+		{
+			p.SetState(157)
+			p.Unsign_integer()
+		}
+
+	default:
+		p.SetError(antlr.NewNoViableAltException(p, nil, nil, nil, nil, nil))
+		goto errorExit
+	}
+
+errorExit:
+	if p.HasError() {
+		v := p.GetError()
+		localctx.SetException(v)
+		p.GetErrorHandler().ReportError(p, v)
+		p.GetErrorHandler().Recover(p, v)
+		p.SetError(nil)
+	}
+	p.ExitRule()
+	return localctx
+	goto errorExit // Trick to prevent compiler error if the label is not used
+}
+
+// ISigned_integerContext is an interface to support dynamic dispatch.
+type ISigned_integerContext interface {
+	antlr.ParserRuleContext
+
+	// GetParser returns the parser.
+	GetParser() antlr.Parser
+
+	// GetSign returns the sign token.
+	GetSign() antlr.Token
+
+	// SetSign sets the sign token.
+	SetSign(antlr.Token)
+
+	// Getter signatures
+	Unsign_integer() IUnsign_integerContext
+	PLUS() antlr.TerminalNode
+	MINUS() antlr.TerminalNode
+
+	// IsSigned_integerContext differentiates from other interfaces.
+	IsSigned_integerContext()
+}
+
+type Signed_integerContext struct {
+	antlr.BaseParserRuleContext
+	parser antlr.Parser
+	sign   antlr.Token
+}
+
+func NewEmptySigned_integerContext() *Signed_integerContext {
+	var p = new(Signed_integerContext)
+	antlr.InitBaseParserRuleContext(&p.BaseParserRuleContext, nil, -1)
+	p.RuleIndex = STParserRULE_signed_integer
+	return p
+}
+
+func InitEmptySigned_integerContext(p *Signed_integerContext) {
+	antlr.InitBaseParserRuleContext(&p.BaseParserRuleContext, nil, -1)
+	p.RuleIndex = STParserRULE_signed_integer
+}
+
+func (*Signed_integerContext) IsSigned_integerContext() {}
+
+func NewSigned_integerContext(parser antlr.Parser, parent antlr.ParserRuleContext, invokingState int) *Signed_integerContext {
+	var p = new(Signed_integerContext)
+
+	antlr.InitBaseParserRuleContext(&p.BaseParserRuleContext, parent, invokingState)
+
+	p.parser = parser
+	p.RuleIndex = STParserRULE_signed_integer
+
+	return p
+}
+
+func (s *Signed_integerContext) GetParser() antlr.Parser { return s.parser }
+
+func (s *Signed_integerContext) GetSign() antlr.Token { return s.sign }
+
+func (s *Signed_integerContext) SetSign(v antlr.Token) { s.sign = v }
+
+func (s *Signed_integerContext) Unsign_integer() IUnsign_integerContext {
+	var t antlr.RuleContext
+	for _, ctx := range s.GetChildren() {
+		if _, ok := ctx.(IUnsign_integerContext); ok {
+			t = ctx.(antlr.RuleContext)
+			break
+		}
+	}
+
+	if t == nil {
+		return nil
+	}
+
+	return t.(IUnsign_integerContext)
+}
+
+func (s *Signed_integerContext) PLUS() antlr.TerminalNode {
+	return s.GetToken(STParserPLUS, 0)
+}
+
+func (s *Signed_integerContext) MINUS() antlr.TerminalNode {
+	return s.GetToken(STParserMINUS, 0)
+}
+
+func (s *Signed_integerContext) GetRuleContext() antlr.RuleContext {
+	return s
+}
+
+func (s *Signed_integerContext) ToStringTree(ruleNames []string, recog antlr.Recognizer) string {
+	return antlr.TreesStringTree(s, ruleNames, recog)
+}
+
+func (s *Signed_integerContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case STVisitor:
+		return t.VisitSigned_integer(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
+func (p *STParser) Signed_integer() (localctx ISigned_integerContext) {
+	localctx = NewSigned_integerContext(p, p.GetParserRuleContext(), p.GetState())
+	p.EnterRule(localctx, 32, STParserRULE_signed_integer)
 	var _la int
 
 	p.EnterOuterAlt(localctx, 1)
 	{
-		p.SetState(149)
+		p.SetState(160)
+
+		var _lt = p.GetTokenStream().LT(1)
+
+		localctx.(*Signed_integerContext).sign = _lt
+
+		_la = p.GetTokenStream().LA(1)
+
+		if !(_la == STParserPLUS || _la == STParserMINUS) {
+			var _ri = p.GetErrorHandler().RecoverInline(p)
+
+			localctx.(*Signed_integerContext).sign = _ri
+		} else {
+			p.GetErrorHandler().ReportMatch(p)
+			p.Consume()
+		}
+	}
+	{
+		p.SetState(161)
+		p.Unsign_integer()
+	}
+
+errorExit:
+	if p.HasError() {
+		v := p.GetError()
+		localctx.SetException(v)
+		p.GetErrorHandler().ReportError(p, v)
+		p.GetErrorHandler().Recover(p, v)
+		p.SetError(nil)
+	}
+	p.ExitRule()
+	return localctx
+	goto errorExit // Trick to prevent compiler error if the label is not used
+}
+
+// IUnsign_integerContext is an interface to support dynamic dispatch.
+type IUnsign_integerContext interface {
+	antlr.ParserRuleContext
+
+	// GetParser returns the parser.
+	GetParser() antlr.Parser
+
+	// Getter signatures
+	Integer() antlr.TerminalNode
+	Hex_Int() antlr.TerminalNode
+
+	// IsUnsign_integerContext differentiates from other interfaces.
+	IsUnsign_integerContext()
+}
+
+type Unsign_integerContext struct {
+	antlr.BaseParserRuleContext
+	parser antlr.Parser
+}
+
+func NewEmptyUnsign_integerContext() *Unsign_integerContext {
+	var p = new(Unsign_integerContext)
+	antlr.InitBaseParserRuleContext(&p.BaseParserRuleContext, nil, -1)
+	p.RuleIndex = STParserRULE_unsign_integer
+	return p
+}
+
+func InitEmptyUnsign_integerContext(p *Unsign_integerContext) {
+	antlr.InitBaseParserRuleContext(&p.BaseParserRuleContext, nil, -1)
+	p.RuleIndex = STParserRULE_unsign_integer
+}
+
+func (*Unsign_integerContext) IsUnsign_integerContext() {}
+
+func NewUnsign_integerContext(parser antlr.Parser, parent antlr.ParserRuleContext, invokingState int) *Unsign_integerContext {
+	var p = new(Unsign_integerContext)
+
+	antlr.InitBaseParserRuleContext(&p.BaseParserRuleContext, parent, invokingState)
+
+	p.parser = parser
+	p.RuleIndex = STParserRULE_unsign_integer
+
+	return p
+}
+
+func (s *Unsign_integerContext) GetParser() antlr.Parser { return s.parser }
+
+func (s *Unsign_integerContext) Integer() antlr.TerminalNode {
+	return s.GetToken(STParserInteger, 0)
+}
+
+func (s *Unsign_integerContext) Hex_Int() antlr.TerminalNode {
+	return s.GetToken(STParserHex_Int, 0)
+}
+
+func (s *Unsign_integerContext) GetRuleContext() antlr.RuleContext {
+	return s
+}
+
+func (s *Unsign_integerContext) ToStringTree(ruleNames []string, recog antlr.Recognizer) string {
+	return antlr.TreesStringTree(s, ruleNames, recog)
+}
+
+func (s *Unsign_integerContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+	switch t := visitor.(type) {
+	case STVisitor:
+		return t.VisitUnsign_integer(s)
+
+	default:
+		return t.VisitChildren(s)
+	}
+}
+
+func (p *STParser) Unsign_integer() (localctx IUnsign_integerContext) {
+	localctx = NewUnsign_integerContext(p, p.GetParserRuleContext(), p.GetState())
+	p.EnterRule(localctx, 34, STParserRULE_unsign_integer)
+	var _la int
+
+	p.EnterOuterAlt(localctx, 1)
+	{
+		p.SetState(163)
 		_la = p.GetTokenStream().LA(1)
 
 		if !(_la == STParserInteger || _la == STParserHex_Int) {

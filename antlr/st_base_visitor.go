@@ -88,10 +88,18 @@ func (v *BaseSTVisitor) VisitNumber(ctx *NumberContext) interface{} {
 	return v.VisitChildren(ctx)
 }
 
-func (v *BaseSTVisitor) VisitSigned_integer(ctx *Signed_integerContext) interface{} {
+func (v *BaseSTVisitor) VisitReal(ctx *RealContext) interface{} {
 	return v.VisitChildren(ctx)
 }
 
 func (v *BaseSTVisitor) VisitInteger(ctx *IntegerContext) interface{} {
+	return v.VisitChildren(ctx)
+}
+
+func (v *BaseSTVisitor) VisitSigned_integer(ctx *Signed_integerContext) interface{} {
+	return v.VisitChildren(ctx)
+}
+
+func (v *BaseSTVisitor) VisitUnsign_integer(ctx *Unsign_integerContext) interface{} {
 	return v.VisitChildren(ctx)
 }

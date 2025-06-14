@@ -68,9 +68,15 @@ type STVisitor interface {
 	// Visit a parse tree produced by STParser#number.
 	VisitNumber(ctx *NumberContext) interface{}
 
-	// Visit a parse tree produced by STParser#signed_integer.
-	VisitSigned_integer(ctx *Signed_integerContext) interface{}
+	// Visit a parse tree produced by STParser#real.
+	VisitReal(ctx *RealContext) interface{}
 
 	// Visit a parse tree produced by STParser#integer.
 	VisitInteger(ctx *IntegerContext) interface{}
+
+	// Visit a parse tree produced by STParser#signed_integer.
+	VisitSigned_integer(ctx *Signed_integerContext) interface{}
+
+	// Visit a parse tree produced by STParser#unsign_integer.
+	VisitUnsign_integer(ctx *Unsign_integerContext) interface{}
 }

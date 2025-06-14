@@ -3,6 +3,7 @@ package ast
 import (
 	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/antlr4-go/antlr/v4"
@@ -19,7 +20,7 @@ type visitor struct {
 }
 
 var (
-	_ parser.STVisitor    = (*visitor)(nil)
+	_ parser.STVisitor    = visitor{}
 	_ antlr.ErrorListener = (*visitor)(nil)
 )
 
@@ -152,18 +153,41 @@ func (x visitor) VisitIf_statement(ctx *parser.If_statementContext) any {
 	return *elseStatement
 }
 func (x visitor) VisitInteger(ctx *parser.IntegerContext) any {
-	v := variant.NewAnyVariant(ctx.GetText())
-	if v.Variant.Type() == variant.STRING {
-		x.CheckError(ctx, errors.New("fail to parse integer"))
+	if ctx := ctx.Unsign_integer(); ctx != nil {
+		v := ctx.Accept(x).(int64)
+		return v
+
 	}
-	return NewConstantOp(v.Int())
-}
-func (x visitor) VisitNumber(ctx *parser.NumberContext) any {
 	if ctx := ctx.Signed_integer(); ctx != nil {
-		return ctx.Accept(x)
+		v := ctx.Accept(x).(int64)
+		return v
+	}
+	return x.VisitChildren(ctx)
+}
+
+func (x visitor) VisitReal(ctx *parser.RealContext) any {
+	intPart := ctx.GetIntPart().Accept(x)
+	fracPart, exponent := int64(0), int64(0)
+	if ctx := ctx.GetFracPart(); ctx != nil {
+		fracPart = ctx.Accept(x).(int64)
+	}
+	if ctx := ctx.GetExponent(); ctx != nil {
+		exponent = ctx.Accept(x).(int64)
+	}
+	s := fmt.Sprintf("%d.%de%d", intPart, fracPart, exponent)
+	result, err := strconv.ParseFloat(s, 64)
+	x.CheckError(ctx, err)
+	return result
+}
+
+func (x visitor) VisitNumber(ctx *parser.NumberContext) any {
+	if ctx := ctx.Real_(); ctx != nil {
+		v := ctx.Accept(x).(float64)
+		return NewConstantOp(v)
 	}
 	if ctx := ctx.Integer(); ctx != nil {
-		return ctx.Accept(x)
+		v := ctx.Accept(x).(int64)
+		return NewConstantOp(v)
 	}
 	return x.VisitChildren(ctx)
 }
@@ -182,11 +206,21 @@ func (x visitor) VisitProgram(ctx *parser.ProgramContext) any {
 }
 
 func (x visitor) VisitSigned_integer(ctx *parser.Signed_integerContext) any {
-	v := variant.NewAnyVariant(ctx.GetText())
-	if v.Variant.Type() == variant.STRING {
-		x.CheckError(ctx, errors.New("fail to parse integer"))
+	v := ctx.Unsign_integer().Accept(x).(int64)
+	if ctx.GetSign().GetText() == "-" {
+		v = -v
 	}
-	return NewConstantOp(v.Int())
+	return v
+}
+
+func (x visitor) VisitUnsign_integer(ctx *parser.Unsign_integerContext) any {
+	// TODO тут не надо возиться с вариантом
+	v := variant.NewAnyVariant(ctx.GetText())
+	if v, ok := v.Variant.(*variant.Int); ok {
+		return v.Int()
+	}
+	x.CheckError(ctx, errors.New("fail to parse integer"))
+	return v
 }
 
 func (x visitor) VisitStatement(ctx *parser.StatementContext) any {
@@ -215,12 +249,19 @@ func (x visitor) VisitType_name(ctx *parser.Type_nameContext) any {
 }
 func (x visitor) VisitVar_declaration(ctx *parser.Var_declarationContext) any {
 	varName := ctx.GetIdentifier().GetText()
-	defaultValue := ""
-	if token := ctx.GetDefault_(); token != nil { // TODO надо через Accept, чтоб найти ошибку паринга (как тип ниже)
-		defaultValue = token.GetText()
+	var v variant.Variant
+	if ctx := ctx.GetDefault_(); ctx != nil {
+		switch op := ctx.Accept(x).(type) {
+		case Int64Operator:
+			v = variant.IntVariant(op.do())
+		case Float64Operator:
+			v = variant.Float64Variant(op.do())
+		}
+	} else {
+		v = variant.NewAnyVariant("")
 	}
 	valueType := ctx.GetType_().Accept(x).(string)
-	v := variant.SetType(variant.NewAnyVariant(defaultValue), variant.TypeFromString(valueType))
+	v = variant.SetType(v, variant.TypeFromString(valueType))
 	x.vars[varName] = v
 	return x.lastOp
 }

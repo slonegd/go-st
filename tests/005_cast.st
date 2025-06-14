@@ -1,4 +1,4 @@
-PROGRAM simpliest
+PROGRAM cast
   VAR
     i8   : SINT;
     i16  : INT;
@@ -8,6 +8,7 @@ PROGRAM simpliest
     ui16 : UINT;
     ui32 : UDINT;
     ui64 : ULINT;
+    f32 : REAL := 0.1; 
     test : INT;
   END_VAR
 

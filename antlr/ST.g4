@@ -61,15 +61,17 @@ expression : number                                                             
            | left=expression op =('>'|'>='|'<'|'<='|'='|'<>') right=expression  #binaryCompareExpr
 ; // TODO остальные типы выражений
 
-number : signed_integer 
-       | integer
+number : real 
+       | integer  
 ; // TODO не только целое
 
-signed_integer: PLUS integer
-              | MINUS integer
-;
+real : intPart=integer  '.' (fracPart=unsign_integer)? ('E'exponent=integer)?;
 
-integer: Integer | Hex_Int;
+integer: (signed_integer|unsign_integer);
+
+signed_integer: sign=(PLUS | MINUS) unsign_integer;
+
+unsign_integer: Integer | Hex_Int;
 
 Integer   : ('0'..'9')('0'..'9')*;
 Hex_Int   : '16#' ( '_' ? Hex_Digit )+;

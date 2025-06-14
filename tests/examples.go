@@ -20,8 +20,8 @@ var (
 	iftest string
 	//go:embed 004_parse_err.st
 	parseErr string
-	//go:embed 005_implicit_int_cast.st
-	implicit_int_cast string
+	//go:embed 005_cast.st
+	cast string
 )
 
 func main() {

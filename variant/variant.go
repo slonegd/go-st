@@ -122,6 +122,7 @@ func (x *String) Pointer() unsafe.Pointer { return unsafe.Pointer(&x.v) }
 
 type Float64 struct{ v float64 }
 
+func Float64Variant(v float64) *Float64    { return &Float64{v: v} }
 func (x *Float64) Type() Type              { return LREAL }
 func (x *Float64) SetValue(v Variant)      { x.v = v.Float64() }
 func (x *Float64) Bool() bool              { return x.v != 0 }

@@ -1,7 +1,7 @@
 package ast
 
 import (
-	"log"
+	"fmt"
 	"runtime/debug"
 
 	"github.com/antlr4-go/antlr/v4"
@@ -43,7 +43,7 @@ func Parse(script string) (x *AST, err error) {
 				err = x.err
 				return
 			}
-			log.Printf("Паника: %v\nТрейс:\n%s\n", r, debug.Stack())
+			err = fmt.Errorf("Panic: %v\n %s", r, debug.Stack())
 		}
 	}()
 

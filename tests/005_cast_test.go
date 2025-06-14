@@ -10,8 +10,10 @@ import (
 func Test_Execute_005(t *testing.T) {
 	require := require.New(t)
 
-	p, err := ast.Parse(implicit_int_cast)
+	p, err := ast.Parse(cast)
 	require.NoError(err)
+	require.Equal(0.1, p.GetVar("f32").Float64())
+
 	p.Execute()
 	require.Equal(int64(-1), p.GetVar("i8").Int())
 	require.Equal(int64(-1), p.GetVar("i16").Int())
