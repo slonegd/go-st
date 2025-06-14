@@ -13,10 +13,10 @@ func TestProgram_Execute_004(t *testing.T) {
 	_, err := st.NewProgram(parseErr)
 	require.Error(err)
 	require.Equal(`compile: 
-03|    i : INT := 5;
-04|  END_VAR
-05|  i := 1x5;
-00|........^    extraneous input 'x5' expecting ';'
-06|END_PROGRAM
+ 3|    i : INT := 5;
+ 4|  END_VAR
+ 5|  i := 1x5;
+  |........^    extraneous input 'x5' expecting ';'
+ 6|END_PROGRAM
 `, err.Error())
 }

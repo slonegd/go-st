@@ -39,6 +39,14 @@ func (x visitor) SyntaxError(recognizer antlr.Recognizer, offendingSymbol any, l
 	x.err = err
 }
 
+func (x visitor) CheckError(ctx antlr.ParserRuleContext, err error) {
+	if err == nil {
+		return
+	}
+	x.SyntaxError(nil, nil, ctx.GetStart().GetLine(), ctx.GetStart().GetColumn(), err.Error(), nil)
+	panic(err) // прекращаем парсинг, паника словится
+}
+
 type Error struct {
 	Line, Column int
 	Message      string
@@ -104,13 +112,19 @@ func (s Source) FindLines(line int) ([]string, int, bool) {
 	r := slices.Clone(lines[startLine : line+1])
 	r = append(r, "")
 	r = append(r, lines[line+1:endLine]...)
-	positionFormatter := "%0" + strconv.Itoa(powerOf10(endLine)) + "d|"
+	numberLinesColumns := powerOf10(endLine)
+	positionFormatter := "% " + strconv.Itoa(numberLinesColumns) + "d|"
+	messageFormat := ""
+	for range numberLinesColumns {
+		messageFormat += " "
+	}
+	messageFormat += "|"
 	for i := range r {
 		switch {
 		case i < messageLine:
 			r[i] = fmt.Sprintf(positionFormatter, i+startLine+1) + r[i]
 		case i == messageLine:
-			r[i] = fmt.Sprintf(positionFormatter, 0) + r[i]
+			r[i] = messageFormat + r[i]
 		case i > messageLine:
 			r[i] = fmt.Sprintf(positionFormatter, i+startLine) + r[i]
 		}

@@ -34,11 +34,13 @@ T__32=33
 T__33=34
 T__34=35
 Integer=36
-ID=37
-PLUS=38
-MINUS=39
-Comment=40
-WHITESPACE=41
+Hex_Int=37
+Hex_Digit=38
+ID=39
+PLUS=40
+MINUS=41
+Comment=42
+WHITESPACE=43
 'PROGRAM'=1
 'END_PROGRAM'=2
 'VAR'=3
@@ -74,5 +76,5 @@ WHITESPACE=41
 '<='=33
 '='=34
 '<>'=35
-'+'=38
-'-'=39
+'+'=40
+'-'=41

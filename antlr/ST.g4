@@ -68,9 +68,11 @@ signed_integer: PLUS integer
               | MINUS integer
 ;
 
-integer: Integer;
+integer: Integer | Hex_Int;
 
 Integer : ('0'..'9')('0'..'9')*; // TODO другие записи целого числа: 16#
+Hex_Int         : '16#' ( '_' ? Hex_Digit )+;
+Hex_Digit   : '0'..'9' | 'A'..'F';
 
 ID : ([a-zA-Z_]) ([$a-zA-Z0-9_])*;
 

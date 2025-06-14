@@ -2,7 +2,9 @@ package variant
 
 import (
 	"fmt"
+	"math/big"
 	"strconv"
+	"strings"
 	"unsafe"
 )
 
@@ -151,6 +153,15 @@ func NewAnyVariant(v string) *Any {
 	if err == nil {
 		r.Variant = &Bool{v: b}
 		return r
+	}
+
+	if v, ok := strings.CutPrefix(v, "16#"); ok {
+		v = strings.ReplaceAll(v, "_", "")
+		bint, ok := big.NewInt(0).SetString(v, 16)
+		if ok {
+			r.Variant = &Int{v: bint.Int64()}
+			return r
+		}
 	}
 
 	r.Variant = &String{v: v}

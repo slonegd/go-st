@@ -1,6 +1,9 @@
 package ast
 
 import (
+	"log"
+	"runtime/debug"
+
 	"github.com/antlr4-go/antlr/v4"
 	parser "github.com/slonegd/go-st/antlr"
 	"github.com/slonegd/go-st/variant"
@@ -15,7 +18,7 @@ type (
 	}
 )
 
-func Parse(script string) (*AST, error) {
+func Parse(script string) (x *AST, err error) {
 	// Setup the input
 	is := antlr.NewInputStream(script)
 
@@ -26,15 +29,29 @@ func Parse(script string) (*AST, error) {
 	// Create the Parser
 	p := parser.NewSTParser(stream)
 
-	x := &AST{
+	x = &AST{
 		source: Source(script),
 		vars:   map[string]variant.Variant{},
 	}
 	visitor := &visitor{AST: x}
 	p.BaseRecognizer.AddErrorListener(visitor)
+
+	// выход из обхода дерева сделан через панику, поэтому ловим
+	defer func() {
+		if r := recover(); r != nil {
+			if x.err != nil {
+				err = x.err
+				return
+			}
+			log.Printf("Паника: %v\nТрейс:\n%s\n", r, debug.Stack())
+		}
+	}()
+
 	x.programm = p.Program().Accept(visitor).(Statement)
 
-	return x, x.err
+	err = x.err
+
+	return x, err
 }
 
 func (x *AST) GetVar(name string) variant.Variant {

@@ -1,6 +1,8 @@
 package ast
 
 import (
+	"errors"
+
 	"github.com/antlr4-go/antlr/v4"
 	parser "github.com/slonegd/go-st/antlr"
 	"github.com/slonegd/go-st/variant"
@@ -27,8 +29,9 @@ func (x visitor) Visit(tree antlr.ParseTree) any {
 func (x visitor) VisitAssignment_statement(ctx *parser.Assignment_statementContext) any {
 	varName := ctx.GetLeft().GetText()
 	expr := ctx.GetRight().Accept(x).(Int64Operator)
-	variable := x.vars[varName]
-	return NewAssignOp((*int64)(variable.Pointer()), expr)
+	v := x.vars[varName]
+	// TODO проверить возможность присваивания по типу
+	return assignOps[v.Type()](v, expr)
 }
 
 func (x visitor) VisitBinaryCompareExpr(ctx *parser.BinaryCompareExprContext) any {
@@ -57,9 +60,7 @@ func (x visitor) VisitBinaryPlusExpr(ctx *parser.BinaryPlusExprContext) any {
 	right := ctx.GetRight().Accept(x).(Int64Operator)
 	left := ctx.GetLeft().Accept(x).(Int64Operator)
 	resultType, err := validateTypes(right, left)
-	if err != nil {
-		// TODO прервать с ошибкой
-	}
+	x.CheckError(ctx, err)
 	opFunc := binaryOps[binaryOpKey{op, resultType}]
 	return opFunc(left, right)
 }
@@ -69,61 +70,12 @@ type binaryOpKey struct {
 	t  variant.Type
 }
 
-var binaryOps = map[binaryOpKey]func(left, right Int64Operator) any{
-	{"+", variant.SINT}:  func(left, right Int64Operator) any { return NewPlusOp[int8](left, right) },
-	{"+", variant.INT}:   func(left, right Int64Operator) any { return NewPlusOp[int16](left, right) },
-	{"+", variant.DINT}:  func(left, right Int64Operator) any { return NewPlusOp[int32](left, right) },
-	{"+", variant.LINT}:  func(left, right Int64Operator) any { return NewPlusOp[int64](left, right) },
-	{"+", variant.USINT}: func(left, right Int64Operator) any { return NewPlusOp[uint8](left, right) },
-	{"+", variant.UINT}:  func(left, right Int64Operator) any { return NewPlusOp[uint16](left, right) },
-	{"+", variant.UDINT}: func(left, right Int64Operator) any { return NewPlusOp[uint32](left, right) },
-	{"+", variant.ULINT}: func(left, right Int64Operator) any { return NewPlusOp[uint64](left, right) },
-
-	{"-", variant.SINT}:  func(left, right Int64Operator) any { return NewSubOp[int8](left, right) },
-	{"-", variant.INT}:   func(left, right Int64Operator) any { return NewSubOp[int16](left, right) },
-	{"-", variant.DINT}:  func(left, right Int64Operator) any { return NewSubOp[int32](left, right) },
-	{"-", variant.LINT}:  func(left, right Int64Operator) any { return NewSubOp[int64](left, right) },
-	{"-", variant.USINT}: func(left, right Int64Operator) any { return NewSubOp[uint8](left, right) },
-	{"-", variant.UINT}:  func(left, right Int64Operator) any { return NewSubOp[uint16](left, right) },
-	{"-", variant.UDINT}: func(left, right Int64Operator) any { return NewSubOp[uint32](left, right) },
-	{"-", variant.ULINT}: func(left, right Int64Operator) any { return NewSubOp[uint64](left, right) },
-
-	{"*", variant.SINT}:  func(left, right Int64Operator) any { return NewMultOp[int8](left, right) },
-	{"*", variant.INT}:   func(left, right Int64Operator) any { return NewMultOp[int16](left, right) },
-	{"*", variant.DINT}:  func(left, right Int64Operator) any { return NewMultOp[int32](left, right) },
-	{"*", variant.LINT}:  func(left, right Int64Operator) any { return NewMultOp[int64](left, right) },
-	{"*", variant.USINT}: func(left, right Int64Operator) any { return NewMultOp[uint8](left, right) },
-	{"*", variant.UINT}:  func(left, right Int64Operator) any { return NewMultOp[uint16](left, right) },
-	{"*", variant.UDINT}: func(left, right Int64Operator) any { return NewMultOp[uint32](left, right) },
-	{"*", variant.ULINT}: func(left, right Int64Operator) any { return NewMultOp[uint64](left, right) },
-
-	{"/", variant.SINT}:  func(left, right Int64Operator) any { return NewDivOp[int8](left, right) },
-	{"/", variant.INT}:   func(left, right Int64Operator) any { return NewDivOp[int16](left, right) },
-	{"/", variant.DINT}:  func(left, right Int64Operator) any { return NewDivOp[int32](left, right) },
-	{"/", variant.LINT}:  func(left, right Int64Operator) any { return NewDivOp[int64](left, right) },
-	{"/", variant.USINT}: func(left, right Int64Operator) any { return NewDivOp[uint8](left, right) },
-	{"/", variant.UINT}:  func(left, right Int64Operator) any { return NewDivOp[uint16](left, right) },
-	{"/", variant.UDINT}: func(left, right Int64Operator) any { return NewDivOp[uint32](left, right) },
-	{"/", variant.ULINT}: func(left, right Int64Operator) any { return NewDivOp[uint64](left, right) },
-
-	{"MOD", variant.SINT}:  func(left, right Int64Operator) any { return NewModOp[int8](left, right) },
-	{"MOD", variant.INT}:   func(left, right Int64Operator) any { return NewModOp[int16](left, right) },
-	{"MOD", variant.DINT}:  func(left, right Int64Operator) any { return NewModOp[int32](left, right) },
-	{"MOD", variant.LINT}:  func(left, right Int64Operator) any { return NewModOp[int64](left, right) },
-	{"MOD", variant.USINT}: func(left, right Int64Operator) any { return NewModOp[uint8](left, right) },
-	{"MOD", variant.UINT}:  func(left, right Int64Operator) any { return NewModOp[uint16](left, right) },
-	{"MOD", variant.UDINT}: func(left, right Int64Operator) any { return NewModOp[uint32](left, right) },
-	{"MOD", variant.ULINT}: func(left, right Int64Operator) any { return NewModOp[uint64](left, right) },
-}
-
 func (x visitor) VisitBinaryPowerExpr(ctx *parser.BinaryPowerExprContext) any {
 	op := ctx.GetOp().GetText()
 	right := ctx.GetRight().Accept(x).(Int64Operator)
 	left := ctx.GetLeft().Accept(x).(Int64Operator)
 	resultType, err := validateTypes(right, left)
-	if err != nil {
-		// TODO прервать с ошибкой
-	}
+	x.CheckError(ctx, err)
 	opFunc := binaryOps[binaryOpKey{op, resultType}]
 	return opFunc(left, right)
 }
@@ -175,6 +127,9 @@ func (x visitor) VisitIf_statement(ctx *parser.If_statementContext) any {
 }
 func (x visitor) VisitInteger(ctx *parser.IntegerContext) any {
 	v := variant.NewAnyVariant(ctx.GetText())
+	if v.Variant.Type() == variant.STRING {
+		x.CheckError(ctx, errors.New("fail to parse integer"))
+	}
 	return NewConstantOp(v.Int())
 }
 func (x visitor) VisitNumber(ctx *parser.NumberContext) any {
@@ -202,6 +157,9 @@ func (x visitor) VisitProgram(ctx *parser.ProgramContext) any {
 
 func (x visitor) VisitSigned_integer(ctx *parser.Signed_integerContext) any {
 	v := variant.NewAnyVariant(ctx.GetText())
+	if v.Variant.Type() == variant.STRING {
+		x.CheckError(ctx, errors.New("fail to parse integer"))
+	}
 	return NewConstantOp(v.Int())
 }
 
