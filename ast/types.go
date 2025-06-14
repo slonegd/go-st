@@ -18,12 +18,12 @@ func validateTypes(op1, op2 Int64Operator) (variant.Type, error) {
 	}
 	types := [2]variant.Type{op1.resultType, op2.resultType}
 	slices.Sort(types[:])
-	r := implicitCast[types]
+	r := implicitCastInBinary[types]
 	return r.Type, r.error
 }
 
 // Figure 11 – Data type conversion rules – implicit and/or explicit (Summary) 61131-3 © IEC:2013
-var implicitCast = map[[2]variant.Type]struct {
+var implicitCastInBinary = map[[2]variant.Type]struct {
 	variant.Type
 	error
 }{
@@ -70,4 +70,82 @@ var implicitCast = map[[2]variant.Type]struct {
 	{variant.UDINT, variant.ULINT}: {variant.ULINT, nil},
 
 	{variant.ULINT, variant.ULINT}: {variant.ULINT, nil},
+}
+
+type assignTypes struct {
+	v, expr variant.Type
+}
+
+var implicitCastInAssign = map[assignTypes]error{
+	{variant.SINT, variant.SINT}:  nil,
+	{variant.SINT, variant.INT}:   errors.New("no implicit cast from INT to SINT"),
+	{variant.SINT, variant.DINT}:  errors.New("no implicit cast from DINT to SINT"),
+	{variant.SINT, variant.LINT}:  errors.New("no implicit cast from LINT to SINT"),
+	{variant.SINT, variant.USINT}: errors.New("no implicit cast from USINT to SINT"),
+	{variant.SINT, variant.UINT}:  errors.New("no implicit cast from UINT to SINT"),
+	{variant.SINT, variant.UDINT}: errors.New("no implicit cast from UDINT to SINT"),
+	{variant.SINT, variant.ULINT}: errors.New("no implicit cast from ULINT to SINT"),
+
+	{variant.INT, variant.SINT}:  nil,
+	{variant.INT, variant.INT}:   nil,
+	{variant.INT, variant.DINT}:  errors.New("no implicit cast from DINT to INT"),
+	{variant.INT, variant.LINT}:  errors.New("no implicit cast from LINT to INT"),
+	{variant.INT, variant.USINT}: nil,
+	{variant.INT, variant.UINT}:  errors.New("no implicit cast from UINT to INT"),
+	{variant.INT, variant.UDINT}: errors.New("no implicit cast from UDINT to INT"),
+	{variant.INT, variant.ULINT}: errors.New("no implicit cast from ULINT to INT"),
+
+	{variant.DINT, variant.SINT}:  nil,
+	{variant.DINT, variant.INT}:   nil,
+	{variant.DINT, variant.DINT}:  nil,
+	{variant.DINT, variant.LINT}:  errors.New("no implicit cast from LINT to DINT"),
+	{variant.DINT, variant.USINT}: nil,
+	{variant.DINT, variant.UINT}:  nil,
+	{variant.DINT, variant.UDINT}: errors.New("no implicit cast from UDINT to DINT"),
+	{variant.DINT, variant.ULINT}: errors.New("no implicit cast from ULINT to DINT"),
+
+	{variant.LINT, variant.SINT}:  nil,
+	{variant.LINT, variant.INT}:   nil,
+	{variant.LINT, variant.DINT}:  nil,
+	{variant.LINT, variant.LINT}:  nil,
+	{variant.LINT, variant.USINT}: nil,
+	{variant.LINT, variant.UINT}:  nil,
+	{variant.LINT, variant.UDINT}: nil,
+	{variant.LINT, variant.ULINT}: errors.New("no implicit cast from ULINT to LINT"),
+
+	{variant.USINT, variant.SINT}:  errors.New("no implicit cast from SINT to USINT"),
+	{variant.USINT, variant.INT}:   errors.New("no implicit cast from INT to USINT"),
+	{variant.USINT, variant.DINT}:  errors.New("no implicit cast from DINT to USINT"),
+	{variant.USINT, variant.LINT}:  errors.New("no implicit cast from LINT to USINT"),
+	{variant.USINT, variant.USINT}: nil,
+	{variant.USINT, variant.UINT}:  errors.New("no implicit cast from UINT to USINT"),
+	{variant.USINT, variant.UDINT}: errors.New("no implicit cast from UDINT to USINT"),
+	{variant.USINT, variant.ULINT}: errors.New("no implicit cast from ULINT to USINT"),
+
+	{variant.UINT, variant.SINT}:  errors.New("no implicit cast from SINT to UINT"),
+	{variant.UINT, variant.INT}:   errors.New("no implicit cast from INT to UINT"),
+	{variant.UINT, variant.DINT}:  errors.New("no implicit cast from DINT to UINT"),
+	{variant.UINT, variant.LINT}:  errors.New("no implicit cast from LINT to UINT"),
+	{variant.UINT, variant.USINT}: nil,
+	{variant.UINT, variant.UINT}:  nil,
+	{variant.UINT, variant.UDINT}: errors.New("no implicit cast from UDINT to UINT"),
+	{variant.UINT, variant.ULINT}: errors.New("no implicit cast from ULINT to UINT"),
+
+	{variant.UDINT, variant.SINT}:  errors.New("no implicit cast from SINT to UDINT"),
+	{variant.UDINT, variant.INT}:   errors.New("no implicit cast from INT to UDINT"),
+	{variant.UDINT, variant.DINT}:  errors.New("no implicit cast from DINT to UDINT"),
+	{variant.UDINT, variant.LINT}:  errors.New("no implicit cast from LINT to UDINT"),
+	{variant.UDINT, variant.USINT}: nil,
+	{variant.UDINT, variant.UINT}:  nil,
+	{variant.UDINT, variant.UDINT}: nil,
+	{variant.UDINT, variant.ULINT}: errors.New("no implicit cast from ULINT to UDINT"),
+
+	{variant.ULINT, variant.SINT}:  errors.New("no implicit cast from SINT to ULINT"),
+	{variant.ULINT, variant.INT}:   errors.New("no implicit cast from INT to ULINT"),
+	{variant.ULINT, variant.DINT}:  errors.New("no implicit cast from DINT to ULINT"),
+	{variant.ULINT, variant.LINT}:  errors.New("no implicit cast from LINT to ULINT"),
+	{variant.ULINT, variant.USINT}: nil,
+	{variant.ULINT, variant.UINT}:  nil,
+	{variant.ULINT, variant.UDINT}: nil,
+	{variant.ULINT, variant.ULINT}: nil,
 }

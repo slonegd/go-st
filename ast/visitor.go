@@ -30,7 +30,9 @@ func (x visitor) VisitAssignment_statement(ctx *parser.Assignment_statementConte
 	varName := ctx.GetLeft().GetText()
 	expr := ctx.GetRight().Accept(x).(Int64Operator)
 	v := x.vars[varName]
-	// TODO проверить возможность присваивания по типу
+	if !expr.isConstant {
+		x.CheckError(ctx, implicitCastInAssign[assignTypes{v: v.Type(), expr: expr.resultType}])
+	}
 	return assignOps[v.Type()](v, expr)
 }
 
