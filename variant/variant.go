@@ -64,6 +64,17 @@ const (
 	SIZE // для цикла по перечисленю
 )
 
+func (t Type) IsInteger() bool {
+	switch t {
+	case SINT, INT, DINT, LINT, USINT, UINT, UDINT, ULINT:
+		return true
+	}
+	return false
+}
+func (t Type) IsFloat() bool {
+	return t == REAL || t == LREAL
+}
+
 var (
 	_ Variant = (*Int)(nil) // все инты, кроме uint64, метки времени и длительность
 	_ Variant = (*Bool)(nil)
@@ -120,16 +131,19 @@ func (x *String) String() string          { return fmt.Sprintf("STRING(%q)", x.v
 func (x *String) ToString() string        { return x.v }
 func (x *String) Pointer() unsafe.Pointer { return unsafe.Pointer(&x.v) }
 
-type Float64 struct{ v float64 }
+type Float64 struct {
+	v float64
+	t Type
+}
 
-func Float64Variant(v float64) *Float64    { return &Float64{v: v} }
-func (x *Float64) Type() Type              { return LREAL }
+func Float64Variant(v float64) *Float64    { return &Float64{v: v, t: LREAL} }
+func (x *Float64) Type() Type              { return x.t }
 func (x *Float64) SetValue(v Variant)      { x.v = v.Float64() }
 func (x *Float64) Bool() bool              { return x.v != 0 }
 func (x *Float64) Int() int64              { return int64(x.v) }
 func (x *Float64) Uint() uint64            { return uint64(x.Int()) }
 func (x *Float64) Float64() float64        { return x.v }
-func (x *Float64) String() string          { return fmt.Sprintf("REAL(%f)", x.v) }
+func (x *Float64) String() string          { return fmt.Sprintf("%s(%f)", x.t, x.v) }
 func (x *Float64) ToString() string        { return fmt.Sprintf("%f", x.v) }
 func (x *Float64) Pointer() unsafe.Pointer { return unsafe.Pointer(&x.v) }
 
@@ -179,7 +193,7 @@ func SetType(v Variant, t Type) Variant {
 	case SINT, INT, DINT, LINT, USINT, UINT, UDINT, ULINT:
 		return &Int{v: v.Int(), t: t}
 	case REAL, LREAL:
-		return &Float64{v: v.Float64()}
+		return &Float64{v: v.Float64(), t: t}
 	default:
 		return &String{v.ToString()}
 	}

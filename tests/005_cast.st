@@ -8,7 +8,6 @@ PROGRAM cast
     ui16 : UINT;
     ui32 : UDINT;
     ui64 : ULINT;
-    f32 : REAL := 0.1; 
     test : INT;
   END_VAR
 

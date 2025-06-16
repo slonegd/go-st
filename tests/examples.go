@@ -22,6 +22,8 @@ var (
 	parseErr string
 	//go:embed 005_cast.st
 	cast string
+	//go:embed 006_floats.st
+	floats string
 )
 
 func main() {

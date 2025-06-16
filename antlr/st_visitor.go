@@ -68,9 +68,6 @@ type STVisitor interface {
 	// Visit a parse tree produced by STParser#number.
 	VisitNumber(ctx *NumberContext) interface{}
 
-	// Visit a parse tree produced by STParser#real.
-	VisitReal(ctx *RealContext) interface{}
-
 	// Visit a parse tree produced by STParser#integer.
 	VisitInteger(ctx *IntegerContext) interface{}
 

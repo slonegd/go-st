@@ -88,10 +88,6 @@ func (v *BaseSTVisitor) VisitNumber(ctx *NumberContext) interface{} {
 	return v.VisitChildren(ctx)
 }
 
-func (v *BaseSTVisitor) VisitReal(ctx *RealContext) interface{} {
-	return v.VisitChildren(ctx)
-}
-
 func (v *BaseSTVisitor) VisitInteger(ctx *IntegerContext) interface{} {
 	return v.VisitChildren(ctx)
 }

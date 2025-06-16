@@ -12,7 +12,6 @@ func Test_Execute_005(t *testing.T) {
 
 	p, err := ast.Parse(cast)
 	require.NoError(err)
-	require.Equal(0.1, p.GetVar("f32").Float64())
 
 	p.Execute()
 	require.Equal(int64(-1), p.GetVar("i8").Int())

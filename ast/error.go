@@ -39,9 +39,9 @@ func (x visitor) SyntaxError(recognizer antlr.Recognizer, offendingSymbol any, l
 	x.err = err
 }
 
-func (x visitor) CheckError(ctx antlr.ParserRuleContext, err error) {
+func (x visitor) CheckError(ctx antlr.ParserRuleContext, err error) error {
 	if err == nil {
-		return
+		return nil
 	}
 	x.SyntaxError(nil, nil, ctx.GetStart().GetLine(), ctx.GetStart().GetColumn(), err.Error(), nil)
 	panic(err) // прекращаем парсинг, паника словится

@@ -61,11 +61,9 @@ expression : number                                                             
            | left=expression op =('>'|'>='|'<'|'<='|'='|'<>') right=expression  #binaryCompareExpr
 ; // TODO остальные типы выражений
 
-number : real 
+number : FLOAT 
        | integer  
-; // TODO не только целое
-
-real : intPart=integer  '.' (fracPart=unsign_integer)? ('E'exponent=integer)?;
+;
 
 integer: (signed_integer|unsign_integer);
 
@@ -73,11 +71,17 @@ signed_integer: sign=(PLUS | MINUS) unsign_integer;
 
 unsign_integer: Integer | Hex_Int;
 
-Integer   : ('0'..'9')('0'..'9')*;
-Hex_Int   : '16#' ( '_' ? Hex_Digit )+;
-Hex_Digit : '0'..'9' | 'A'..'F';
+Integer : Digit+;
+Hex_Int : '16#' ( '_' ? Hex_Digit )+;
+FLOAT   :   MINUS? ( Digit+  '.' Digit*  // -0.5 или 3.14
+                     | '.' Digit+)       // .5 
+                   ('E' (PLUS|MINUS)? Digit+)?     // экспонента (1E2 или 1e-3)
+;
 
 ID : ([a-zA-Z_]) ([$a-zA-Z0-9_])*;
+
+Digit : '0'..'9';
+Hex_Digit : '0'..'9' | 'A'..'F';
 
 PLUS : '+';
 MINUS: '-';

@@ -31,12 +31,23 @@ func (x visitor) Visit(tree antlr.ParseTree) any {
 
 func (x visitor) VisitAssignment_statement(ctx *parser.Assignment_statementContext) any {
 	varName := ctx.GetLeft().GetText()
-	expr := ctx.GetRight().Accept(x).(Int64Operator)
 	v := x.vars[varName]
-	if !expr.isConstant {
-		x.CheckError(ctx, implicitCastInAssign[assignTypes{v: v.Type(), expr: expr.resultType}])
+
+	expr := ctx.GetRight().Accept(x)
+	switch expr := expr.(type) {
+	case Int64Operator:
+		if !expr.isConstant {
+			x.CheckError(ctx, implicitCastInAssign[assignTypes{v: v.Type(), expr: expr.resultType}])
+		}
+		return assignOps(v, expr)
+	case Float64Operator:
+		if !expr.isConstant {
+			x.CheckError(ctx, implicitCastInAssign[assignTypes{v: v.Type(), expr: expr.resultType}])
+		}
+		return assignOps(v, expr)
 	}
-	return assignOps[v.Type()](v, expr)
+	x.CheckError(ctx, fmt.Errorf("undefined operator in assign statement: %+v", expr))
+	return nil
 }
 
 func (x visitor) VisitBinaryCompareExpr(ctx *parser.BinaryCompareExprContext) any {
@@ -86,7 +97,6 @@ func (x visitor) VisitBinaryPowerExpr(ctx *parser.BinaryPowerExprContext) any {
 }
 
 func (x visitor) VisitCallExpr(ctx *parser.CallExprContext) any {
-	expr := ctx.GetSub().Accept(x).(Int64Operator)
 	name := ctx.GetId().GetText()
 	parts := strings.Split(name, "_TO_")
 	if len(parts) != 2 {
@@ -100,11 +110,23 @@ func (x visitor) VisitCallExpr(ctx *parser.CallExprContext) any {
 	if to == variant.ANY {
 		x.CheckError(ctx, errors.New("unknown function"))
 	}
-	if from != expr.resultType {
-		x.CheckError(ctx, fmt.Errorf("expression has %s type", expr.resultType))
+
+	switch expr := ctx.GetSub().Accept(x).(type) {
+	case Int64Operator:
+		if from != expr.resultType {
+			x.CheckError(ctx, fmt.Errorf("expression has %s type", expr.resultType))
+		}
+		return castOps2(to, expr)
+	case Float64Operator:
+		if from != expr.resultType {
+			x.CheckError(ctx, fmt.Errorf("expression has %s type", expr.resultType))
+		}
+		return castOps2(to, expr)
+	default:
+		x.CheckError(ctx, fmt.Errorf("expression operator has unknown type: %T", expr))
+		return nil
 	}
 
-	return castOps[to](expr)
 }
 
 func (x visitor) VisitChildren(node antlr.RuleNode) any {
@@ -165,25 +187,30 @@ func (x visitor) VisitInteger(ctx *parser.IntegerContext) any {
 	return x.VisitChildren(ctx)
 }
 
-func (x visitor) VisitReal(ctx *parser.RealContext) any {
-	intPart := ctx.GetIntPart().Accept(x)
-	fracPart, exponent := int64(0), int64(0)
-	if ctx := ctx.GetFracPart(); ctx != nil {
-		fracPart = ctx.Accept(x).(int64)
-	}
-	if ctx := ctx.GetExponent(); ctx != nil {
-		exponent = ctx.Accept(x).(int64)
-	}
-	s := fmt.Sprintf("%d.%de%d", intPart, fracPart, exponent)
-	result, err := strconv.ParseFloat(s, 64)
-	x.CheckError(ctx, err)
-	return result
-}
+// func (x visitor) VisitReal(ctx *parser.RealContext) any {
+// 	intPart := ctx.GetIntPart().Accept(x)
+// 	fracPart, exponent := int64(0), int64(0)
+// 	if ctx := ctx.GetFracPart(); ctx != nil {
+// 		fracPart = ctx.Accept(x).(int64)
+// 	}
+// 	if ctx := ctx.GetExponent(); ctx != nil {
+// 		exponent = ctx.Accept(x).(int64)
+// 	}
+// 	s := fmt.Sprintf("%d.%de%d", intPart, fracPart, exponent)
+// 	if ctx.GetSign().GetText() == "-" {
+// 		s = "-" + s
+// 	}
+
+// 	result, err := strconv.ParseFloat(s, 64)
+// 	x.CheckError(ctx, err)
+// 	return result
+// }
 
 func (x visitor) VisitNumber(ctx *parser.NumberContext) any {
-	if ctx := ctx.Real_(); ctx != nil {
-		v := ctx.Accept(x).(float64)
-		return NewConstantOp(v)
+	if f := ctx.FLOAT(); f != nil {
+		result, err := strconv.ParseFloat(f.GetText(), 64)
+		x.CheckError(ctx, err)
+		return NewConstantOp(result)
 	}
 	if ctx := ctx.Integer(); ctx != nil {
 		v := ctx.Accept(x).(int64)
@@ -284,5 +311,11 @@ func (x visitor) VisitVar_declaration_blocks(ctx *parser.Var_declaration_blocksC
 func (x visitor) VisitVariable(ctx *parser.VariableContext) any {
 	varName := ctx.GetText()
 	v := x.vars[varName]
-	return NewVarOp[int64](v)
+	if v.Type().IsInteger() {
+		return NewVarOp[int64](v)
+	}
+	if v.Type().IsFloat() {
+		return NewVarOp[float64](v)
+	}
+	return x.CheckError(ctx, fmt.Errorf("unknown type of variable: %s", v.Type()))
 }

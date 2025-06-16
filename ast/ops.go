@@ -33,6 +33,9 @@ type (
 	OpTypes interface {
 		int64 | float64 | string | bool
 	}
+	Number interface {
+		constraints.Integer | constraints.Float
+	}
 )
 
 func (s *Operator[T]) WithDescription(v string) *Operator[T] { s.descr = v; return s }
@@ -69,9 +72,11 @@ func NewVarOp[T any](variable variant.Variant) Operator[T] {
 	return op
 }
 
-func NewAssignOp[T constraints.Integer, R int64](variable variant.Variant, expr Operator[R]) Statement {
+func NewAssignOp[T Number, R int64 | float64](variable variant.Variant, expr Operator[R]) Statement {
 	op := Statement{}
 	val := (*R)(variable.Pointer())
+
+	// TODO T from variable.Type
 
 	op.do = func() struct{} {
 		v := T(expr.do())
@@ -81,16 +86,34 @@ func NewAssignOp[T constraints.Integer, R int64](variable variant.Variant, expr 
 	return op
 }
 
-var assignOps = map[variant.Type]func(v variant.Variant, expr Int64Operator) any{
-	variant.SINT:  func(v variant.Variant, expr Int64Operator) any { return NewAssignOp[int8](v, expr) },
-	variant.INT:   func(v variant.Variant, expr Int64Operator) any { return NewAssignOp[int16](v, expr) },
-	variant.DINT:  func(v variant.Variant, expr Int64Operator) any { return NewAssignOp[int32](v, expr) },
-	variant.LINT:  func(v variant.Variant, expr Int64Operator) any { return NewAssignOp[int64](v, expr) },
-	variant.USINT: func(v variant.Variant, expr Int64Operator) any { return NewAssignOp[uint8](v, expr) },
-	variant.UINT:  func(v variant.Variant, expr Int64Operator) any { return NewAssignOp[uint16](v, expr) },
-	variant.UDINT: func(v variant.Variant, expr Int64Operator) any { return NewAssignOp[uint32](v, expr) },
-	variant.ULINT: func(v variant.Variant, expr Int64Operator) any { return NewAssignOp[uint64](v, expr) },
+func assignOps[T int64 | float64](v variant.Variant, expr Operator[T]) Statement {
+	ops := map[variant.Type]func(v variant.Variant, expr Operator[T]) Statement{
+		variant.SINT:  func(v variant.Variant, expr Operator[T]) Statement { return NewAssignOp[int8](v, expr) },
+		variant.INT:   func(v variant.Variant, expr Operator[T]) Statement { return NewAssignOp[int16](v, expr) },
+		variant.DINT:  func(v variant.Variant, expr Operator[T]) Statement { return NewAssignOp[int32](v, expr) },
+		variant.LINT:  func(v variant.Variant, expr Operator[T]) Statement { return NewAssignOp[int64](v, expr) },
+		variant.USINT: func(v variant.Variant, expr Operator[T]) Statement { return NewAssignOp[uint8](v, expr) },
+		variant.UINT:  func(v variant.Variant, expr Operator[T]) Statement { return NewAssignOp[uint16](v, expr) },
+		variant.UDINT: func(v variant.Variant, expr Operator[T]) Statement { return NewAssignOp[uint32](v, expr) },
+		variant.ULINT: func(v variant.Variant, expr Operator[T]) Statement { return NewAssignOp[uint64](v, expr) },
+
+		variant.REAL:  func(v variant.Variant, expr Operator[T]) Statement { return NewAssignOp[float32](v, expr) },
+		variant.LREAL: func(v variant.Variant, expr Operator[T]) Statement { return NewAssignOp[float64](v, expr) },
+	}
+	op := ops[v.Type()]
+	return op(v, expr)
 }
+
+// var assignOps2 = map[variant.Type]func(v variant.Variant, expr Int64Operator) any{
+// 	variant.SINT:  func(v variant.Variant, expr Int64Operator) any { return NewAssignOp[int8](v, expr) },
+// 	variant.INT:   func(v variant.Variant, expr Int64Operator) any { return NewAssignOp[int16](v, expr) },
+// 	variant.DINT:  func(v variant.Variant, expr Int64Operator) any { return NewAssignOp[int32](v, expr) },
+// 	variant.LINT:  func(v variant.Variant, expr Int64Operator) any { return NewAssignOp[int64](v, expr) },
+// 	variant.USINT: func(v variant.Variant, expr Int64Operator) any { return NewAssignOp[uint8](v, expr) },
+// 	variant.UINT:  func(v variant.Variant, expr Int64Operator) any { return NewAssignOp[uint16](v, expr) },
+// 	variant.UDINT: func(v variant.Variant, expr Int64Operator) any { return NewAssignOp[uint32](v, expr) },
+// 	variant.ULINT: func(v variant.Variant, expr Int64Operator) any { return NewAssignOp[uint64](v, expr) },
+// }
 
 func NewStatments(s Statements) Statement {
 	op := Statement{}
@@ -103,27 +126,44 @@ func NewStatments(s Statements) Statement {
 	return op
 }
 
-func NewCastOp[T constraints.Integer, R int64](expr Operator[R]) Operator[R] {
-	op := Operator[R]{
+// R может быть разный
+func NewCastOp[T Number, Tout, Tin int64 | float64](expr Operator[Tin]) Operator[Tout] {
+	op := Operator[Tout]{
 		isConstant: expr.isConstant,
 		resultType: VariantType[T](),
 	}
-	op.do = func() R {
+	op.do = func() Tout {
 		v := T(expr.do())
-		return R(v)
+		return Tout(v)
 	}
 	return op
 }
 
-var castOps = map[variant.Type]func(expr Int64Operator) any{
-	variant.SINT:  func(expr Int64Operator) any { return NewCastOp[int8](expr) },
-	variant.INT:   func(expr Int64Operator) any { return NewCastOp[int16](expr) },
-	variant.DINT:  func(expr Int64Operator) any { return NewCastOp[int32](expr) },
-	variant.LINT:  func(expr Int64Operator) any { return NewCastOp[int64](expr) },
-	variant.USINT: func(expr Int64Operator) any { return NewCastOp[uint8](expr) },
-	variant.UINT:  func(expr Int64Operator) any { return NewCastOp[uint16](expr) },
-	variant.UDINT: func(expr Int64Operator) any { return NewCastOp[uint32](expr) },
-	variant.ULINT: func(expr Int64Operator) any { return NewCastOp[uint64](expr) },
+// разные функции под разные типы -> мапа не подходит
+func castOps2[T int64 | float64](t variant.Type, expr Operator[T]) any {
+	switch t {
+	case variant.SINT:
+		return NewCastOp[int8, int64](expr)
+	case variant.INT:
+		return NewCastOp[int16, int64](expr)
+	case variant.DINT:
+		return NewCastOp[int32, int64](expr)
+	case variant.LINT:
+		return NewCastOp[int64, int64](expr)
+	case variant.USINT:
+		return NewCastOp[uint8, int64](expr)
+	case variant.UINT:
+		return NewCastOp[uint16, int64](expr)
+	case variant.UDINT:
+		return NewCastOp[uint32, int64](expr)
+	case variant.ULINT:
+		return NewCastOp[uint64, int64](expr)
+	case variant.REAL:
+		return NewCastOp[float32, float64](expr)
+	case variant.LREAL:
+		return NewCastOp[float64, float64](expr)
+	}
+	return nil
 }
 
 // T для ограничения размера инта
@@ -140,7 +180,7 @@ func NewPlusOp[T constraints.Integer, R int64 | float64](left, right Operator[R]
 	return op
 }
 
-func VariantType[T constraints.Integer]() variant.Type {
+func VariantType[T Number]() variant.Type {
 	var v T
 	var tmp any = v
 	switch tmp.(type) {
@@ -160,6 +200,10 @@ func VariantType[T constraints.Integer]() variant.Type {
 		return variant.UDINT
 	case uint64:
 		return variant.ULINT
+	case float32:
+		return variant.REAL
+	case float64:
+		return variant.LREAL
 	default:
 		panic(fmt.Sprintf("cant find type from %T", v))
 	}

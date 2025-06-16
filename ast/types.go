@@ -85,6 +85,8 @@ var implicitCastInAssign = map[assignTypes]error{
 	{variant.SINT, variant.UINT}:  errors.New("no implicit cast from UINT to SINT"),
 	{variant.SINT, variant.UDINT}: errors.New("no implicit cast from UDINT to SINT"),
 	{variant.SINT, variant.ULINT}: errors.New("no implicit cast from ULINT to SINT"),
+	{variant.SINT, variant.REAL}:  errors.New("no implicit cast from REAL to SINT"),
+	{variant.SINT, variant.LREAL}: errors.New("no implicit cast from LREAL to SINT"),
 
 	{variant.INT, variant.SINT}:  nil,
 	{variant.INT, variant.INT}:   nil,
@@ -94,6 +96,8 @@ var implicitCastInAssign = map[assignTypes]error{
 	{variant.INT, variant.UINT}:  errors.New("no implicit cast from UINT to INT"),
 	{variant.INT, variant.UDINT}: errors.New("no implicit cast from UDINT to INT"),
 	{variant.INT, variant.ULINT}: errors.New("no implicit cast from ULINT to INT"),
+	{variant.INT, variant.REAL}:  errors.New("no implicit cast from REAL to INT"),
+	{variant.INT, variant.LREAL}: errors.New("no implicit cast from LREAL to INT"),
 
 	{variant.DINT, variant.SINT}:  nil,
 	{variant.DINT, variant.INT}:   nil,
@@ -103,6 +107,10 @@ var implicitCastInAssign = map[assignTypes]error{
 	{variant.DINT, variant.UINT}:  nil,
 	{variant.DINT, variant.UDINT}: errors.New("no implicit cast from UDINT to DINT"),
 	{variant.DINT, variant.ULINT}: errors.New("no implicit cast from ULINT to DINT"),
+	{variant.DINT, variant.REAL}:  errors.New("no implicit cast from REAL to DINT"),
+	{variant.DINT, variant.LREAL}: nil,
+	{variant.DINT, variant.REAL}:  errors.New("no implicit cast from REAL to DINT"),
+	{variant.DINT, variant.LREAL}: errors.New("no implicit cast from LREAL to DINT"),
 
 	{variant.LINT, variant.SINT}:  nil,
 	{variant.LINT, variant.INT}:   nil,
@@ -112,6 +120,8 @@ var implicitCastInAssign = map[assignTypes]error{
 	{variant.LINT, variant.UINT}:  nil,
 	{variant.LINT, variant.UDINT}: nil,
 	{variant.LINT, variant.ULINT}: errors.New("no implicit cast from ULINT to LINT"),
+	{variant.LINT, variant.REAL}:  errors.New("no implicit cast from REAL to LINT"),
+	{variant.LINT, variant.LREAL}: errors.New("no implicit cast from LREAL to LINT"),
 
 	{variant.USINT, variant.SINT}:  errors.New("no implicit cast from SINT to USINT"),
 	{variant.USINT, variant.INT}:   errors.New("no implicit cast from INT to USINT"),
@@ -121,6 +131,8 @@ var implicitCastInAssign = map[assignTypes]error{
 	{variant.USINT, variant.UINT}:  errors.New("no implicit cast from UINT to USINT"),
 	{variant.USINT, variant.UDINT}: errors.New("no implicit cast from UDINT to USINT"),
 	{variant.USINT, variant.ULINT}: errors.New("no implicit cast from ULINT to USINT"),
+	{variant.USINT, variant.REAL}:  errors.New("no implicit cast from REAL to USINT"),
+	{variant.USINT, variant.LREAL}: errors.New("no implicit cast from LREAL to USINT"),
 
 	{variant.UINT, variant.SINT}:  errors.New("no implicit cast from SINT to UINT"),
 	{variant.UINT, variant.INT}:   errors.New("no implicit cast from INT to UINT"),
@@ -130,6 +142,8 @@ var implicitCastInAssign = map[assignTypes]error{
 	{variant.UINT, variant.UINT}:  nil,
 	{variant.UINT, variant.UDINT}: errors.New("no implicit cast from UDINT to UINT"),
 	{variant.UINT, variant.ULINT}: errors.New("no implicit cast from ULINT to UINT"),
+	{variant.UINT, variant.REAL}:  errors.New("no implicit cast from REAL to UINT"),
+	{variant.UINT, variant.LREAL}: errors.New("no implicit cast from LREAL to UINT"),
 
 	{variant.UDINT, variant.SINT}:  errors.New("no implicit cast from SINT to UDINT"),
 	{variant.UDINT, variant.INT}:   errors.New("no implicit cast from INT to UDINT"),
@@ -139,6 +153,8 @@ var implicitCastInAssign = map[assignTypes]error{
 	{variant.UDINT, variant.UINT}:  nil,
 	{variant.UDINT, variant.UDINT}: nil,
 	{variant.UDINT, variant.ULINT}: errors.New("no implicit cast from ULINT to UDINT"),
+	{variant.UDINT, variant.REAL}:  errors.New("no implicit cast from REAL to UDINT"),
+	{variant.UDINT, variant.LREAL}: errors.New("no implicit cast from LREAL to UDINT"),
 
 	{variant.ULINT, variant.SINT}:  errors.New("no implicit cast from SINT to ULINT"),
 	{variant.ULINT, variant.INT}:   errors.New("no implicit cast from INT to ULINT"),
@@ -148,4 +164,28 @@ var implicitCastInAssign = map[assignTypes]error{
 	{variant.ULINT, variant.UINT}:  nil,
 	{variant.ULINT, variant.UDINT}: nil,
 	{variant.ULINT, variant.ULINT}: nil,
+	{variant.ULINT, variant.REAL}:  errors.New("no implicit cast from REAL to ULINT"),
+	{variant.ULINT, variant.LREAL}: errors.New("no implicit cast from LREAL to ULINT"),
+
+	{variant.REAL, variant.SINT}:  nil,
+	{variant.REAL, variant.INT}:   nil,
+	{variant.REAL, variant.DINT}:  errors.New("no implicit cast from DINT to REAL"),
+	{variant.REAL, variant.LINT}:  errors.New("no implicit cast from LINT to REAL"),
+	{variant.REAL, variant.USINT}: nil,
+	{variant.REAL, variant.UINT}:  nil,
+	{variant.REAL, variant.UDINT}: errors.New("no implicit cast from UDINT to REAL"),
+	{variant.REAL, variant.ULINT}: errors.New("no implicit cast from ULINT to REAL"),
+	{variant.REAL, variant.REAL}:  nil,
+	{variant.REAL, variant.LREAL}: errors.New("no implicit cast from LREAL to REAL"),
+
+	{variant.LREAL, variant.SINT}:  nil,
+	{variant.LREAL, variant.INT}:   nil,
+	{variant.LREAL, variant.DINT}:  nil,
+	{variant.LREAL, variant.LINT}:  errors.New("no implicit cast from LINT to LREAL"),
+	{variant.LREAL, variant.USINT}: nil,
+	{variant.LREAL, variant.UINT}:  nil,
+	{variant.LREAL, variant.UDINT}: nil,
+	{variant.LREAL, variant.ULINT}: errors.New("no implicit cast from ULINT to LREAL"),
+	{variant.LREAL, variant.REAL}:  nil,
+	{variant.LREAL, variant.LREAL}: nil,
 }

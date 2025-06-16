@@ -33,12 +33,12 @@ T__31=32
 T__32=33
 T__33=34
 T__34=35
-T__35=36
-T__36=37
-Integer=38
-Hex_Int=39
-Hex_Digit=40
-ID=41
+Integer=36
+Hex_Int=37
+FLOAT=38
+ID=39
+Digit=40
+Hex_Digit=41
 PLUS=42
 MINUS=43
 Comment=44
@@ -78,7 +78,5 @@ WHITESPACE=45
 '<='=33
 '='=34
 '<>'=35
-'.'=36
-'E'=37
 '+'=42
 '-'=43
