@@ -7,7 +7,7 @@ import (
 	"github.com/slonegd/go-st/variant"
 )
 
-func validateTypes(op1, op2 Int64Operator) (variant.Type, error) {
+func validateTypes[Left, Right Number](op1 Operator[Left], op2 Operator[Right]) (variant.Type, error) {
 	switch {
 	case op1.isConstant && op2.isConstant:
 		return op1.resultType, nil
@@ -35,6 +35,8 @@ var implicitCastInBinary = map[[2]variant.Type]struct {
 	{variant.SINT, variant.UINT}:  {variant.ANY, errors.New("no implicit cast between SINT and UINT")},
 	{variant.SINT, variant.UDINT}: {variant.ANY, errors.New("no implicit cast between SINT and UDINT")},
 	{variant.SINT, variant.ULINT}: {variant.ANY, errors.New("no implicit cast between SINT and ULINT")},
+	{variant.SINT, variant.REAL}:  {variant.REAL, nil},
+	{variant.SINT, variant.LREAL}: {variant.LREAL, nil},
 
 	{variant.INT, variant.INT}:   {variant.INT, nil},
 	{variant.INT, variant.DINT}:  {variant.DINT, nil},
@@ -43,6 +45,8 @@ var implicitCastInBinary = map[[2]variant.Type]struct {
 	{variant.INT, variant.UINT}:  {variant.ANY, errors.New("no implicit cast between INT and UINT")},
 	{variant.INT, variant.UDINT}: {variant.ANY, errors.New("no implicit cast between INT and UDINT")},
 	{variant.INT, variant.ULINT}: {variant.ANY, errors.New("no implicit cast between INT and ULINT")},
+	{variant.INT, variant.REAL}:  {variant.REAL, nil},
+	{variant.INT, variant.LREAL}: {variant.LREAL, nil},
 
 	{variant.DINT, variant.DINT}:  {variant.DINT, nil},
 	{variant.DINT, variant.LINT}:  {variant.LINT, nil},
@@ -50,26 +54,43 @@ var implicitCastInBinary = map[[2]variant.Type]struct {
 	{variant.DINT, variant.UINT}:  {variant.DINT, nil},
 	{variant.DINT, variant.UDINT}: {variant.ANY, errors.New("no implicit cast between DINT and UDINT")},
 	{variant.DINT, variant.ULINT}: {variant.ANY, errors.New("no implicit cast between DINT and ULINT")},
+	{variant.DINT, variant.REAL}:  {variant.ANY, errors.New("no implicit cast between DINT and REAL")},
+	{variant.DINT, variant.LREAL}: {variant.LREAL, nil},
 
 	{variant.LINT, variant.LINT}:  {variant.LINT, nil},
 	{variant.LINT, variant.USINT}: {variant.LINT, nil},
 	{variant.LINT, variant.UINT}:  {variant.LINT, nil},
 	{variant.LINT, variant.UDINT}: {variant.LINT, nil},
 	{variant.LINT, variant.ULINT}: {variant.ANY, errors.New("no implicit cast between LINT and ULINT")},
+	{variant.LINT, variant.REAL}:  {variant.ANY, errors.New("no implicit cast between LINT and REAL")},
+	{variant.LINT, variant.LREAL}: {variant.ANY, errors.New("no implicit cast between LINT and LREAL")},
 
 	{variant.USINT, variant.USINT}: {variant.USINT, nil},
 	{variant.USINT, variant.UINT}:  {variant.UINT, nil},
 	{variant.USINT, variant.UDINT}: {variant.UDINT, nil},
 	{variant.USINT, variant.ULINT}: {variant.ULINT, nil},
+	{variant.USINT, variant.REAL}:  {variant.REAL, nil},
+	{variant.USINT, variant.LREAL}: {variant.LREAL, nil},
 
 	{variant.UINT, variant.UINT}:  {variant.UINT, nil},
 	{variant.UINT, variant.UDINT}: {variant.UDINT, nil},
 	{variant.UINT, variant.ULINT}: {variant.ULINT, nil},
+	{variant.UINT, variant.REAL}:  {variant.REAL, nil},
+	{variant.UINT, variant.LREAL}: {variant.LREAL, nil},
 
 	{variant.UDINT, variant.UDINT}: {variant.UDINT, nil},
 	{variant.UDINT, variant.ULINT}: {variant.ULINT, nil},
+	{variant.UDINT, variant.REAL}:  {variant.ANY, errors.New("no implicit cast between UDINT and REAL")},
+	{variant.UDINT, variant.LREAL}: {variant.LREAL, nil},
 
 	{variant.ULINT, variant.ULINT}: {variant.ULINT, nil},
+	{variant.ULINT, variant.REAL}:  {variant.ANY, errors.New("no implicit cast between UDINT and REAL")},
+	{variant.ULINT, variant.LREAL}: {variant.ANY, errors.New("no implicit cast between UDINT and LREAL")},
+
+	{variant.REAL, variant.REAL}:  {variant.REAL, nil},
+	{variant.REAL, variant.LREAL}: {variant.LREAL, nil},
+
+	{variant.LREAL, variant.LREAL}: {variant.LREAL, nil},
 }
 
 type assignTypes struct {

@@ -19,4 +19,11 @@ func Test_Execute_006(t *testing.T) {
 	p.Execute()
 	require.Equal(-0.5, p.GetVar("f1").Float64())
 	require.Equal(50., p.GetVar("f2").Float64())
+
+	p.Execute()
+	require.Equal(-1., p.GetVar("f3").Float64())
+	require.Equal(-1.5, p.GetVar("f2").Float64())
+
+	p.Execute()
+	require.Equal(3.5, p.GetVar("f2").Float64())
 }

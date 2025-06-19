@@ -72,13 +72,7 @@ func (x visitor) VisitBinaryCompareExpr(ctx *parser.BinaryCompareExprContext) an
 }
 
 func (x visitor) VisitBinaryPlusExpr(ctx *parser.BinaryPlusExprContext) any {
-	op := ctx.GetOp().GetText()
-	right := ctx.GetRight().Accept(x).(Int64Operator)
-	left := ctx.GetLeft().Accept(x).(Int64Operator)
-	resultType, err := validateTypes(right, left)
-	x.CheckError(ctx, err)
-	opFunc := binaryOps[binaryOpKey{op, resultType}]
-	return opFunc(left, right)
+	return x.visitBinaryExpr(ctx)
 }
 
 type binaryOpKey struct {
@@ -87,13 +81,45 @@ type binaryOpKey struct {
 }
 
 func (x visitor) VisitBinaryPowerExpr(ctx *parser.BinaryPowerExprContext) any {
+	return x.visitBinaryExpr(ctx)
+}
+
+type BinaryContext interface {
+	GetRight() parser.IExpressionContext
+	GetLeft() parser.IExpressionContext
+	GetOp() antlr.Token
+	antlr.ParserRuleContext
+}
+
+func (x visitor) visitBinaryExpr(ctx BinaryContext) any {
 	op := ctx.GetOp().GetText()
-	right := ctx.GetRight().Accept(x).(Int64Operator)
-	left := ctx.GetLeft().Accept(x).(Int64Operator)
-	resultType, err := validateTypes(right, left)
-	x.CheckError(ctx, err)
-	opFunc := binaryOps[binaryOpKey{op, resultType}]
-	return opFunc(left, right)
+	right := ctx.GetRight().Accept(x)
+	left := ctx.GetLeft().Accept(x)
+	switch right := right.(type) {
+	case Int64Operator:
+		switch left := left.(type) {
+		case Int64Operator:
+			resultType, err := validateTypes(right, left)
+			x.CheckError(ctx, err)
+			return binaryOps[int64](op, left, right, resultType)
+		case Float64Operator:
+			resultType, err := validateTypes(right, left)
+			x.CheckError(ctx, err)
+			return binaryOps[float64](op, left, right, resultType)
+		}
+	case Float64Operator:
+		switch left := left.(type) {
+		case Int64Operator:
+			resultType, err := validateTypes(right, left)
+			x.CheckError(ctx, err)
+			return binaryOps[float64](op, left, right, resultType)
+		case Float64Operator:
+			resultType, err := validateTypes(right, left)
+			x.CheckError(ctx, err)
+			return binaryOps[float64](op, left, right, resultType)
+		}
+	}
+	return x.CheckError(ctx, fmt.Errorf("unsupported %T %s %T", left, op, right))
 }
 
 func (x visitor) VisitCallExpr(ctx *parser.CallExprContext) any {
@@ -116,12 +142,12 @@ func (x visitor) VisitCallExpr(ctx *parser.CallExprContext) any {
 		if from != expr.resultType {
 			x.CheckError(ctx, fmt.Errorf("expression has %s type", expr.resultType))
 		}
-		return castOps2(to, expr)
+		return castOps(to, expr)
 	case Float64Operator:
 		if from != expr.resultType {
 			x.CheckError(ctx, fmt.Errorf("expression has %s type", expr.resultType))
 		}
-		return castOps2(to, expr)
+		return castOps(to, expr)
 	default:
 		x.CheckError(ctx, fmt.Errorf("expression operator has unknown type: %T", expr))
 		return nil

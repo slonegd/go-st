@@ -27,11 +27,15 @@ type (
 	AnyOperator     interface {
 		Statement | Int64Operator | Float64Operator | BoolOperator
 	}
+
 	// только такие типы могут быть результатом оператора
 	// специально ограничил, чтобы было меньше ветвлений
 	// с типами меньшего размера буду приводить при вычислении
 	OpTypes interface {
 		int64 | float64 | string | bool
+	}
+	NumberOpTypes interface {
+		int64 | float64
 	}
 	Number interface {
 		constraints.Integer | constraints.Float
@@ -104,17 +108,6 @@ func assignOps[T int64 | float64](v variant.Variant, expr Operator[T]) Statement
 	return op(v, expr)
 }
 
-// var assignOps2 = map[variant.Type]func(v variant.Variant, expr Int64Operator) any{
-// 	variant.SINT:  func(v variant.Variant, expr Int64Operator) any { return NewAssignOp[int8](v, expr) },
-// 	variant.INT:   func(v variant.Variant, expr Int64Operator) any { return NewAssignOp[int16](v, expr) },
-// 	variant.DINT:  func(v variant.Variant, expr Int64Operator) any { return NewAssignOp[int32](v, expr) },
-// 	variant.LINT:  func(v variant.Variant, expr Int64Operator) any { return NewAssignOp[int64](v, expr) },
-// 	variant.USINT: func(v variant.Variant, expr Int64Operator) any { return NewAssignOp[uint8](v, expr) },
-// 	variant.UINT:  func(v variant.Variant, expr Int64Operator) any { return NewAssignOp[uint16](v, expr) },
-// 	variant.UDINT: func(v variant.Variant, expr Int64Operator) any { return NewAssignOp[uint32](v, expr) },
-// 	variant.ULINT: func(v variant.Variant, expr Int64Operator) any { return NewAssignOp[uint64](v, expr) },
-// }
-
 func NewStatments(s Statements) Statement {
 	op := Statement{}
 	op.do = func() struct{} {
@@ -126,7 +119,6 @@ func NewStatments(s Statements) Statement {
 	return op
 }
 
-// R может быть разный
 func NewCastOp[T Number, Tout, Tin int64 | float64](expr Operator[Tin]) Operator[Tout] {
 	op := Operator[Tout]{
 		isConstant: expr.isConstant,
@@ -140,7 +132,7 @@ func NewCastOp[T Number, Tout, Tin int64 | float64](expr Operator[Tin]) Operator
 }
 
 // разные функции под разные типы -> мапа не подходит
-func castOps2[T int64 | float64](t variant.Type, expr Operator[T]) any {
+func castOps[T int64 | float64](t variant.Type, expr Operator[T]) any {
 	switch t {
 	case variant.SINT:
 		return NewCastOp[int8, int64](expr)
@@ -167,15 +159,15 @@ func castOps2[T int64 | float64](t variant.Type, expr Operator[T]) any {
 }
 
 // T для ограничения размера инта
-func NewPlusOp[T constraints.Integer, R int64 | float64](left, right Operator[R]) Operator[R] {
-	op := Operator[R]{
+func NewPlusOp[T Number, Result, Left, Right NumberOpTypes](left Operator[Left], right Operator[Right]) Operator[Result] {
+	op := Operator[Result]{
 		resultType: VariantType[T](),
 		isConstant: left.isConstant && right.isConstant,
 	}
-	op.do = func() R {
+	op.do = func() Result {
 		l := T(left.do())
 		r := T(right.do())
-		return R(l + r)
+		return Result(l + r)
 	}
 	return op
 }
@@ -209,101 +201,117 @@ func VariantType[T Number]() variant.Type {
 	}
 }
 
-var binaryOps = map[binaryOpKey]func(left, right Int64Operator) any{
-	{"+", variant.SINT}:  func(left, right Int64Operator) any { return NewPlusOp[int8](left, right) },
-	{"+", variant.INT}:   func(left, right Int64Operator) any { return NewPlusOp[int16](left, right) },
-	{"+", variant.DINT}:  func(left, right Int64Operator) any { return NewPlusOp[int32](left, right) },
-	{"+", variant.LINT}:  func(left, right Int64Operator) any { return NewPlusOp[int64](left, right) },
-	{"+", variant.USINT}: func(left, right Int64Operator) any { return NewPlusOp[uint8](left, right) },
-	{"+", variant.UINT}:  func(left, right Int64Operator) any { return NewPlusOp[uint16](left, right) },
-	{"+", variant.UDINT}: func(left, right Int64Operator) any { return NewPlusOp[uint32](left, right) },
-	{"+", variant.ULINT}: func(left, right Int64Operator) any { return NewPlusOp[uint64](left, right) },
+func binaryOps[Result, Left, Right NumberOpTypes](op string, left Operator[Left], right Operator[Right], resultType variant.Type) Operator[Result] {
+	type K struct {
+		op         string
+		resultType variant.Type
+	}
 
-	{"-", variant.SINT}:  func(left, right Int64Operator) any { return NewSubOp[int8](left, right) },
-	{"-", variant.INT}:   func(left, right Int64Operator) any { return NewSubOp[int16](left, right) },
-	{"-", variant.DINT}:  func(left, right Int64Operator) any { return NewSubOp[int32](left, right) },
-	{"-", variant.LINT}:  func(left, right Int64Operator) any { return NewSubOp[int64](left, right) },
-	{"-", variant.USINT}: func(left, right Int64Operator) any { return NewSubOp[uint8](left, right) },
-	{"-", variant.UINT}:  func(left, right Int64Operator) any { return NewSubOp[uint16](left, right) },
-	{"-", variant.UDINT}: func(left, right Int64Operator) any { return NewSubOp[uint32](left, right) },
-	{"-", variant.ULINT}: func(left, right Int64Operator) any { return NewSubOp[uint64](left, right) },
+	ops := map[K]func(l Operator[Left], r Operator[Right]) Operator[Result]{
+		{"+", variant.SINT}:  func(l Operator[Left], r Operator[Right]) Operator[Result] { return NewPlusOp[int8, Result](l, r) },
+		{"+", variant.INT}:   func(l Operator[Left], r Operator[Right]) Operator[Result] { return NewPlusOp[int16, Result](l, r) },
+		{"+", variant.DINT}:  func(l Operator[Left], r Operator[Right]) Operator[Result] { return NewPlusOp[int32, Result](l, r) },
+		{"+", variant.LINT}:  func(l Operator[Left], r Operator[Right]) Operator[Result] { return NewPlusOp[int64, Result](l, r) },
+		{"+", variant.USINT}: func(l Operator[Left], r Operator[Right]) Operator[Result] { return NewPlusOp[uint8, Result](l, r) },
+		{"+", variant.UINT}:  func(l Operator[Left], r Operator[Right]) Operator[Result] { return NewPlusOp[uint16, Result](l, r) },
+		{"+", variant.UDINT}: func(l Operator[Left], r Operator[Right]) Operator[Result] { return NewPlusOp[uint32, Result](l, r) },
+		{"+", variant.ULINT}: func(l Operator[Left], r Operator[Right]) Operator[Result] { return NewPlusOp[uint64, Result](l, r) },
+		{"+", variant.REAL}:  func(l Operator[Left], r Operator[Right]) Operator[Result] { return NewPlusOp[float32, Result](l, r) },
+		{"+", variant.LREAL}: func(l Operator[Left], r Operator[Right]) Operator[Result] { return NewPlusOp[float64, Result](l, r) },
 
-	{"*", variant.SINT}:  func(left, right Int64Operator) any { return NewMultOp[int8](left, right) },
-	{"*", variant.INT}:   func(left, right Int64Operator) any { return NewMultOp[int16](left, right) },
-	{"*", variant.DINT}:  func(left, right Int64Operator) any { return NewMultOp[int32](left, right) },
-	{"*", variant.LINT}:  func(left, right Int64Operator) any { return NewMultOp[int64](left, right) },
-	{"*", variant.USINT}: func(left, right Int64Operator) any { return NewMultOp[uint8](left, right) },
-	{"*", variant.UINT}:  func(left, right Int64Operator) any { return NewMultOp[uint16](left, right) },
-	{"*", variant.UDINT}: func(left, right Int64Operator) any { return NewMultOp[uint32](left, right) },
-	{"*", variant.ULINT}: func(left, right Int64Operator) any { return NewMultOp[uint64](left, right) },
+		{"-", variant.SINT}:  func(l Operator[Left], r Operator[Right]) Operator[Result] { return NewSubOp[int8, Result](l, r) },
+		{"-", variant.INT}:   func(l Operator[Left], r Operator[Right]) Operator[Result] { return NewSubOp[int16, Result](l, r) },
+		{"-", variant.DINT}:  func(l Operator[Left], r Operator[Right]) Operator[Result] { return NewSubOp[int32, Result](l, r) },
+		{"-", variant.LINT}:  func(l Operator[Left], r Operator[Right]) Operator[Result] { return NewSubOp[int64, Result](l, r) },
+		{"-", variant.USINT}: func(l Operator[Left], r Operator[Right]) Operator[Result] { return NewSubOp[uint8, Result](l, r) },
+		{"-", variant.UINT}:  func(l Operator[Left], r Operator[Right]) Operator[Result] { return NewSubOp[uint16, Result](l, r) },
+		{"-", variant.UDINT}: func(l Operator[Left], r Operator[Right]) Operator[Result] { return NewSubOp[uint32, Result](l, r) },
+		{"-", variant.ULINT}: func(l Operator[Left], r Operator[Right]) Operator[Result] { return NewSubOp[uint64, Result](l, r) },
+		{"-", variant.REAL}:  func(l Operator[Left], r Operator[Right]) Operator[Result] { return NewSubOp[float32, Result](l, r) },
+		{"-", variant.LREAL}: func(l Operator[Left], r Operator[Right]) Operator[Result] { return NewSubOp[float64, Result](l, r) },
 
-	{"/", variant.SINT}:  func(left, right Int64Operator) any { return NewDivOp[int8](left, right) },
-	{"/", variant.INT}:   func(left, right Int64Operator) any { return NewDivOp[int16](left, right) },
-	{"/", variant.DINT}:  func(left, right Int64Operator) any { return NewDivOp[int32](left, right) },
-	{"/", variant.LINT}:  func(left, right Int64Operator) any { return NewDivOp[int64](left, right) },
-	{"/", variant.USINT}: func(left, right Int64Operator) any { return NewDivOp[uint8](left, right) },
-	{"/", variant.UINT}:  func(left, right Int64Operator) any { return NewDivOp[uint16](left, right) },
-	{"/", variant.UDINT}: func(left, right Int64Operator) any { return NewDivOp[uint32](left, right) },
-	{"/", variant.ULINT}: func(left, right Int64Operator) any { return NewDivOp[uint64](left, right) },
+		{"*", variant.SINT}:  func(l Operator[Left], r Operator[Right]) Operator[Result] { return NewMultOp[int8, Result](l, r) },
+		{"*", variant.INT}:   func(l Operator[Left], r Operator[Right]) Operator[Result] { return NewMultOp[int16, Result](l, r) },
+		{"*", variant.DINT}:  func(l Operator[Left], r Operator[Right]) Operator[Result] { return NewMultOp[int32, Result](l, r) },
+		{"*", variant.LINT}:  func(l Operator[Left], r Operator[Right]) Operator[Result] { return NewMultOp[int64, Result](l, r) },
+		{"*", variant.USINT}: func(l Operator[Left], r Operator[Right]) Operator[Result] { return NewMultOp[uint8, Result](l, r) },
+		{"*", variant.UINT}:  func(l Operator[Left], r Operator[Right]) Operator[Result] { return NewMultOp[uint16, Result](l, r) },
+		{"*", variant.UDINT}: func(l Operator[Left], r Operator[Right]) Operator[Result] { return NewMultOp[uint32, Result](l, r) },
+		{"*", variant.ULINT}: func(l Operator[Left], r Operator[Right]) Operator[Result] { return NewMultOp[uint64, Result](l, r) },
+		{"*", variant.REAL}:  func(l Operator[Left], r Operator[Right]) Operator[Result] { return NewMultOp[float32, Result](l, r) },
+		{"*", variant.LREAL}: func(l Operator[Left], r Operator[Right]) Operator[Result] { return NewMultOp[float64, Result](l, r) },
 
-	{"MOD", variant.SINT}:  func(left, right Int64Operator) any { return NewModOp[int8](left, right) },
-	{"MOD", variant.INT}:   func(left, right Int64Operator) any { return NewModOp[int16](left, right) },
-	{"MOD", variant.DINT}:  func(left, right Int64Operator) any { return NewModOp[int32](left, right) },
-	{"MOD", variant.LINT}:  func(left, right Int64Operator) any { return NewModOp[int64](left, right) },
-	{"MOD", variant.USINT}: func(left, right Int64Operator) any { return NewModOp[uint8](left, right) },
-	{"MOD", variant.UINT}:  func(left, right Int64Operator) any { return NewModOp[uint16](left, right) },
-	{"MOD", variant.UDINT}: func(left, right Int64Operator) any { return NewModOp[uint32](left, right) },
-	{"MOD", variant.ULINT}: func(left, right Int64Operator) any { return NewModOp[uint64](left, right) },
+		{"/", variant.SINT}:  func(l Operator[Left], r Operator[Right]) Operator[Result] { return NewDivOp[int8, Result](l, r) },
+		{"/", variant.INT}:   func(l Operator[Left], r Operator[Right]) Operator[Result] { return NewDivOp[int16, Result](l, r) },
+		{"/", variant.DINT}:  func(l Operator[Left], r Operator[Right]) Operator[Result] { return NewDivOp[int32, Result](l, r) },
+		{"/", variant.LINT}:  func(l Operator[Left], r Operator[Right]) Operator[Result] { return NewDivOp[int64, Result](l, r) },
+		{"/", variant.USINT}: func(l Operator[Left], r Operator[Right]) Operator[Result] { return NewDivOp[uint8, Result](l, r) },
+		{"/", variant.UINT}:  func(l Operator[Left], r Operator[Right]) Operator[Result] { return NewDivOp[uint16, Result](l, r) },
+		{"/", variant.UDINT}: func(l Operator[Left], r Operator[Right]) Operator[Result] { return NewDivOp[uint32, Result](l, r) },
+		{"/", variant.ULINT}: func(l Operator[Left], r Operator[Right]) Operator[Result] { return NewDivOp[uint64, Result](l, r) },
+		{"/", variant.REAL}:  func(l Operator[Left], r Operator[Right]) Operator[Result] { return NewDivOp[float32, Result](l, r) },
+		{"/", variant.LREAL}: func(l Operator[Left], r Operator[Right]) Operator[Result] { return NewDivOp[float64, Result](l, r) },
+
+		{"MOD", variant.SINT}:  func(l Operator[Left], r Operator[Right]) Operator[Result] { return NewModOp[int8, Result](l, r) },
+		{"MOD", variant.INT}:   func(l Operator[Left], r Operator[Right]) Operator[Result] { return NewModOp[int16, Result](l, r) },
+		{"MOD", variant.DINT}:  func(l Operator[Left], r Operator[Right]) Operator[Result] { return NewModOp[int32, Result](l, r) },
+		{"MOD", variant.LINT}:  func(l Operator[Left], r Operator[Right]) Operator[Result] { return NewModOp[int64, Result](l, r) },
+		{"MOD", variant.USINT}: func(l Operator[Left], r Operator[Right]) Operator[Result] { return NewModOp[uint8, Result](l, r) },
+		{"MOD", variant.UINT}:  func(l Operator[Left], r Operator[Right]) Operator[Result] { return NewModOp[uint16, Result](l, r) },
+		{"MOD", variant.UDINT}: func(l Operator[Left], r Operator[Right]) Operator[Result] { return NewModOp[uint32, Result](l, r) },
+		{"MOD", variant.ULINT}: func(l Operator[Left], r Operator[Right]) Operator[Result] { return NewModOp[uint64, Result](l, r) },
+	}
+	return ops[K{op, resultType}](left, right)
 }
 
-func NewSubOp[T constraints.Integer, R int64 | float64](left, right Operator[R]) Operator[R] {
-	op := Operator[R]{
+func NewSubOp[T Number, Result, Left, Right NumberOpTypes](left Operator[Left], right Operator[Right]) Operator[Result] {
+	op := Operator[Result]{
 		resultType: VariantType[T](),
 		isConstant: left.isConstant && right.isConstant,
 	}
-	op.do = func() R {
+	op.do = func() Result {
 		l := T(left.do())
 		r := T(right.do())
-		return R(l - r)
+		return Result(l - r)
 	}
 	return op
 }
 
-func NewMultOp[T constraints.Integer, R int64 | float64](left, right Operator[R]) Operator[R] {
-	op := Operator[R]{
+func NewMultOp[T Number, Result, Left, Right NumberOpTypes](left Operator[Left], right Operator[Right]) Operator[Result] {
+	op := Operator[Result]{
 		resultType: VariantType[T](),
 		isConstant: left.isConstant && right.isConstant,
 	}
-	op.do = func() R {
+	op.do = func() Result {
 		l := T(left.do())
 		r := T(right.do())
-		return R(l * r)
+		return Result(l * r)
 	}
 	return op
 }
 
-func NewDivOp[T constraints.Integer, R int64 | float64](left, right Operator[R]) Operator[R] {
-	op := Operator[R]{
+func NewDivOp[T Number, Result, Left, Right NumberOpTypes](left Operator[Left], right Operator[Right]) Operator[Result] {
+	op := Operator[Result]{
 		resultType: VariantType[T](),
 		isConstant: left.isConstant && right.isConstant,
 	}
-	op.do = func() R {
+	op.do = func() Result {
 		l := T(left.do())
 		r := T(right.do())
-		return R(l / r)
+		return Result(l / r)
 	}
 	return op
 }
 
-func NewModOp[T constraints.Integer, R int64](left, right Operator[R]) Operator[R] {
-	op := Operator[R]{
+func NewModOp[T constraints.Integer, Result, Left, Right NumberOpTypes](left Operator[Left], right Operator[Right]) Operator[Result] {
+	op := Operator[Result]{
 		resultType: VariantType[T](),
 		isConstant: left.isConstant && right.isConstant,
 	}
-	op.do = func() R {
+	op.do = func() Result {
 		l := T(left.do())
 		r := T(right.do())
-		return R(l % r)
+		return Result(l % r)
 	}
 	return op
 }
