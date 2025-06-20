@@ -6,14 +6,15 @@ import (
 
 	"github.com/antlr4-go/antlr/v4"
 	parser "github.com/slonegd/go-st/antlr"
-	"github.com/slonegd/go-st/variant"
+	"github.com/slonegd/go-st/ops"
+	"github.com/slonegd/go-st/types"
 )
 
 type (
 	AST struct {
 		source   Source
-		vars     map[string]variant.Variant
-		programm Statement
+		vars     map[string]types.Variable
+		programm ops.Statement
 		err      error
 	}
 )
@@ -31,7 +32,7 @@ func Parse(script string) (x *AST, err error) {
 
 	x = &AST{
 		source: Source(script),
-		vars:   map[string]variant.Variant{},
+		vars:   map[string]types.Variable{},
 	}
 	visitor := &visitor{AST: x}
 	p.BaseRecognizer.AddErrorListener(visitor)
@@ -47,21 +48,21 @@ func Parse(script string) (x *AST, err error) {
 		}
 	}()
 
-	x.programm = p.Program().Accept(visitor).(Statement)
+	x.programm = p.Program().Accept(visitor).(ops.Statement)
 
 	err = x.err
 
 	return x, err
 }
 
-func (x *AST) GetVar(name string) variant.Variant {
+func (x *AST) GetVar(name string) types.Variable {
 	return x.vars[name]
 }
 
-func (x *AST) GetVars() map[string]variant.Variant {
+func (x *AST) GetVars() map[string]types.Variable {
 	return x.vars
 }
 
 func (x *AST) Execute() {
-	x.programm.do()
+	x.programm.Do()
 }

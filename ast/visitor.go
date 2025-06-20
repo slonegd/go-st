@@ -8,7 +8,8 @@ import (
 
 	"github.com/antlr4-go/antlr/v4"
 	parser "github.com/slonegd/go-st/antlr"
-	"github.com/slonegd/go-st/variant"
+	"github.com/slonegd/go-st/ops"
+	"github.com/slonegd/go-st/types"
 )
 
 // обёртка, чтоб скрыть методы parser.STVisitor
@@ -35,16 +36,16 @@ func (x visitor) VisitAssignment_statement(ctx *parser.Assignment_statementConte
 
 	expr := ctx.GetRight().Accept(x)
 	switch expr := expr.(type) {
-	case Int64Operator:
-		if !expr.isConstant {
-			x.CheckError(ctx, implicitCastInAssign[assignTypes{v: v.Type(), expr: expr.resultType}])
+	case ops.Int64:
+		if !expr.IsConstant {
+			x.CheckError(ctx, implicitCastInAssign[assignTypes{v: v.Type(), expr: expr.ResultType}])
 		}
-		return assignOps(v, expr)
-	case Float64Operator:
-		if !expr.isConstant {
-			x.CheckError(ctx, implicitCastInAssign[assignTypes{v: v.Type(), expr: expr.resultType}])
+		return ops.Assign(v, expr)
+	case ops.Float64:
+		if !expr.IsConstant {
+			x.CheckError(ctx, implicitCastInAssign[assignTypes{v: v.Type(), expr: expr.ResultType}])
 		}
-		return assignOps(v, expr)
+		return ops.Assign(v, expr)
 	}
 	x.CheckError(ctx, fmt.Errorf("undefined operator in assign statement: %+v", expr))
 	return nil
@@ -52,21 +53,21 @@ func (x visitor) VisitAssignment_statement(ctx *parser.Assignment_statementConte
 
 func (x visitor) VisitBinaryCompareExpr(ctx *parser.BinaryCompareExprContext) any {
 	op := ctx.GetOp().GetText()
-	right := ctx.GetRight().Accept(x).(Int64Operator)
-	left := ctx.GetLeft().Accept(x).(Int64Operator)
+	right := ctx.GetRight().Accept(x).(ops.Int64)
+	left := ctx.GetLeft().Accept(x).(ops.Int64)
 	switch op { // TODO через id токена
 	case ">":
-		return NewGreaterOp(left, right)
+		return ops.Greater(left, right)
 	case ">=":
-		return NewGreaterOrEqualOp(left, right)
+		return ops.GreaterOrEqual(left, right)
 	case "<":
-		return NewLessOp(left, right)
+		return ops.Less(left, right)
 	case "<=":
-		return NewLessOrEqualOp(left, right)
+		return ops.LessOrEqual(left, right)
 	case "=":
-		return NewEqualOp(left, right)
+		return ops.Equal(left, right)
 	case "<>":
-		return NewNotEqualOp(left, right)
+		return ops.NotEqual(left, right)
 	}
 	panic(ctx)
 }
@@ -77,7 +78,7 @@ func (x visitor) VisitBinaryPlusExpr(ctx *parser.BinaryPlusExprContext) any {
 
 type binaryOpKey struct {
 	op string
-	t  variant.Type
+	t  types.Basic
 }
 
 func (x visitor) VisitBinaryPowerExpr(ctx *parser.BinaryPowerExprContext) any {
@@ -96,27 +97,27 @@ func (x visitor) visitBinaryExpr(ctx BinaryContext) any {
 	right := ctx.GetRight().Accept(x)
 	left := ctx.GetLeft().Accept(x)
 	switch right := right.(type) {
-	case Int64Operator:
+	case ops.Int64:
 		switch left := left.(type) {
-		case Int64Operator:
+		case ops.Int64:
 			resultType, err := validateTypes(right, left)
 			x.CheckError(ctx, err)
-			return binaryOps[int64](op, left, right, resultType)
-		case Float64Operator:
+			return ops.Binary[int64](op, left, right, resultType)
+		case ops.Float64:
 			resultType, err := validateTypes(right, left)
 			x.CheckError(ctx, err)
-			return binaryOps[float64](op, left, right, resultType)
+			return ops.Binary[float64](op, left, right, resultType)
 		}
-	case Float64Operator:
+	case ops.Float64:
 		switch left := left.(type) {
-		case Int64Operator:
+		case ops.Int64:
 			resultType, err := validateTypes(right, left)
 			x.CheckError(ctx, err)
-			return binaryOps[float64](op, left, right, resultType)
-		case Float64Operator:
+			return ops.Binary[float64](op, left, right, resultType)
+		case ops.Float64:
 			resultType, err := validateTypes(right, left)
 			x.CheckError(ctx, err)
-			return binaryOps[float64](op, left, right, resultType)
+			return ops.Binary[float64](op, left, right, resultType)
 		}
 	}
 	return x.CheckError(ctx, fmt.Errorf("unsupported %T %s %T", left, op, right))
@@ -128,26 +129,26 @@ func (x visitor) VisitCallExpr(ctx *parser.CallExprContext) any {
 	if len(parts) != 2 {
 		x.CheckError(ctx, errors.New("unknown function"))
 	}
-	from := variant.TypeFromString(parts[0])
-	if from == variant.ANY {
+	from := types.TypeFromString(parts[0])
+	if from == types.ANY {
 		x.CheckError(ctx, errors.New("unknown function"))
 	}
-	to := variant.TypeFromString(parts[1])
-	if to == variant.ANY {
+	to := types.TypeFromString(parts[1])
+	if to == types.ANY {
 		x.CheckError(ctx, errors.New("unknown function"))
 	}
 
 	switch expr := ctx.GetSub().Accept(x).(type) {
-	case Int64Operator:
-		if from != expr.resultType {
-			x.CheckError(ctx, fmt.Errorf("expression has %s type", expr.resultType))
+	case ops.Int64:
+		if from != expr.ResultType {
+			x.CheckError(ctx, fmt.Errorf("expression has %s type", expr.ResultType))
 		}
-		return castOps(to, expr)
-	case Float64Operator:
-		if from != expr.resultType {
-			x.CheckError(ctx, fmt.Errorf("expression has %s type", expr.resultType))
+		return ops.Cast(to, expr)
+	case ops.Float64:
+		if from != expr.ResultType {
+			x.CheckError(ctx, fmt.Errorf("expression has %s type", expr.ResultType))
 		}
-		return castOps(to, expr)
+		return ops.Cast(to, expr)
 	default:
 		x.CheckError(ctx, fmt.Errorf("expression operator has unknown type: %T", expr))
 		return nil
@@ -180,21 +181,21 @@ func (x visitor) VisitErrorNode(node antlr.ErrorNode) any {
 func (x visitor) VisitIf_statement(ctx *parser.If_statementContext) any {
 	conditions := ctx.GetCond()
 	thens := ctx.GetThenlist()
-	var elseStatement *Statement // указатель для maybe
+	var elseStatement *ops.Statement // указатель для maybe
 	if ctx.GetElselist() != nil {
-		s := ctx.GetElselist().Accept(x).(Statement)
+		s := ctx.GetElselist().Accept(x).(ops.Statement)
 		elseStatement = &s
 	}
 	// с конца, так как последний else является аргументом предпоследнего else if
 	// а тот аргументом else if перед этим
 	for i := len(conditions) - 1; i >= 0; i-- {
-		condition := conditions[i].Accept(x).(BoolOperator)
-		then_ := thens[i].Accept(x).(Statement)
+		condition := conditions[i].Accept(x).(ops.Bool)
+		then_ := thens[i].Accept(x).(ops.Statement)
 		if elseStatement == nil {
-			s := NewIfOperator(condition, then_)
+			s := ops.If(condition, then_)
 			elseStatement = &s
 		} else {
-			s := NewIfElseOperator(condition, then_, *elseStatement)
+			s := ops.IfElse(condition, then_, *elseStatement)
 			elseStatement = &s
 		}
 	}
@@ -213,49 +214,30 @@ func (x visitor) VisitInteger(ctx *parser.IntegerContext) any {
 	return x.VisitChildren(ctx)
 }
 
-// func (x visitor) VisitReal(ctx *parser.RealContext) any {
-// 	intPart := ctx.GetIntPart().Accept(x)
-// 	fracPart, exponent := int64(0), int64(0)
-// 	if ctx := ctx.GetFracPart(); ctx != nil {
-// 		fracPart = ctx.Accept(x).(int64)
-// 	}
-// 	if ctx := ctx.GetExponent(); ctx != nil {
-// 		exponent = ctx.Accept(x).(int64)
-// 	}
-// 	s := fmt.Sprintf("%d.%de%d", intPart, fracPart, exponent)
-// 	if ctx.GetSign().GetText() == "-" {
-// 		s = "-" + s
-// 	}
-
-// 	result, err := strconv.ParseFloat(s, 64)
-// 	x.CheckError(ctx, err)
-// 	return result
-// }
-
 func (x visitor) VisitNumber(ctx *parser.NumberContext) any {
 	if f := ctx.FLOAT(); f != nil {
 		result, err := strconv.ParseFloat(f.GetText(), 64)
 		x.CheckError(ctx, err)
-		return NewConstantOp(result)
+		return ops.Constant(result)
 	}
 	if ctx := ctx.Integer(); ctx != nil {
 		v := ctx.Accept(x).(int64)
-		return NewConstantOp(v)
+		return ops.Constant(v)
 	}
 	return x.VisitChildren(ctx)
 }
 func (x visitor) VisitParenExpr(ctx *parser.ParenExprContext) any { return ctx.GetSub().Accept(x) }
 
 func (x visitor) VisitProgram(ctx *parser.ProgramContext) any {
-	statements := make(Statements, 0)
+	statements := make([]ops.Statement, 0)
 	for _, c := range ctx.GetChildren() {
 		// не всё возвращает Statement
 		// есть ноды подготовки, например объявления переменных
-		if s, ok := x.Visit(c.(antlr.ParseTree)).(Statement); ok {
+		if s, ok := x.Visit(c.(antlr.ParseTree)).(ops.Statement); ok {
 			statements = append(statements, s)
 		}
 	}
-	return NewStatments(statements)
+	return ops.Statements(statements)
 }
 
 func (x visitor) VisitSigned_integer(ctx *parser.Signed_integerContext) any {
@@ -268,8 +250,8 @@ func (x visitor) VisitSigned_integer(ctx *parser.Signed_integerContext) any {
 
 func (x visitor) VisitUnsign_integer(ctx *parser.Unsign_integerContext) any {
 	// TODO тут не надо возиться с вариантом
-	v := variant.NewAnyVariant(ctx.GetText())
-	if v, ok := v.Variant.(*variant.Int); ok {
+	v := types.NewAnyVariable(ctx.GetText())
+	if v, ok := v.Variable.(*types.Int); ok {
 		return v.Int()
 	}
 	x.CheckError(ctx, errors.New("fail to parse integer"))
@@ -281,16 +263,12 @@ func (x visitor) VisitStatement(ctx *parser.StatementContext) any {
 }
 
 func (x visitor) VisitStatement_list(ctx *parser.Statement_listContext) any {
-	stmts := make([]Statement, 0)
+	stmts := make([]ops.Statement, 0)
 	for _, st := range ctx.AllStatement() {
-		// // могут быть ErrorNode
-		// if s, ok := st.Accept(x).(Statement); ok {
-		// 	stmts = append(stmts, s)
-		// }
-		stmts = append(stmts, st.Accept(x).(Statement))
+		stmts = append(stmts, st.Accept(x).(ops.Statement))
 
 	}
-	return NewStatments(stmts)
+	return ops.Statements(stmts)
 }
 
 func (x visitor) VisitTerminal(node antlr.TerminalNode) any { return x.lastOp }
@@ -302,19 +280,19 @@ func (x visitor) VisitType_name(ctx *parser.Type_nameContext) any {
 }
 func (x visitor) VisitVar_declaration(ctx *parser.Var_declarationContext) any {
 	varName := ctx.GetIdentifier().GetText()
-	var v variant.Variant
+	var v types.Variable
 	if ctx := ctx.GetDefault_(); ctx != nil {
 		switch op := ctx.Accept(x).(type) {
-		case Int64Operator:
-			v = variant.IntVariant(op.do())
-		case Float64Operator:
-			v = variant.Float64Variant(op.do())
+		case ops.Int64:
+			v = types.IntVariable(op.Do())
+		case ops.Float64:
+			v = types.Float64Variable(op.Do())
 		}
 	} else {
-		v = variant.NewAnyVariant("")
+		v = types.NewAnyVariable("")
 	}
 	valueType := ctx.GetType_().Accept(x).(string)
-	v = variant.SetType(v, variant.TypeFromString(valueType))
+	v = types.SetType(v, types.TypeFromString(valueType))
 	x.vars[varName] = v
 	return x.lastOp
 }
@@ -338,10 +316,10 @@ func (x visitor) VisitVariable(ctx *parser.VariableContext) any {
 	varName := ctx.GetText()
 	v := x.vars[varName]
 	if v.Type().IsInteger() {
-		return NewVarOp[int64](v)
+		return ops.Variable[int64](v)
 	}
 	if v.Type().IsFloat() {
-		return NewVarOp[float64](v)
+		return ops.Variable[float64](v)
 	}
 	return x.CheckError(ctx, fmt.Errorf("unknown type of variable: %s", v.Type()))
 }
