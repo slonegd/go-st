@@ -38,17 +38,16 @@ func (x visitor) VisitAssignment_statement(ctx *parser.Assignment_statementConte
 	switch expr := expr.(type) {
 	case ops.Int64:
 		if !expr.IsConstant {
-			x.CheckError(ctx, implicitCastInAssign[assignTypes{v: v.Type(), expr: expr.ResultType}])
+			x.CheckError(ctx, types.CheckAssign(v.Type(), expr.ResultType))
 		}
 		return ops.Assign(v, expr)
 	case ops.Float64:
 		if !expr.IsConstant {
-			x.CheckError(ctx, implicitCastInAssign[assignTypes{v: v.Type(), expr: expr.ResultType}])
+			x.CheckError(ctx, types.CheckAssign(v.Type(), expr.ResultType))
 		}
 		return ops.Assign(v, expr)
 	}
-	x.CheckError(ctx, fmt.Errorf("undefined operator in assign statement: %+v", expr))
-	return nil
+	return x.CheckError(ctx, fmt.Errorf("undefined operator in assign statement: %+v", expr))
 }
 
 func (x visitor) VisitBinaryCompareExpr(ctx *parser.BinaryCompareExprContext) any {
@@ -100,22 +99,34 @@ func (x visitor) visitBinaryExpr(ctx BinaryContext) any {
 	case ops.Int64:
 		switch left := left.(type) {
 		case ops.Int64:
-			resultType, err := validateTypes(right, left)
+			resultType, err := types.BinaryResult(
+				types.Expression{left.IsConstant, left.ResultType},
+				types.Expression{right.IsConstant, right.ResultType},
+			)
 			x.CheckError(ctx, err)
 			return ops.Binary[int64](op, left, right, resultType)
 		case ops.Float64:
-			resultType, err := validateTypes(right, left)
+			resultType, err := types.BinaryResult(
+				types.Expression{left.IsConstant, left.ResultType},
+				types.Expression{right.IsConstant, right.ResultType},
+			)
 			x.CheckError(ctx, err)
 			return ops.Binary[float64](op, left, right, resultType)
 		}
 	case ops.Float64:
 		switch left := left.(type) {
 		case ops.Int64:
-			resultType, err := validateTypes(right, left)
+			resultType, err := types.BinaryResult(
+				types.Expression{left.IsConstant, left.ResultType},
+				types.Expression{right.IsConstant, right.ResultType},
+			)
 			x.CheckError(ctx, err)
 			return ops.Binary[float64](op, left, right, resultType)
 		case ops.Float64:
-			resultType, err := validateTypes(right, left)
+			resultType, err := types.BinaryResult(
+				types.Expression{left.IsConstant, left.ResultType},
+				types.Expression{right.IsConstant, right.ResultType},
+			)
 			x.CheckError(ctx, err)
 			return ops.Binary[float64](op, left, right, resultType)
 		}
