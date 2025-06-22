@@ -247,20 +247,20 @@ type IProgramContext interface {
 }
 
 type ProgramContext struct {
-	antlr.BaseParserRuleContext
+	*CustomContext
 	parser     antlr.Parser
 	identifier antlr.Token
 }
 
 func NewEmptyProgramContext() *ProgramContext {
 	var p = new(ProgramContext)
-	antlr.InitBaseParserRuleContext(&p.BaseParserRuleContext, nil, -1)
+	p.CustomContext = NewCustomContext(nil, -1) // Jim super
 	p.RuleIndex = STParserRULE_program
 	return p
 }
 
 func InitEmptyProgramContext(p *ProgramContext) {
-	antlr.InitBaseParserRuleContext(&p.BaseParserRuleContext, nil, -1)
+	p.CustomContext = NewCustomContext(nil, -1) // Jim super
 	p.RuleIndex = STParserRULE_program
 }
 
@@ -269,8 +269,7 @@ func (*ProgramContext) IsProgramContext() {}
 func NewProgramContext(parser antlr.Parser, parent antlr.ParserRuleContext, invokingState int) *ProgramContext {
 	var p = new(ProgramContext)
 
-	antlr.InitBaseParserRuleContext(&p.BaseParserRuleContext, parent, invokingState)
-
+	p.CustomContext = NewCustomContext(parent, invokingState)
 	p.parser = parser
 	p.RuleIndex = STParserRULE_program
 
@@ -406,19 +405,19 @@ type IVar_declaration_blocksContext interface {
 }
 
 type Var_declaration_blocksContext struct {
-	antlr.BaseParserRuleContext
+	*CustomContext
 	parser antlr.Parser
 }
 
 func NewEmptyVar_declaration_blocksContext() *Var_declaration_blocksContext {
 	var p = new(Var_declaration_blocksContext)
-	antlr.InitBaseParserRuleContext(&p.BaseParserRuleContext, nil, -1)
+	p.CustomContext = NewCustomContext(nil, -1) // Jim super
 	p.RuleIndex = STParserRULE_var_declaration_blocks
 	return p
 }
 
 func InitEmptyVar_declaration_blocksContext(p *Var_declaration_blocksContext) {
-	antlr.InitBaseParserRuleContext(&p.BaseParserRuleContext, nil, -1)
+	p.CustomContext = NewCustomContext(nil, -1) // Jim super
 	p.RuleIndex = STParserRULE_var_declaration_blocks
 }
 
@@ -427,8 +426,7 @@ func (*Var_declaration_blocksContext) IsVar_declaration_blocksContext() {}
 func NewVar_declaration_blocksContext(parser antlr.Parser, parent antlr.ParserRuleContext, invokingState int) *Var_declaration_blocksContext {
 	var p = new(Var_declaration_blocksContext)
 
-	antlr.InitBaseParserRuleContext(&p.BaseParserRuleContext, parent, invokingState)
-
+	p.CustomContext = NewCustomContext(parent, invokingState)
 	p.parser = parser
 	p.RuleIndex = STParserRULE_var_declaration_blocks
 
@@ -552,19 +550,19 @@ type IVar_declaration_blockContext interface {
 }
 
 type Var_declaration_blockContext struct {
-	antlr.BaseParserRuleContext
+	*CustomContext
 	parser antlr.Parser
 }
 
 func NewEmptyVar_declaration_blockContext() *Var_declaration_blockContext {
 	var p = new(Var_declaration_blockContext)
-	antlr.InitBaseParserRuleContext(&p.BaseParserRuleContext, nil, -1)
+	p.CustomContext = NewCustomContext(nil, -1) // Jim super
 	p.RuleIndex = STParserRULE_var_declaration_block
 	return p
 }
 
 func InitEmptyVar_declaration_blockContext(p *Var_declaration_blockContext) {
-	antlr.InitBaseParserRuleContext(&p.BaseParserRuleContext, nil, -1)
+	p.CustomContext = NewCustomContext(nil, -1) // Jim super
 	p.RuleIndex = STParserRULE_var_declaration_block
 }
 
@@ -573,8 +571,7 @@ func (*Var_declaration_blockContext) IsVar_declaration_blockContext() {}
 func NewVar_declaration_blockContext(parser antlr.Parser, parent antlr.ParserRuleContext, invokingState int) *Var_declaration_blockContext {
 	var p = new(Var_declaration_blockContext)
 
-	antlr.InitBaseParserRuleContext(&p.BaseParserRuleContext, parent, invokingState)
-
+	p.CustomContext = NewCustomContext(parent, invokingState)
 	p.parser = parser
 	p.RuleIndex = STParserRULE_var_declaration_block
 
@@ -733,7 +730,7 @@ type IVar_declarationContext interface {
 }
 
 type Var_declarationContext struct {
-	antlr.BaseParserRuleContext
+	*CustomContext
 	parser     antlr.Parser
 	identifier antlr.Token
 	type_      IType_nameContext
@@ -742,13 +739,13 @@ type Var_declarationContext struct {
 
 func NewEmptyVar_declarationContext() *Var_declarationContext {
 	var p = new(Var_declarationContext)
-	antlr.InitBaseParserRuleContext(&p.BaseParserRuleContext, nil, -1)
+	p.CustomContext = NewCustomContext(nil, -1) // Jim super
 	p.RuleIndex = STParserRULE_var_declaration
 	return p
 }
 
 func InitEmptyVar_declarationContext(p *Var_declarationContext) {
-	antlr.InitBaseParserRuleContext(&p.BaseParserRuleContext, nil, -1)
+	p.CustomContext = NewCustomContext(nil, -1) // Jim super
 	p.RuleIndex = STParserRULE_var_declaration
 }
 
@@ -757,8 +754,7 @@ func (*Var_declarationContext) IsVar_declarationContext() {}
 func NewVar_declarationContext(parser antlr.Parser, parent antlr.ParserRuleContext, invokingState int) *Var_declarationContext {
 	var p = new(Var_declarationContext)
 
-	antlr.InitBaseParserRuleContext(&p.BaseParserRuleContext, parent, invokingState)
-
+	p.CustomContext = NewCustomContext(parent, invokingState)
 	p.parser = parser
 	p.RuleIndex = STParserRULE_var_declaration
 
@@ -923,19 +919,19 @@ type IType_nameContext interface {
 }
 
 type Type_nameContext struct {
-	antlr.BaseParserRuleContext
+	*CustomContext
 	parser antlr.Parser
 }
 
 func NewEmptyType_nameContext() *Type_nameContext {
 	var p = new(Type_nameContext)
-	antlr.InitBaseParserRuleContext(&p.BaseParserRuleContext, nil, -1)
+	p.CustomContext = NewCustomContext(nil, -1) // Jim super
 	p.RuleIndex = STParserRULE_type_name
 	return p
 }
 
 func InitEmptyType_nameContext(p *Type_nameContext) {
-	antlr.InitBaseParserRuleContext(&p.BaseParserRuleContext, nil, -1)
+	p.CustomContext = NewCustomContext(nil, -1) // Jim super
 	p.RuleIndex = STParserRULE_type_name
 }
 
@@ -944,8 +940,7 @@ func (*Type_nameContext) IsType_nameContext() {}
 func NewType_nameContext(parser antlr.Parser, parent antlr.ParserRuleContext, invokingState int) *Type_nameContext {
 	var p = new(Type_nameContext)
 
-	antlr.InitBaseParserRuleContext(&p.BaseParserRuleContext, parent, invokingState)
-
+	p.CustomContext = NewCustomContext(parent, invokingState)
 	p.parser = parser
 	p.RuleIndex = STParserRULE_type_name
 
@@ -1018,19 +1013,19 @@ type IStatement_listContext interface {
 }
 
 type Statement_listContext struct {
-	antlr.BaseParserRuleContext
+	*CustomContext
 	parser antlr.Parser
 }
 
 func NewEmptyStatement_listContext() *Statement_listContext {
 	var p = new(Statement_listContext)
-	antlr.InitBaseParserRuleContext(&p.BaseParserRuleContext, nil, -1)
+	p.CustomContext = NewCustomContext(nil, -1) // Jim super
 	p.RuleIndex = STParserRULE_statement_list
 	return p
 }
 
 func InitEmptyStatement_listContext(p *Statement_listContext) {
-	antlr.InitBaseParserRuleContext(&p.BaseParserRuleContext, nil, -1)
+	p.CustomContext = NewCustomContext(nil, -1) // Jim super
 	p.RuleIndex = STParserRULE_statement_list
 }
 
@@ -1039,8 +1034,7 @@ func (*Statement_listContext) IsStatement_listContext() {}
 func NewStatement_listContext(parser antlr.Parser, parent antlr.ParserRuleContext, invokingState int) *Statement_listContext {
 	var p = new(Statement_listContext)
 
-	antlr.InitBaseParserRuleContext(&p.BaseParserRuleContext, parent, invokingState)
-
+	p.CustomContext = NewCustomContext(parent, invokingState)
 	p.parser = parser
 	p.RuleIndex = STParserRULE_statement_list
 
@@ -1164,19 +1158,19 @@ type IStatementContext interface {
 }
 
 type StatementContext struct {
-	antlr.BaseParserRuleContext
+	*CustomContext
 	parser antlr.Parser
 }
 
 func NewEmptyStatementContext() *StatementContext {
 	var p = new(StatementContext)
-	antlr.InitBaseParserRuleContext(&p.BaseParserRuleContext, nil, -1)
+	p.CustomContext = NewCustomContext(nil, -1) // Jim super
 	p.RuleIndex = STParserRULE_statement
 	return p
 }
 
 func InitEmptyStatementContext(p *StatementContext) {
-	antlr.InitBaseParserRuleContext(&p.BaseParserRuleContext, nil, -1)
+	p.CustomContext = NewCustomContext(nil, -1) // Jim super
 	p.RuleIndex = STParserRULE_statement
 }
 
@@ -1185,8 +1179,7 @@ func (*StatementContext) IsStatementContext() {}
 func NewStatementContext(parser antlr.Parser, parent antlr.ParserRuleContext, invokingState int) *StatementContext {
 	var p = new(StatementContext)
 
-	antlr.InitBaseParserRuleContext(&p.BaseParserRuleContext, parent, invokingState)
-
+	p.CustomContext = NewCustomContext(parent, invokingState)
 	p.parser = parser
 	p.RuleIndex = STParserRULE_statement
 
@@ -1343,7 +1336,7 @@ type IAssignment_statementContext interface {
 }
 
 type Assignment_statementContext struct {
-	antlr.BaseParserRuleContext
+	*CustomContext
 	parser antlr.Parser
 	left   antlr.Token
 	right  IExpressionContext
@@ -1351,13 +1344,13 @@ type Assignment_statementContext struct {
 
 func NewEmptyAssignment_statementContext() *Assignment_statementContext {
 	var p = new(Assignment_statementContext)
-	antlr.InitBaseParserRuleContext(&p.BaseParserRuleContext, nil, -1)
+	p.CustomContext = NewCustomContext(nil, -1) // Jim super
 	p.RuleIndex = STParserRULE_assignment_statement
 	return p
 }
 
 func InitEmptyAssignment_statementContext(p *Assignment_statementContext) {
-	antlr.InitBaseParserRuleContext(&p.BaseParserRuleContext, nil, -1)
+	p.CustomContext = NewCustomContext(nil, -1) // Jim super
 	p.RuleIndex = STParserRULE_assignment_statement
 }
 
@@ -1366,8 +1359,7 @@ func (*Assignment_statementContext) IsAssignment_statementContext() {}
 func NewAssignment_statementContext(parser antlr.Parser, parent antlr.ParserRuleContext, invokingState int) *Assignment_statementContext {
 	var p = new(Assignment_statementContext)
 
-	antlr.InitBaseParserRuleContext(&p.BaseParserRuleContext, parent, invokingState)
-
+	p.CustomContext = NewCustomContext(parent, invokingState)
 	p.parser = parser
 	p.RuleIndex = STParserRULE_assignment_statement
 
@@ -1515,7 +1507,7 @@ type IIf_statementContext interface {
 }
 
 type If_statementContext struct {
-	antlr.BaseParserRuleContext
+	*CustomContext
 	parser     antlr.Parser
 	_condition IConditionContext
 	cond       []IConditionContext
@@ -1526,13 +1518,13 @@ type If_statementContext struct {
 
 func NewEmptyIf_statementContext() *If_statementContext {
 	var p = new(If_statementContext)
-	antlr.InitBaseParserRuleContext(&p.BaseParserRuleContext, nil, -1)
+	p.CustomContext = NewCustomContext(nil, -1) // Jim super
 	p.RuleIndex = STParserRULE_if_statement
 	return p
 }
 
 func InitEmptyIf_statementContext(p *If_statementContext) {
-	antlr.InitBaseParserRuleContext(&p.BaseParserRuleContext, nil, -1)
+	p.CustomContext = NewCustomContext(nil, -1) // Jim super
 	p.RuleIndex = STParserRULE_if_statement
 }
 
@@ -1541,8 +1533,7 @@ func (*If_statementContext) IsIf_statementContext() {}
 func NewIf_statementContext(parser antlr.Parser, parent antlr.ParserRuleContext, invokingState int) *If_statementContext {
 	var p = new(If_statementContext)
 
-	antlr.InitBaseParserRuleContext(&p.BaseParserRuleContext, parent, invokingState)
-
+	p.CustomContext = NewCustomContext(parent, invokingState)
 	p.parser = parser
 	p.RuleIndex = STParserRULE_if_statement
 
@@ -1851,19 +1842,19 @@ type IConditionContext interface {
 }
 
 type ConditionContext struct {
-	antlr.BaseParserRuleContext
+	*CustomContext
 	parser antlr.Parser
 }
 
 func NewEmptyConditionContext() *ConditionContext {
 	var p = new(ConditionContext)
-	antlr.InitBaseParserRuleContext(&p.BaseParserRuleContext, nil, -1)
+	p.CustomContext = NewCustomContext(nil, -1) // Jim super
 	p.RuleIndex = STParserRULE_condition
 	return p
 }
 
 func InitEmptyConditionContext(p *ConditionContext) {
-	antlr.InitBaseParserRuleContext(&p.BaseParserRuleContext, nil, -1)
+	p.CustomContext = NewCustomContext(nil, -1) // Jim super
 	p.RuleIndex = STParserRULE_condition
 }
 
@@ -1872,8 +1863,7 @@ func (*ConditionContext) IsConditionContext() {}
 func NewConditionContext(parser antlr.Parser, parent antlr.ParserRuleContext, invokingState int) *ConditionContext {
 	var p = new(ConditionContext)
 
-	antlr.InitBaseParserRuleContext(&p.BaseParserRuleContext, parent, invokingState)
-
+	p.CustomContext = NewCustomContext(parent, invokingState)
 	p.parser = parser
 	p.RuleIndex = STParserRULE_condition
 
@@ -1953,19 +1943,19 @@ type IThen_listContext interface {
 }
 
 type Then_listContext struct {
-	antlr.BaseParserRuleContext
+	*CustomContext
 	parser antlr.Parser
 }
 
 func NewEmptyThen_listContext() *Then_listContext {
 	var p = new(Then_listContext)
-	antlr.InitBaseParserRuleContext(&p.BaseParserRuleContext, nil, -1)
+	p.CustomContext = NewCustomContext(nil, -1) // Jim super
 	p.RuleIndex = STParserRULE_then_list
 	return p
 }
 
 func InitEmptyThen_listContext(p *Then_listContext) {
-	antlr.InitBaseParserRuleContext(&p.BaseParserRuleContext, nil, -1)
+	p.CustomContext = NewCustomContext(nil, -1) // Jim super
 	p.RuleIndex = STParserRULE_then_list
 }
 
@@ -1974,8 +1964,7 @@ func (*Then_listContext) IsThen_listContext() {}
 func NewThen_listContext(parser antlr.Parser, parent antlr.ParserRuleContext, invokingState int) *Then_listContext {
 	var p = new(Then_listContext)
 
-	antlr.InitBaseParserRuleContext(&p.BaseParserRuleContext, parent, invokingState)
-
+	p.CustomContext = NewCustomContext(parent, invokingState)
 	p.parser = parser
 	p.RuleIndex = STParserRULE_then_list
 
@@ -2055,19 +2044,19 @@ type IElse_listContext interface {
 }
 
 type Else_listContext struct {
-	antlr.BaseParserRuleContext
+	*CustomContext
 	parser antlr.Parser
 }
 
 func NewEmptyElse_listContext() *Else_listContext {
 	var p = new(Else_listContext)
-	antlr.InitBaseParserRuleContext(&p.BaseParserRuleContext, nil, -1)
+	p.CustomContext = NewCustomContext(nil, -1) // Jim super
 	p.RuleIndex = STParserRULE_else_list
 	return p
 }
 
 func InitEmptyElse_listContext(p *Else_listContext) {
-	antlr.InitBaseParserRuleContext(&p.BaseParserRuleContext, nil, -1)
+	p.CustomContext = NewCustomContext(nil, -1) // Jim super
 	p.RuleIndex = STParserRULE_else_list
 }
 
@@ -2076,8 +2065,7 @@ func (*Else_listContext) IsElse_listContext() {}
 func NewElse_listContext(parser antlr.Parser, parent antlr.ParserRuleContext, invokingState int) *Else_listContext {
 	var p = new(Else_listContext)
 
-	antlr.InitBaseParserRuleContext(&p.BaseParserRuleContext, parent, invokingState)
-
+	p.CustomContext = NewCustomContext(parent, invokingState)
 	p.parser = parser
 	p.RuleIndex = STParserRULE_else_list
 
@@ -2153,19 +2141,19 @@ type IExpressionContext interface {
 }
 
 type ExpressionContext struct {
-	antlr.BaseParserRuleContext
+	*CustomContext
 	parser antlr.Parser
 }
 
 func NewEmptyExpressionContext() *ExpressionContext {
 	var p = new(ExpressionContext)
-	antlr.InitBaseParserRuleContext(&p.BaseParserRuleContext, nil, -1)
+	p.CustomContext = NewCustomContext(nil, -1) // Jim super
 	p.RuleIndex = STParserRULE_expression
 	return p
 }
 
 func InitEmptyExpressionContext(p *ExpressionContext) {
-	antlr.InitBaseParserRuleContext(&p.BaseParserRuleContext, nil, -1)
+	p.CustomContext = NewCustomContext(nil, -1) // Jim super
 	p.RuleIndex = STParserRULE_expression
 }
 
@@ -2174,8 +2162,7 @@ func (*ExpressionContext) IsExpressionContext() {}
 func NewExpressionContext(parser antlr.Parser, parent antlr.ParserRuleContext, invokingState int) *ExpressionContext {
 	var p = new(ExpressionContext)
 
-	antlr.InitBaseParserRuleContext(&p.BaseParserRuleContext, parent, invokingState)
-
+	p.CustomContext = NewCustomContext(parent, invokingState)
 	p.parser = parser
 	p.RuleIndex = STParserRULE_expression
 
@@ -2936,19 +2923,19 @@ type INumberContext interface {
 }
 
 type NumberContext struct {
-	antlr.BaseParserRuleContext
+	*CustomContext
 	parser antlr.Parser
 }
 
 func NewEmptyNumberContext() *NumberContext {
 	var p = new(NumberContext)
-	antlr.InitBaseParserRuleContext(&p.BaseParserRuleContext, nil, -1)
+	p.CustomContext = NewCustomContext(nil, -1) // Jim super
 	p.RuleIndex = STParserRULE_number
 	return p
 }
 
 func InitEmptyNumberContext(p *NumberContext) {
-	antlr.InitBaseParserRuleContext(&p.BaseParserRuleContext, nil, -1)
+	p.CustomContext = NewCustomContext(nil, -1) // Jim super
 	p.RuleIndex = STParserRULE_number
 }
 
@@ -2957,8 +2944,7 @@ func (*NumberContext) IsNumberContext() {}
 func NewNumberContext(parser antlr.Parser, parent antlr.ParserRuleContext, invokingState int) *NumberContext {
 	var p = new(NumberContext)
 
-	antlr.InitBaseParserRuleContext(&p.BaseParserRuleContext, parent, invokingState)
-
+	p.CustomContext = NewCustomContext(parent, invokingState)
 	p.parser = parser
 	p.RuleIndex = STParserRULE_number
 
@@ -3067,19 +3053,19 @@ type IIntegerContext interface {
 }
 
 type IntegerContext struct {
-	antlr.BaseParserRuleContext
+	*CustomContext
 	parser antlr.Parser
 }
 
 func NewEmptyIntegerContext() *IntegerContext {
 	var p = new(IntegerContext)
-	antlr.InitBaseParserRuleContext(&p.BaseParserRuleContext, nil, -1)
+	p.CustomContext = NewCustomContext(nil, -1) // Jim super
 	p.RuleIndex = STParserRULE_integer
 	return p
 }
 
 func InitEmptyIntegerContext(p *IntegerContext) {
-	antlr.InitBaseParserRuleContext(&p.BaseParserRuleContext, nil, -1)
+	p.CustomContext = NewCustomContext(nil, -1) // Jim super
 	p.RuleIndex = STParserRULE_integer
 }
 
@@ -3088,8 +3074,7 @@ func (*IntegerContext) IsIntegerContext() {}
 func NewIntegerContext(parser antlr.Parser, parent antlr.ParserRuleContext, invokingState int) *IntegerContext {
 	var p = new(IntegerContext)
 
-	antlr.InitBaseParserRuleContext(&p.BaseParserRuleContext, parent, invokingState)
-
+	p.CustomContext = NewCustomContext(parent, invokingState)
 	p.parser = parser
 	p.RuleIndex = STParserRULE_integer
 
@@ -3212,20 +3197,20 @@ type ISigned_integerContext interface {
 }
 
 type Signed_integerContext struct {
-	antlr.BaseParserRuleContext
+	*CustomContext
 	parser antlr.Parser
 	sign   antlr.Token
 }
 
 func NewEmptySigned_integerContext() *Signed_integerContext {
 	var p = new(Signed_integerContext)
-	antlr.InitBaseParserRuleContext(&p.BaseParserRuleContext, nil, -1)
+	p.CustomContext = NewCustomContext(nil, -1) // Jim super
 	p.RuleIndex = STParserRULE_signed_integer
 	return p
 }
 
 func InitEmptySigned_integerContext(p *Signed_integerContext) {
-	antlr.InitBaseParserRuleContext(&p.BaseParserRuleContext, nil, -1)
+	p.CustomContext = NewCustomContext(nil, -1) // Jim super
 	p.RuleIndex = STParserRULE_signed_integer
 }
 
@@ -3234,8 +3219,7 @@ func (*Signed_integerContext) IsSigned_integerContext() {}
 func NewSigned_integerContext(parser antlr.Parser, parent antlr.ParserRuleContext, invokingState int) *Signed_integerContext {
 	var p = new(Signed_integerContext)
 
-	antlr.InitBaseParserRuleContext(&p.BaseParserRuleContext, parent, invokingState)
-
+	p.CustomContext = NewCustomContext(parent, invokingState)
 	p.parser = parser
 	p.RuleIndex = STParserRULE_signed_integer
 
@@ -3348,19 +3332,19 @@ type IUnsign_integerContext interface {
 }
 
 type Unsign_integerContext struct {
-	antlr.BaseParserRuleContext
+	*CustomContext
 	parser antlr.Parser
 }
 
 func NewEmptyUnsign_integerContext() *Unsign_integerContext {
 	var p = new(Unsign_integerContext)
-	antlr.InitBaseParserRuleContext(&p.BaseParserRuleContext, nil, -1)
+	p.CustomContext = NewCustomContext(nil, -1) // Jim super
 	p.RuleIndex = STParserRULE_unsign_integer
 	return p
 }
 
 func InitEmptyUnsign_integerContext(p *Unsign_integerContext) {
-	antlr.InitBaseParserRuleContext(&p.BaseParserRuleContext, nil, -1)
+	p.CustomContext = NewCustomContext(nil, -1) // Jim super
 	p.RuleIndex = STParserRULE_unsign_integer
 }
 
@@ -3369,8 +3353,7 @@ func (*Unsign_integerContext) IsUnsign_integerContext() {}
 func NewUnsign_integerContext(parser antlr.Parser, parent antlr.ParserRuleContext, invokingState int) *Unsign_integerContext {
 	var p = new(Unsign_integerContext)
 
-	antlr.InitBaseParserRuleContext(&p.BaseParserRuleContext, parent, invokingState)
-
+	p.CustomContext = NewCustomContext(parent, invokingState)
 	p.parser = parser
 	p.RuleIndex = STParserRULE_unsign_integer
 

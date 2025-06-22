@@ -1,5 +1,10 @@
 grammar ST;
 
+options {
+    // для пробрасывания по дереву доп объектов (логгер, исходный код и тп)
+    contextSuperClass = CustomContext;
+}
+
 program :
     'PROGRAM' identifier=ID 
         var_declaration_blocks

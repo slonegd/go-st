@@ -8,7 +8,6 @@ import (
 
 	"github.com/slonegd/go-st"
 	parser "github.com/slonegd/go-st/antlr"
-	external_parser "github.com/slonegd/go-st/antlr/external"
 )
 
 var (
@@ -28,50 +27,12 @@ var (
 
 func main() {
 	_ = simpliest
-	_ = arithmetic
+	// example := arithmetic
 	_ = iftest
 	_ = parseErr
 	example := iftest
-	// st_tokens(example)
-	// external_tokens(example)
 	// tree(example)
 	program(example)
-}
-
-func st_tokens(example string) {
-	log.Printf("\n\n\t\t st_tokens")
-	// Setup the input
-	is := antlr.NewInputStream(example)
-
-	// Create the Lexer
-	lexer := parser.NewSTLexer(is)
-
-	// Read all tokens
-	for {
-		t := lexer.NextToken()
-		if t.GetTokenType() == antlr.TokenEOF {
-			break
-		}
-		log.Printf("%s (%q): %#v", lexer.SymbolicNames[t.GetTokenType()], t.GetText(), t)
-	}
-}
-
-func external_tokens(example string) {
-	log.Printf("\n\n\t\t external_tokens")
-	// Setup the input
-	is := antlr.NewInputStream(simpliest)
-
-	// Create the Lexer
-	lexer := external_parser.NewST_lexer(is)
-
-	// Read all tokens
-	for {
-		t := lexer.NextToken()
-		if t.GetTokenType() == antlr.TokenEOF {
-			break
-		}
-		log.Printf("%s (%q): %#v", lexer.SymbolicNames[t.GetTokenType()], t.GetText(), t)
-	}
 }
 
 func tree(example string) {
@@ -94,7 +55,7 @@ func tree(example string) {
 func program(example string) {
 	log.Printf("\n\n\t\t program")
 	program, _ := st.NewProgram(example)
-	program.Execute()
+	program.ExecuteDebug()
 	log.Printf("results: %+v", program.GetVars())
 	log.Printf("results: %+v", program.GetVars())
 }

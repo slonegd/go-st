@@ -1,4 +1,4 @@
-.PHONY: all vendor
+.PHONY: all vendor bench
 
 gen-external:
 	antlr4 -Dlanguage=Go ./antlr/external/ST_lexer.g4 ./antlr/external/ST_parser.g4
@@ -20,4 +20,4 @@ test:
 	go test ./...
 
 bench:
-	go test -bench=. ./tests/
+	cd bench && go test -bench=. . && cd ..

@@ -7,12 +7,13 @@ import (
 	"github.com/antlr4-go/antlr/v4"
 	parser "github.com/slonegd/go-st/antlr"
 	"github.com/slonegd/go-st/ops"
+	"github.com/slonegd/go-st/source"
 	"github.com/slonegd/go-st/types"
 )
 
 type (
 	AST struct {
-		source   Source
+		source   source.Source
 		vars     map[string]types.Variable
 		programm ops.Statement
 		err      error
@@ -31,12 +32,11 @@ func Parse(script string) (x *AST, err error) {
 	p := parser.NewSTParser(stream)
 
 	x = &AST{
-		source: Source(script),
+		source: source.Source(script),
 		vars:   map[string]types.Variable{},
 	}
 	visitor := &visitor{AST: x}
 	p.BaseRecognizer.AddErrorListener(visitor)
-
 	// выход из обхода дерева сделан через панику, поэтому ловим
 	defer func() {
 		if r := recover(); r != nil {
@@ -48,7 +48,9 @@ func Parse(script string) (x *AST, err error) {
 		}
 	}()
 
-	x.programm = p.Program().Accept(visitor).(ops.Statement)
+	ctx := p.Program().(*parser.ProgramContext)
+	ctx.Set(log{}, source.Source(script))
+	x.programm = ctx.Accept(visitor).(ops.Statement)
 
 	err = x.err
 
@@ -66,3 +68,11 @@ func (x *AST) GetVars() map[string]types.Variable {
 func (x *AST) Execute() {
 	x.programm.Do()
 }
+
+func (x *AST) ExecuteDebug() {
+	x.programm.DoDebug()
+}
+
+type log struct{}
+
+func (log) Debug(f string, a ...any) { fmt.Printf(f, a...) }
