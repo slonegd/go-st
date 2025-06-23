@@ -52,23 +52,46 @@ func (x visitor) VisitAssignment_statement(ctx *parser.Assignment_statementConte
 
 func (x visitor) VisitBinaryCompareExpr(ctx *parser.BinaryCompareExprContext) any {
 	op := ctx.GetOp().GetText()
-	right := ctx.GetRight().Accept(x).(ops.Int64)
-	left := ctx.GetLeft().Accept(x).(ops.Int64)
-	switch op { // TODO через id токена
-	case ">":
-		return ops.Greater(ctx.CustomContext, left, right)
-	case ">=":
-		return ops.GreaterOrEqual(ctx.CustomContext, left, right)
-	case "<":
-		return ops.Less(ctx.CustomContext, left, right)
-	case "<=":
-		return ops.LessOrEqual(ctx.CustomContext, left, right)
-	case "=":
-		return ops.Equal(ctx.CustomContext, left, right)
-	case "<>":
-		return ops.NotEqual(ctx.CustomContext, left, right)
+	right := ctx.GetRight().Accept(x)
+	left := ctx.GetLeft().Accept(x)
+	switch right := right.(type) {
+	case ops.Int64:
+		switch left := left.(type) {
+		case ops.Int64:
+			resultType, err := types.BinaryResult(
+				types.Expression{left.IsConstant, left.ResultType},
+				types.Expression{right.IsConstant, right.ResultType},
+			)
+			x.CheckError(ctx, err)
+			return ops.Compare(ctx.GetCustomContext(), op, left, right, resultType)
+		case ops.Float64:
+			resultType, err := types.BinaryResult(
+				types.Expression{left.IsConstant, left.ResultType},
+				types.Expression{right.IsConstant, right.ResultType},
+			)
+			x.CheckError(ctx, err)
+			return ops.Compare(ctx.GetCustomContext(), op, left, right, resultType)
+		}
+	case ops.Float64:
+		switch left := left.(type) {
+		case ops.Int64:
+			resultType, err := types.BinaryResult(
+				types.Expression{left.IsConstant, left.ResultType},
+				types.Expression{right.IsConstant, right.ResultType},
+			)
+			x.CheckError(ctx, err)
+			return ops.Compare(ctx.GetCustomContext(), op, left, right, resultType)
+		case ops.Float64:
+			resultType, err := types.BinaryResult(
+				types.Expression{left.IsConstant, left.ResultType},
+				types.Expression{right.IsConstant, right.ResultType},
+			)
+			x.CheckError(ctx, err)
+			return ops.Compare(ctx.GetCustomContext(), op, left, right, resultType)
+		}
 	}
-	panic(ctx)
+	x.CheckError(ctx, fmt.Errorf("unsupported %T %s %T", left, op, right))
+	return ops.Bool{}
 }
 
 func (x visitor) VisitBinaryPlusExpr(ctx *parser.BinaryPlusExprContext) any {
@@ -105,14 +128,14 @@ func (x visitor) visitBinaryExpr(ctx BinaryContext) any {
 				types.Expression{right.IsConstant, right.ResultType},
 			)
 			x.CheckError(ctx, err)
-			return ops.Binary[int64](ctx.GetCustomContext(), op, left, right, resultType)
+			return ops.Arithmetic[int64](ctx.GetCustomContext(), op, left, right, resultType)
 		case ops.Float64:
 			resultType, err := types.BinaryResult(
 				types.Expression{left.IsConstant, left.ResultType},
 				types.Expression{right.IsConstant, right.ResultType},
 			)
 			x.CheckError(ctx, err)
-			return ops.Binary[float64](ctx.GetCustomContext(), op, left, right, resultType)
+			return ops.Arithmetic[float64](ctx.GetCustomContext(), op, left, right, resultType)
 		}
 	case ops.Float64:
 		switch left := left.(type) {
@@ -122,14 +145,14 @@ func (x visitor) visitBinaryExpr(ctx BinaryContext) any {
 				types.Expression{right.IsConstant, right.ResultType},
 			)
 			x.CheckError(ctx, err)
-			return ops.Binary[float64](ctx.GetCustomContext(), op, left, right, resultType)
+			return ops.Arithmetic[float64](ctx.GetCustomContext(), op, left, right, resultType)
 		case ops.Float64:
 			resultType, err := types.BinaryResult(
 				types.Expression{left.IsConstant, left.ResultType},
 				types.Expression{right.IsConstant, right.ResultType},
 			)
 			x.CheckError(ctx, err)
-			return ops.Binary[float64](ctx.GetCustomContext(), op, left, right, resultType)
+			return ops.Arithmetic[float64](ctx.GetCustomContext(), op, left, right, resultType)
 		}
 	}
 	return x.CheckError(ctx, fmt.Errorf("unsupported %T %s %T", left, op, right))

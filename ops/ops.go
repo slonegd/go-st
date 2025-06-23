@@ -150,7 +150,7 @@ func Cast[T int64 | float64](ctx *parser.CustomContext, t types.Basic, expr Op[T
 	return nil
 }
 
-func Binary[Result, Left, Right NumberOpTypes](
+func Arithmetic[Result, Left, Right NumberOpTypes](
 	ctx *parser.CustomContext,
 	op string,
 	left Op[Left],
@@ -219,142 +219,86 @@ func Binary[Result, Left, Right NumberOpTypes](
 	return ops[K{op, resultType}](left, right)
 }
 
-func Greater[T int64 | float64](ctx *parser.CustomContext, left, right Op[T]) Bool {
-	op := Bool{
-		IsConstant: left.IsConstant && right.IsConstant,
-		ResultType: types.BOOL,
-		ctx:        ctx,
-		snippet:    ctx.MakeSnippet(),
+func Compare[Left, Right NumberOpTypes](
+	ctx *parser.CustomContext,
+	op string,
+	left Op[Left],
+	right Op[Right],
+	resultType types.Basic,
+) Bool {
+	type K struct {
+		op         string
+		resultType types.Basic
 	}
-	op.Do = func() bool {
-		l := left.Do()
-		r := right.Do()
-		return l > r
-	}
-	op.DoDebug = func() bool {
-		l := left.DoDebug()
-		r := right.DoDebug()
-		v := l > r
-		msg := fmt.Sprintf("%v > %v = %v", l, r, v)
-		ctx.Debug(op.snippet, msg)
-		return v
-	}
-	return op
-}
 
-func GreaterOrEqual[T int64 | float64](ctx *parser.CustomContext, left, right Op[T]) Bool {
-	op := Bool{
-		IsConstant: left.IsConstant && right.IsConstant,
-		ResultType: types.BOOL,
-		ctx:        ctx,
-		snippet:    ctx.MakeSnippet(),
-	}
-	op.Do = func() bool {
-		l := left.Do()
-		r := right.Do()
-		return l >= r
-	}
-	op.DoDebug = func() bool {
-		l := left.DoDebug()
-		r := right.DoDebug()
-		v := l >= r
-		msg := fmt.Sprintf("%v >= %v = %v", l, r, v)
-		ctx.Debug(op.snippet, msg)
-		return v
-	}
-	return op
-}
+	ops := map[K]func(l Op[Left], r Op[Right]) Bool{
+		{">", types.SINT}:  func(l Op[Left], r Op[Right]) Bool { return greater[int8](ctx, l, r) },
+		{">", types.INT}:   func(l Op[Left], r Op[Right]) Bool { return greater[int16](ctx, l, r) },
+		{">", types.DINT}:  func(l Op[Left], r Op[Right]) Bool { return greater[int32](ctx, l, r) },
+		{">", types.LINT}:  func(l Op[Left], r Op[Right]) Bool { return greater[int64](ctx, l, r) },
+		{">", types.USINT}: func(l Op[Left], r Op[Right]) Bool { return greater[uint8](ctx, l, r) },
+		{">", types.UINT}:  func(l Op[Left], r Op[Right]) Bool { return greater[uint16](ctx, l, r) },
+		{">", types.UDINT}: func(l Op[Left], r Op[Right]) Bool { return greater[uint32](ctx, l, r) },
+		{">", types.ULINT}: func(l Op[Left], r Op[Right]) Bool { return greater[uint64](ctx, l, r) },
+		{">", types.REAL}:  func(l Op[Left], r Op[Right]) Bool { return greater[float32](ctx, l, r) },
+		{">", types.LREAL}: func(l Op[Left], r Op[Right]) Bool { return greater[float64](ctx, l, r) },
 
-func Less[T int64 | float64](ctx *parser.CustomContext, left, right Op[T]) Bool {
-	op := Bool{
-		IsConstant: left.IsConstant && right.IsConstant,
-		ResultType: types.BOOL,
-		ctx:        ctx,
-		snippet:    ctx.MakeSnippet(),
-	}
-	op.Do = func() bool {
-		l := left.Do()
-		r := right.Do()
-		return l < r
-	}
-	op.DoDebug = func() bool {
-		l := left.DoDebug()
-		r := right.DoDebug()
-		v := l < r
-		msg := fmt.Sprintf("%v < %v = %v", l, r, v)
-		ctx.Debug(op.snippet, msg)
-		return v
-	}
-	return op
-}
+		{">=", types.SINT}:  func(l Op[Left], r Op[Right]) Bool { return greaterOrEqual[int8](ctx, l, r) },
+		{">=", types.INT}:   func(l Op[Left], r Op[Right]) Bool { return greaterOrEqual[int16](ctx, l, r) },
+		{">=", types.DINT}:  func(l Op[Left], r Op[Right]) Bool { return greaterOrEqual[int32](ctx, l, r) },
+		{">=", types.LINT}:  func(l Op[Left], r Op[Right]) Bool { return greaterOrEqual[int64](ctx, l, r) },
+		{">=", types.USINT}: func(l Op[Left], r Op[Right]) Bool { return greaterOrEqual[uint8](ctx, l, r) },
+		{">=", types.UINT}:  func(l Op[Left], r Op[Right]) Bool { return greaterOrEqual[uint16](ctx, l, r) },
+		{">=", types.UDINT}: func(l Op[Left], r Op[Right]) Bool { return greaterOrEqual[uint32](ctx, l, r) },
+		{">=", types.ULINT}: func(l Op[Left], r Op[Right]) Bool { return greaterOrEqual[uint64](ctx, l, r) },
+		{">=", types.REAL}:  func(l Op[Left], r Op[Right]) Bool { return greaterOrEqual[float32](ctx, l, r) },
+		{">=", types.LREAL}: func(l Op[Left], r Op[Right]) Bool { return greaterOrEqual[float64](ctx, l, r) },
 
-func LessOrEqual[T int64 | float64](ctx *parser.CustomContext, left, right Op[T]) Bool {
-	op := Bool{
-		IsConstant: left.IsConstant && right.IsConstant,
-		ResultType: types.BOOL,
-		ctx:        ctx,
-		snippet:    ctx.MakeSnippet(),
-	}
-	op.Do = func() bool {
-		l := left.Do()
-		r := right.Do()
-		return l <= r
-	}
-	op.DoDebug = func() bool {
-		l := left.DoDebug()
-		r := right.DoDebug()
-		v := l <= r
-		msg := fmt.Sprintf("%v <= %v = %v", l, r, v)
-		ctx.Debug(op.snippet, msg)
-		return v
-	}
-	return op
-}
+		{"<", types.SINT}:  func(l Op[Left], r Op[Right]) Bool { return less[int8](ctx, l, r) },
+		{"<", types.INT}:   func(l Op[Left], r Op[Right]) Bool { return less[int16](ctx, l, r) },
+		{"<", types.DINT}:  func(l Op[Left], r Op[Right]) Bool { return less[int32](ctx, l, r) },
+		{"<", types.LINT}:  func(l Op[Left], r Op[Right]) Bool { return less[int64](ctx, l, r) },
+		{"<", types.USINT}: func(l Op[Left], r Op[Right]) Bool { return less[uint8](ctx, l, r) },
+		{"<", types.UINT}:  func(l Op[Left], r Op[Right]) Bool { return less[uint16](ctx, l, r) },
+		{"<", types.UDINT}: func(l Op[Left], r Op[Right]) Bool { return less[uint32](ctx, l, r) },
+		{"<", types.ULINT}: func(l Op[Left], r Op[Right]) Bool { return less[uint64](ctx, l, r) },
+		{"<", types.REAL}:  func(l Op[Left], r Op[Right]) Bool { return less[float32](ctx, l, r) },
+		{"<", types.LREAL}: func(l Op[Left], r Op[Right]) Bool { return less[float64](ctx, l, r) },
 
-func Equal[T int64 | float64](ctx *parser.CustomContext, left, right Op[T]) Bool {
-	op := Bool{
-		IsConstant: left.IsConstant && right.IsConstant,
-		ResultType: types.BOOL,
-		ctx:        ctx,
-		snippet:    ctx.MakeSnippet(),
-	}
-	op.Do = func() bool {
-		l := left.Do()
-		r := right.Do()
-		return l == r
-	}
-	op.DoDebug = func() bool {
-		l := left.DoDebug()
-		r := right.DoDebug()
-		v := l == r
-		msg := fmt.Sprintf("%v == %v = %v", l, r, v)
-		ctx.Debug(op.snippet, msg)
-		return v
-	}
-	return op
-}
+		{"<=", types.SINT}:  func(l Op[Left], r Op[Right]) Bool { return lessOrEqual[int8](ctx, l, r) },
+		{"<=", types.INT}:   func(l Op[Left], r Op[Right]) Bool { return lessOrEqual[int16](ctx, l, r) },
+		{"<=", types.DINT}:  func(l Op[Left], r Op[Right]) Bool { return lessOrEqual[int32](ctx, l, r) },
+		{"<=", types.LINT}:  func(l Op[Left], r Op[Right]) Bool { return lessOrEqual[int64](ctx, l, r) },
+		{"<=", types.USINT}: func(l Op[Left], r Op[Right]) Bool { return lessOrEqual[uint8](ctx, l, r) },
+		{"<=", types.UINT}:  func(l Op[Left], r Op[Right]) Bool { return lessOrEqual[uint16](ctx, l, r) },
+		{"<=", types.UDINT}: func(l Op[Left], r Op[Right]) Bool { return lessOrEqual[uint32](ctx, l, r) },
+		{"<=", types.ULINT}: func(l Op[Left], r Op[Right]) Bool { return lessOrEqual[uint64](ctx, l, r) },
+		{"<=", types.REAL}:  func(l Op[Left], r Op[Right]) Bool { return lessOrEqual[float32](ctx, l, r) },
+		{"<=", types.LREAL}: func(l Op[Left], r Op[Right]) Bool { return lessOrEqual[float64](ctx, l, r) },
 
-func NotEqual[T int64 | float64](ctx *parser.CustomContext, left, right Op[T]) Bool {
-	op := Bool{
-		IsConstant: left.IsConstant && right.IsConstant,
-		ResultType: types.BOOL,
-		ctx:        ctx,
-		snippet:    ctx.MakeSnippet(),
+		{"=", types.SINT}:  func(l Op[Left], r Op[Right]) Bool { return equal[int8](ctx, l, r) },
+		{"=", types.INT}:   func(l Op[Left], r Op[Right]) Bool { return equal[int16](ctx, l, r) },
+		{"=", types.DINT}:  func(l Op[Left], r Op[Right]) Bool { return equal[int32](ctx, l, r) },
+		{"=", types.LINT}:  func(l Op[Left], r Op[Right]) Bool { return equal[int64](ctx, l, r) },
+		{"=", types.USINT}: func(l Op[Left], r Op[Right]) Bool { return equal[uint8](ctx, l, r) },
+		{"=", types.UINT}:  func(l Op[Left], r Op[Right]) Bool { return equal[uint16](ctx, l, r) },
+		{"=", types.UDINT}: func(l Op[Left], r Op[Right]) Bool { return equal[uint32](ctx, l, r) },
+		{"=", types.ULINT}: func(l Op[Left], r Op[Right]) Bool { return equal[uint64](ctx, l, r) },
+		{"=", types.REAL}:  func(l Op[Left], r Op[Right]) Bool { return equal[float32](ctx, l, r) },
+		{"=", types.LREAL}: func(l Op[Left], r Op[Right]) Bool { return equal[float64](ctx, l, r) },
+
+		{"<>", types.SINT}:  func(l Op[Left], r Op[Right]) Bool { return notEqual[int8](ctx, l, r) },
+		{"<>", types.INT}:   func(l Op[Left], r Op[Right]) Bool { return notEqual[int16](ctx, l, r) },
+		{"<>", types.DINT}:  func(l Op[Left], r Op[Right]) Bool { return notEqual[int32](ctx, l, r) },
+		{"<>", types.LINT}:  func(l Op[Left], r Op[Right]) Bool { return notEqual[int64](ctx, l, r) },
+		{"<>", types.USINT}: func(l Op[Left], r Op[Right]) Bool { return notEqual[uint8](ctx, l, r) },
+		{"<>", types.UINT}:  func(l Op[Left], r Op[Right]) Bool { return notEqual[uint16](ctx, l, r) },
+		{"<>", types.UDINT}: func(l Op[Left], r Op[Right]) Bool { return notEqual[uint32](ctx, l, r) },
+		{"<>", types.ULINT}: func(l Op[Left], r Op[Right]) Bool { return notEqual[uint64](ctx, l, r) },
+		{"<>", types.REAL}:  func(l Op[Left], r Op[Right]) Bool { return notEqual[float32](ctx, l, r) },
+		{"<>", types.LREAL}: func(l Op[Left], r Op[Right]) Bool { return notEqual[float64](ctx, l, r) },
 	}
-	op.Do = func() bool {
-		l := left.Do()
-		r := right.Do()
-		return l != r
-	}
-	op.DoDebug = func() bool {
-		l := left.DoDebug()
-		r := right.DoDebug()
-		v := l != r
-		msg := fmt.Sprintf("%v <> %v = %v", l, r, v)
-		ctx.Debug(op.snippet, msg)
-		return v
-	}
-	return op
+	return ops[K{op, resultType}](left, right)
 }
 
 func If(ctx *parser.CustomContext, cond Bool, then_ Statement) Statement {
@@ -403,6 +347,168 @@ func IfElse(ctx *parser.CustomContext, cond Bool, then_, else_ Statement) Statem
 			else_.DoDebug()
 		}
 		return struct{}{}
+	}
+	return op
+}
+
+func greater[T Number, Left, Right NumberOpTypes](
+	ctx *parser.CustomContext,
+	left Op[Left],
+	right Op[Right],
+) Bool {
+	op := Bool{
+		ResultType: types.BOOL,
+		IsConstant: left.IsConstant && right.IsConstant,
+		ctx:        ctx,
+		snippet:    ctx.MakeSnippet(),
+	}
+	op.Do = func() bool {
+		l := T(left.Do())
+		r := T(right.Do())
+		return l > r
+	}
+	op.DoDebug = func() bool {
+		l := T(left.DoDebug())
+		r := T(right.DoDebug())
+		v := l > r
+		msg := fmt.Sprintf("%v > %v: %v", l, r, v)
+		ctx.Debug(op.snippet, msg)
+		return v
+	}
+	return op
+}
+
+func greaterOrEqual[T Number, Left, Right NumberOpTypes](
+	ctx *parser.CustomContext,
+	left Op[Left],
+	right Op[Right],
+) Bool {
+	op := Bool{
+		ResultType: types.BOOL,
+		IsConstant: left.IsConstant && right.IsConstant,
+		ctx:        ctx,
+		snippet:    ctx.MakeSnippet(),
+	}
+	op.Do = func() bool {
+		l := T(left.Do())
+		r := T(right.Do())
+		return l >= r
+	}
+	op.DoDebug = func() bool {
+		l := T(left.DoDebug())
+		r := T(right.DoDebug())
+		v := l >= r
+		msg := fmt.Sprintf("%v >= %v: %v", l, r, v)
+		ctx.Debug(op.snippet, msg)
+		return v
+	}
+	return op
+}
+
+func less[T Number, Left, Right NumberOpTypes](
+	ctx *parser.CustomContext,
+	left Op[Left],
+	right Op[Right],
+) Bool {
+	op := Bool{
+		ResultType: types.BOOL,
+		IsConstant: left.IsConstant && right.IsConstant,
+		ctx:        ctx,
+		snippet:    ctx.MakeSnippet(),
+	}
+	op.Do = func() bool {
+		l := T(left.Do())
+		r := T(right.Do())
+		return l < r
+	}
+	op.DoDebug = func() bool {
+		l := T(left.DoDebug())
+		r := T(right.DoDebug())
+		v := l < r
+		msg := fmt.Sprintf("%v < %v: %v", l, r, v)
+		ctx.Debug(op.snippet, msg)
+		return v
+	}
+	return op
+}
+
+func lessOrEqual[T Number, Left, Right NumberOpTypes](
+	ctx *parser.CustomContext,
+	left Op[Left],
+	right Op[Right],
+) Bool {
+	op := Bool{
+		ResultType: types.BOOL,
+		IsConstant: left.IsConstant && right.IsConstant,
+		ctx:        ctx,
+		snippet:    ctx.MakeSnippet(),
+	}
+	op.Do = func() bool {
+		l := T(left.Do())
+		r := T(right.Do())
+		return l <= r
+	}
+	op.DoDebug = func() bool {
+		l := T(left.DoDebug())
+		r := T(right.DoDebug())
+		v := l <= r
+		msg := fmt.Sprintf("%v <= %v: %v", l, r, v)
+		ctx.Debug(op.snippet, msg)
+		return v
+	}
+	return op
+}
+
+func equal[T Number, Left, Right NumberOpTypes](
+	ctx *parser.CustomContext,
+	left Op[Left],
+	right Op[Right],
+) Bool {
+	op := Bool{
+		ResultType: types.BOOL,
+		IsConstant: left.IsConstant && right.IsConstant,
+		ctx:        ctx,
+		snippet:    ctx.MakeSnippet(),
+	}
+	op.Do = func() bool {
+		l := T(left.Do())
+		r := T(right.Do())
+		return l == r
+	}
+	op.DoDebug = func() bool {
+		l := T(left.DoDebug())
+		r := T(right.DoDebug())
+		v := l == r
+		msg := fmt.Sprintf("%v = %v: %v", l, r, v)
+		ctx.Debug(op.snippet, msg)
+		return v
+	}
+	return op
+}
+
+func notEqual[T Number, Left, Right NumberOpTypes](
+	ctx *parser.CustomContext,
+	left Op[Left],
+	right Op[Right],
+) Bool {
+	op := Bool{
+		ResultType: types.BOOL,
+		IsConstant: left.IsConstant && right.IsConstant,
+		ctx:        ctx,
+		snippet:    ctx.MakeSnippet(),
+	}
+	op.Do = func() bool {
+		l := T(left.Do())
+		r := T(right.Do())
+		return l != r
+	}
+	op.DoDebug = func() bool {
+		l := T(left.DoDebug())
+		r := T(right.DoDebug())
+		v := l != r
+		msg := fmt.Sprintf("%v <> %v: %v", l, r, v)
+		ctx.Debug(op.snippet, msg)
+		return v
 	}
 	return op
 }
