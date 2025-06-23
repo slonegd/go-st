@@ -216,25 +216,19 @@ func (x visitor) VisitErrorNode(node antlr.ErrorNode) any {
 func (x visitor) VisitIf_statement(ctx *parser.If_statementContext) any {
 	conditions := ctx.GetCond()
 	thens := ctx.GetThenlist()
-	var elseStatement *ops.Statement // указатель для maybe
+	var nextElse *ops.Statement
 	if ctx.GetElselist() != nil {
-		s := ctx.GetElselist().Accept(x).(ops.Statement)
-		elseStatement = &s
+		s := ctx.GetElselist().Accept(x).(*ops.Statement)
+		nextElse = s
 	}
 	// с конца, так как последний else является аргументом предпоследнего else if
 	// а тот аргументом else if перед этим
 	for i := len(conditions) - 1; i >= 0; i-- {
 		condition := conditions[i].Accept(x).(ops.Bool)
-		then_ := thens[i].Accept(x).(ops.Statement)
-		if elseStatement == nil {
-			s := ops.If(ctx.CustomContext, condition, then_)
-			elseStatement = &s
-		} else {
-			s := ops.IfElse(ctx.CustomContext, condition, then_, *elseStatement)
-			elseStatement = &s
-		}
+		then_ := thens[i].Accept(x).(*ops.Statement)
+		nextElse = ops.If(ctx.CustomContext, condition, then_, nextElse)
 	}
-	return *elseStatement
+	return nextElse
 }
 func (x visitor) VisitInteger(ctx *parser.IntegerContext) any {
 	if ctx := ctx.Unsign_integer(); ctx != nil {
@@ -264,15 +258,22 @@ func (x visitor) VisitNumber(ctx *parser.NumberContext) any {
 func (x visitor) VisitParenExpr(ctx *parser.ParenExprContext) any { return ctx.GetSub().Accept(x) }
 
 func (x visitor) VisitProgram(ctx *parser.ProgramContext) any {
-	statements := make([]ops.Statement, 0)
+	var r, next *ops.Statement
+	// TODO через statement list?
 	for _, c := range ctx.GetChildren() {
 		// не всё возвращает Statement
 		// есть ноды подготовки, например объявления переменных
-		if s, ok := x.Visit(c.(antlr.ParseTree)).(ops.Statement); ok {
-			statements = append(statements, s)
+		if s, ok := x.Visit(c.(antlr.ParseTree)).(*ops.Statement); ok {
+			if r == nil {
+				r = s
+				next = s
+			} else {
+				next.NextStatement = s
+				next = s
+			}
 		}
 	}
-	return ops.Statements(statements)
+	return r
 }
 
 func (x visitor) VisitSigned_integer(ctx *parser.Signed_integerContext) any {
@@ -298,12 +299,19 @@ func (x visitor) VisitStatement(ctx *parser.StatementContext) any {
 }
 
 func (x visitor) VisitStatement_list(ctx *parser.Statement_listContext) any {
-	stmts := make([]ops.Statement, 0)
-	for _, st := range ctx.AllStatement() {
-		stmts = append(stmts, st.Accept(x).(ops.Statement))
+	var r, next *ops.Statement
+	for _, s := range ctx.AllStatement() { // TODO проверить если пустой список и может ли такое быть?
+		tmp := s.Accept(x).(*ops.Statement)
+		if r == nil {
+			r = tmp
+			next = tmp
+			continue
+		}
+		next.NextStatement = tmp
+		next = tmp
 
 	}
-	return ops.Statements(stmts)
+	return r
 }
 
 func (x visitor) VisitTerminal(node antlr.TerminalNode) any { return x.lastOp }

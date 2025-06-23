@@ -18,7 +18,8 @@ type (
 		ResultType types.Basic
 		// у константы тип приводиться к аргументу не константе
 		// TODO константы вообще можно не через оператор передавать, а сразу аргументом
-		IsConstant bool
+		IsConstant    bool
+		NextStatement *Statement
 		// мета инфа для дебага
 		ctx     *parser.CustomContext
 		snippet string
@@ -87,41 +88,43 @@ func Variable[T OpTypes](ctx *parser.CustomContext, name string, variable types.
 	return op
 }
 
-func Assign[T int64 | float64](ctx *parser.CustomContext, name string, v types.Variable, expr Op[T]) Statement {
+func Assign[T int64 | float64](ctx *parser.CustomContext, name string, v types.Variable, expr Op[T]) *Statement {
 	ctx.Name = name // добавляем для дебага
-	ops := map[types.Basic]func(v types.Variable, expr Op[T]) Statement{
-		types.SINT:  func(v types.Variable, expr Op[T]) Statement { return assign[int8](ctx, v, expr) },
-		types.INT:   func(v types.Variable, expr Op[T]) Statement { return assign[int16](ctx, v, expr) },
-		types.DINT:  func(v types.Variable, expr Op[T]) Statement { return assign[int32](ctx, v, expr) },
-		types.LINT:  func(v types.Variable, expr Op[T]) Statement { return assign[int64](ctx, v, expr) },
-		types.USINT: func(v types.Variable, expr Op[T]) Statement { return assign[uint8](ctx, v, expr) },
-		types.UINT:  func(v types.Variable, expr Op[T]) Statement { return assign[uint16](ctx, v, expr) },
-		types.UDINT: func(v types.Variable, expr Op[T]) Statement { return assign[uint32](ctx, v, expr) },
-		types.ULINT: func(v types.Variable, expr Op[T]) Statement { return assign[uint64](ctx, v, expr) },
+	ops := map[types.Basic]func(v types.Variable, expr Op[T]) *Statement{
+		types.SINT:  func(v types.Variable, expr Op[T]) *Statement { return assign[int8](ctx, v, expr) },
+		types.INT:   func(v types.Variable, expr Op[T]) *Statement { return assign[int16](ctx, v, expr) },
+		types.DINT:  func(v types.Variable, expr Op[T]) *Statement { return assign[int32](ctx, v, expr) },
+		types.LINT:  func(v types.Variable, expr Op[T]) *Statement { return assign[int64](ctx, v, expr) },
+		types.USINT: func(v types.Variable, expr Op[T]) *Statement { return assign[uint8](ctx, v, expr) },
+		types.UINT:  func(v types.Variable, expr Op[T]) *Statement { return assign[uint16](ctx, v, expr) },
+		types.UDINT: func(v types.Variable, expr Op[T]) *Statement { return assign[uint32](ctx, v, expr) },
+		types.ULINT: func(v types.Variable, expr Op[T]) *Statement { return assign[uint64](ctx, v, expr) },
 
-		types.REAL:  func(v types.Variable, expr Op[T]) Statement { return assign[float32](ctx, v, expr) },
-		types.LREAL: func(v types.Variable, expr Op[T]) Statement { return assign[float64](ctx, v, expr) },
+		types.REAL:  func(v types.Variable, expr Op[T]) *Statement { return assign[float32](ctx, v, expr) },
+		types.LREAL: func(v types.Variable, expr Op[T]) *Statement { return assign[float64](ctx, v, expr) },
 	}
 	op := ops[v.Type()]
 	return op(v, expr)
 }
 
-func Statements(s []Statement) Statement {
-	op := Statement{}
-	op.Do = func() struct{} {
-		for i := range s {
-			s[i].Do()
-		}
-		return struct{}{}
-	}
-	op.DoDebug = func() struct{} {
-		for i := range s {
-			s[i].DoDebug()
-		}
-		return struct{}{}
-	}
-	return op
-}
+// func Statements(s []*Statement) *Statement {
+// 	op := &Statement{
+// 		NextStatement: emptyStatement(),
+// 	}
+// 	op.Do = func() struct{} {
+// 		for i := range s {
+// 			s[i].Do()
+// 		}
+// 		return struct{}{}
+// 	}
+// 	op.DoDebug = func() struct{} {
+// 		for i := range s {
+// 			s[i].DoDebug()
+// 		}
+// 		return struct{}{}
+// 	}
+// 	return op
+// }
 
 // разные функции под разные типы -> мапа не подходит
 func Cast[T int64 | float64](ctx *parser.CustomContext, t types.Basic, expr Op[T]) any {
@@ -301,40 +304,25 @@ func Compare[Left, Right NumberOpTypes](
 	return ops[K{op, resultType}](left, right)
 }
 
-func If(ctx *parser.CustomContext, cond Bool, then_ Statement) Statement {
-	op := Statement{
-		ctx:     ctx,
-		snippet: ctx.MakeSnippet(),
+func If(ctx *parser.CustomContext, cond Bool, then_, else_ *Statement) *Statement {
+	op := &Statement{
+		ctx:           ctx,
+		snippet:       ctx.MakeSnippet(),
+		NextStatement: emptyStatement(),
 	}
-	op.Do = func() struct{} {
-		if cond.Do() {
-			then_.Do()
-		}
-		return struct{}{}
-	}
-	op.DoDebug = func() struct{} {
-		v := cond.DoDebug()
-		msg := fmt.Sprintf("condition = %v", v)
-		ctx.Debug(op.snippet, msg)
-		if v {
-			then_.DoDebug()
-		}
-		return struct{}{}
-	}
-	return op
-}
-
-func IfElse(ctx *parser.CustomContext, cond Bool, then_, else_ Statement) Statement {
-	op := Statement{
-		ctx:     ctx,
-		snippet: ctx.MakeSnippet(),
+	elseDo := func() struct{} { return struct{}{} }
+	elseDoDebug := func() struct{} { return struct{}{} }
+	if else_ != nil {
+		elseDo = else_.Do
+		elseDoDebug = else_.DoDebug
 	}
 	op.Do = func() struct{} {
 		if cond.Do() {
 			then_.Do()
 		} else {
-			else_.Do()
+			elseDo()
 		}
+		op.NextStatement.Do()
 		return struct{}{}
 	}
 	op.DoDebug = func() struct{} {
@@ -344,8 +332,9 @@ func IfElse(ctx *parser.CustomContext, cond Bool, then_, else_ Statement) Statem
 		if v {
 			then_.DoDebug()
 		} else {
-			else_.DoDebug()
+			elseDoDebug()
 		}
+		op.NextStatement.DoDebug()
 		return struct{}{}
 	}
 	return op
@@ -513,16 +502,18 @@ func notEqual[T Number, Left, Right NumberOpTypes](
 	return op
 }
 
-func assign[T Number, R int64 | float64](ctx *parser.CustomContext, variable types.Variable, expr Op[R]) Statement {
-	op := Statement{
-		ctx:     ctx,
-		snippet: ctx.MakeSnippet(),
+func assign[T Number, R int64 | float64](ctx *parser.CustomContext, variable types.Variable, expr Op[R]) *Statement {
+	op := &Statement{
+		ctx:           ctx,
+		snippet:       ctx.MakeSnippet(),
+		NextStatement: emptyStatement(),
 	}
 	val := (*R)(variable.Pointer())
 
 	op.Do = func() struct{} {
 		v := T(expr.Do())
 		*val = R(v)
+		op.NextStatement.Do()
 		return struct{}{}
 	}
 	op.DoDebug = func() struct{} {
@@ -530,6 +521,7 @@ func assign[T Number, R int64 | float64](ctx *parser.CustomContext, variable typ
 		*val = R(v)
 		msg := fmt.Sprintf("%v->%s", v, ctx.Name)
 		ctx.Debug(op.snippet, msg)
+		op.NextStatement.DoDebug()
 		return struct{}{}
 	}
 	return op
@@ -720,4 +712,11 @@ func mod[T constraints.Integer, Result, Left, Right NumberOpTypes](
 		return v
 	}
 	return op
+}
+
+func emptyStatement() *Statement {
+	return &Statement{
+		Do:      func() struct{} { return struct{}{} },
+		DoDebug: func() struct{} { return struct{}{} },
+	}
 }

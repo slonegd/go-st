@@ -15,7 +15,7 @@ type (
 	AST struct {
 		source   source.Source
 		vars     map[string]types.Variable
-		programm ops.Statement
+		programm *ops.Statement
 		err      error
 	}
 )
@@ -50,7 +50,7 @@ func Parse(script string) (x *AST, err error) {
 
 	ctx := p.Program().(*parser.ProgramContext)
 	ctx.Set(log{}, source.Source(script))
-	x.programm = ctx.Accept(visitor).(ops.Statement)
+	x.programm = ctx.Accept(visitor).(*ops.Statement)
 
 	err = x.err
 
