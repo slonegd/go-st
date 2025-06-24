@@ -230,6 +230,19 @@ func (x visitor) VisitIf_statement(ctx *parser.If_statementContext) any {
 	}
 	return nextElse
 }
+
+func (x visitor) VisitWhile_statement(ctx *parser.While_statementContext) any {
+	condition := ctx.GetCond().Accept(x).(ops.Bool)
+	body := ctx.GetBody().Accept(x).(*ops.Statement)
+	while := ops.If(ctx.CustomContext, condition, body, nil)
+	last := body.NextStatement
+	for !last.IsLast {
+		last = last.NextStatement
+	}
+	*last = *while         // возврат к условию
+	return ops.Wrap(while) // оборачиваем, чтобы следующий шаг не изменял работу условия внутри цикла
+}
+
 func (x visitor) VisitInteger(ctx *parser.IntegerContext) any {
 	if ctx := ctx.Unsign_integer(); ctx != nil {
 		v := ctx.Accept(x).(int64)
@@ -309,7 +322,6 @@ func (x visitor) VisitStatement_list(ctx *parser.Statement_listContext) any {
 		}
 		next.NextStatement = tmp
 		next = tmp
-
 	}
 	return r
 }

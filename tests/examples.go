@@ -23,6 +23,8 @@ var (
 	cast string
 	//go:embed 006_floats.st
 	floats string
+	//go:embed 007_while.st
+	while string
 )
 
 func main() {

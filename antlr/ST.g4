@@ -40,17 +40,19 @@ statement_list : (statement)*;
 
 statement : assignment_statement ';'
           | if_statement ';'?
+          | while_statement ';'?
 ; // TODO другие виды выражений
 
 assignment_statement : left=ID ':=' right=expression; // TODO другие виды присваиваний?
 
-if_statement
-:
+if_statement :
 	'IF' cond+=condition 'THEN' thenlist+=then_list
 	('ELSIF' cond+=condition 'THEN' thenlist+=then_list)* 
 	('ELSE' elselist = else_list)?
 	'END_IF' ';'?
 ;
+
+while_statement : 'WHILE' cond=expression 'DO' body=statement_list 'END_WHILE';
 
 // семантически нужно отличать (для ветвления)
 condition : expression;

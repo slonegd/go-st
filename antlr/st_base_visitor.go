@@ -44,6 +44,10 @@ func (v *BaseSTVisitor) VisitIf_statement(ctx *If_statementContext) interface{} 
 	return v.VisitChildren(ctx)
 }
 
+func (v *BaseSTVisitor) VisitWhile_statement(ctx *While_statementContext) interface{} {
+	return v.VisitChildren(ctx)
+}
+
 func (v *BaseSTVisitor) VisitCondition(ctx *ConditionContext) interface{} {
 	return v.VisitChildren(ctx)
 }

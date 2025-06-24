@@ -23,6 +23,7 @@ type (
 		// мета инфа для дебага
 		ctx     *parser.CustomContext
 		snippet string
+		IsLast  bool
 	}
 	Statement = Op[struct{}]
 	Int64     = Op[int64]
@@ -107,24 +108,24 @@ func Assign[T int64 | float64](ctx *parser.CustomContext, name string, v types.V
 	return op(v, expr)
 }
 
-// func Statements(s []*Statement) *Statement {
-// 	op := &Statement{
-// 		NextStatement: emptyStatement(),
-// 	}
-// 	op.Do = func() struct{} {
-// 		for i := range s {
-// 			s[i].Do()
-// 		}
-// 		return struct{}{}
-// 	}
-// 	op.DoDebug = func() struct{} {
-// 		for i := range s {
-// 			s[i].DoDebug()
-// 		}
-// 		return struct{}{}
-// 	}
-// 	return op
-// }
+// в циклах NextStatement используется в логике цикла и его нельзя заменять на следующий
+// поэтому оборачиваем с добавлением нового NextStatement
+func Wrap(x *Statement) *Statement {
+	op := &Statement{
+		NextStatement: emptyStatement(),
+	}
+	op.Do = func() struct{} {
+		x.Do()
+		op.NextStatement.Do()
+		return struct{}{}
+	}
+	op.DoDebug = func() struct{} {
+		x.DoDebug()
+		op.NextStatement.DoDebug()
+		return struct{}{}
+	}
+	return op
+}
 
 // разные функции под разные типы -> мапа не подходит
 func Cast[T int64 | float64](ctx *parser.CustomContext, t types.Basic, expr Op[T]) any {
@@ -718,5 +719,6 @@ func emptyStatement() *Statement {
 	return &Statement{
 		Do:      func() struct{} { return struct{}{} },
 		DoDebug: func() struct{} { return struct{}{} },
+		IsLast:  true,
 	}
 }

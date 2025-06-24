@@ -35,6 +35,9 @@ type STVisitor interface {
 	// Visit a parse tree produced by STParser#if_statement.
 	VisitIf_statement(ctx *If_statementContext) interface{}
 
+	// Visit a parse tree produced by STParser#while_statement.
+	VisitWhile_statement(ctx *While_statementContext) interface{}
+
 	// Visit a parse tree produced by STParser#condition.
 	VisitCondition(ctx *ConditionContext) interface{}
 
