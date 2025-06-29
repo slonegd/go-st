@@ -12,13 +12,23 @@ import (
 	"github.com/slonegd/go-st/types"
 )
 
-// обёртка, чтоб скрыть методы parser.STVisitor
-type visitor struct {
-	*AST
-	// в некоторые ноды надо зайти, чтоб определить ошибку парсинга, но ничего не делать
-	// такое бывает когда по всем детям проходишь, а там в конце, например TerminalNode
-	lastOp any
-}
+type (
+	// обёртка, чтоб скрыть методы parser.STVisitor
+	// ресиверы не по указателю специально, чтоб пробрасывать семантику вглубь дерева не создавая стек
+	visitor struct {
+		*AST
+		// в некоторые ноды надо зайти, чтоб определить ошибку парсинга, но ничего не делать
+		// такое бывает когда по всем детям проходишь, а там в конце, например TerminalNode
+		lastOp any
+		cycle  cycle
+		*ops.Placeholders
+	}
+	cycle struct {
+		condition  *ops.Statement
+		out        *ops.Statement
+		isTopLevel bool
+	}
+)
 
 var (
 	_ parser.STVisitor    = visitor{}
@@ -216,31 +226,51 @@ func (x visitor) VisitErrorNode(node antlr.ErrorNode) any {
 func (x visitor) VisitIf_statement(ctx *parser.If_statementContext) any {
 	conditions := ctx.GetCond()
 	thens := ctx.GetThenlist()
-	var nextElse *ops.Statement
+	var firstIf, lastIf *ops.Statement
+	out := ops.EmptyStatement() // для выхода из всех body
+	for i := range conditions {
+		cond := conditions[i].Accept(x).(ops.Bool)
+		body := thens[i].Accept(x).(*ops.Statement)
+		x.SetNextStatement(body, out)
+		prevIf := lastIf
+		lastIf = ops.IfTrue(ctx.CustomContext, cond, body)
+		if prevIf == nil {
+			firstIf = lastIf
+			continue
+		}
+		x.SetNextStatement(prevIf, lastIf)
+	}
 	if ctx.GetElselist() != nil {
+		// else добаляется в конец последнего if
 		s := ctx.GetElselist().Accept(x).(*ops.Statement)
-		nextElse = s
+		x.SetNextStatement(lastIf, s)
+		x.SetNextStatement(s, out)
+	} else {
+		x.SetNextStatement(lastIf, out)
 	}
-	// с конца, так как последний else является аргументом предпоследнего else if
-	// а тот аргументом else if перед этим
-	for i := len(conditions) - 1; i >= 0; i-- {
-		condition := conditions[i].Accept(x).(ops.Bool)
-		then_ := thens[i].Accept(x).(*ops.Statement)
-		nextElse = ops.If(ctx.CustomContext, condition, then_, nextElse)
-	}
-	return nextElse
+	return firstIf
 }
 
 func (x visitor) VisitWhile_statement(ctx *parser.While_statementContext) any {
 	condition := ctx.GetCond().Accept(x).(ops.Bool)
-	body := ctx.GetBody().Accept(x).(*ops.Statement)
-	while := ops.If(ctx.CustomContext, condition, body, nil)
-	last := body.NextStatement
-	for !last.IsLast {
-		last = last.NextStatement
+	body := ops.EmptyStatement()
+	condOp := ops.IfTrue(ctx.CustomContext, condition, body)
+	x.cycle.condition = condOp
+	// Accept выполняется после, так как ему нужен x.cycle
+	x.SetNextStatement(body, ctx.GetBody().Accept(x).(*ops.Statement))
+	x.SetNextStatement(body, condOp) // зацикливание на условии
+	return condOp
+}
+
+func (x visitor) VisitContinue_statement(ctx *parser.Continue_statementContext) interface{} {
+	if x.cycle.condition == nil {
+		return x.CheckError(ctx, errors.New("no cycle body there"))
 	}
-	*last = *while         // возврат к условию
-	return ops.Wrap(while) // оборачиваем, чтобы следующий шаг не изменял работу условия внутри цикла
+	return ops.Jump(ctx.CustomContext, x.cycle.condition, "CONTINUE")
+}
+
+func (x visitor) VisitExit_statement(ctx *parser.Exit_statementContext) interface{} {
+	panic("unimplemented")
 }
 
 func (x visitor) VisitInteger(ctx *parser.IntegerContext) any {
@@ -281,7 +311,7 @@ func (x visitor) VisitProgram(ctx *parser.ProgramContext) any {
 				r = s
 				next = s
 			} else {
-				next.NextStatement = s
+				x.SetNextStatement(next, s)
 				next = s
 			}
 		}
@@ -320,7 +350,7 @@ func (x visitor) VisitStatement_list(ctx *parser.Statement_listContext) any {
 			next = tmp
 			continue
 		}
-		next.NextStatement = tmp
+		x.SetNextStatement(next, tmp)
 		next = tmp
 	}
 	return r
@@ -339,9 +369,11 @@ func (x visitor) VisitVar_declaration(ctx *parser.Var_declarationContext) any {
 	if ctx := ctx.GetDefault_(); ctx != nil {
 		switch op := ctx.Accept(x).(type) {
 		case ops.Int64:
-			v = types.IntVariable(op.Do())
+			tmp, _ := op.Do(nil)
+			v = types.IntVariable(tmp)
 		case ops.Float64:
-			v = types.Float64Variable(op.Do())
+			tmp, _ := op.Do(nil)
+			v = types.Float64Variable(tmp)
 		}
 	} else {
 		v = types.NewAnyVariable("")

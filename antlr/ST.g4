@@ -41,6 +41,8 @@ statement_list : (statement)*;
 statement : assignment_statement ';'
           | if_statement ';'?
           | while_statement ';'?
+          | continue_statement ';'?
+          | exit_statement ';'?
 ; // TODO другие виды выражений
 
 assignment_statement : left=ID ':=' right=expression; // TODO другие виды присваиваний?
@@ -53,6 +55,9 @@ if_statement :
 ;
 
 while_statement : 'WHILE' cond=expression 'DO' body=statement_list 'END_WHILE';
+
+continue_statement : 'CONTINUE';
+exit_statement     : 'EXIT';
 
 // семантически нужно отличать (для ветвления)
 condition : expression;

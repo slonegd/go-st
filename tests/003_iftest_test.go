@@ -72,15 +72,3 @@ func TestCompiler_Execute_003(t *testing.T) {
 	require.Equal(int64(3), p.GetVar("mult").Int(), "проверка работы условия внутри другого условия, ветка else")
 	require.Equal(int64(15), p.GetVar("test").Int())
 }
-
-// BenchmarkProgram_Execute_003-4   1000000000   0.01084 ns/op  // 1 вариант на колбэках
-// BenchmarkProgram_Execute_003-4   1000000000   0.006692 ns/op // байткод со стеком на варианте
-// BenchmarkProgram_Execute_003-4   1000000000	 0.001550 ns/op	// дженерик функции
-func BenchmarkProgram_Execute_003(b *testing.B) {
-	p, _ := ast.Parse(iftest)
-
-	b.ResetTimer()
-	for range 10000 {
-		p.Execute()
-	}
-}

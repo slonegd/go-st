@@ -18,7 +18,7 @@ func TestFVM_Execute_002(t *testing.T) {
 	require.Equal(int64(0), p.GetVar("j").Int())
 	require.Equal(int64(42), p.GetVar("k").Int())
 
-	p.Execute()
+	p.ExecuteDebug()
 	require.Equal(int64(15), p.GetVar("i").Int())
 	require.Equal(int64(95), p.GetVar("j").Int())
 	require.Equal(int64(40), p.GetVar("k").Int())

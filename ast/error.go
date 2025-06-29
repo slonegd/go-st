@@ -17,7 +17,7 @@ func (x visitor) ReportAttemptingFullContext(recognizer antlr.Parser, dfa *antlr
 	if x.err != nil {
 		return
 	}
-	x.err = fmt.Errorf("some ReportAttemptingFullContext (TODO)")
+	x.err = fmt.Errorf("some ReportAttemptingFullContext (TODO): %+v", dfa)
 }
 
 func (x visitor) ReportContextSensitivity(recognizer antlr.Parser, dfa *antlr.DFA, startIndex int, stopIndex int, prediction int, configs *antlr.ATNConfigSet) {

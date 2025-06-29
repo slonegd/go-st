@@ -10,8 +10,10 @@ import (
 
 type (
 	Op[T OpTypes | struct{}] struct {
-		Do      func() T
-		DoDebug func() T // тоже самое, что Do, но с выводом в логгер дебажной инфы
+		// нужно принимать в колбэк ресивер, так как при использовании замыкания,
+		// оно захватывает ресивер из конструктора, но этот указатель может быть заменён после
+		Do      func(self *Statement) (T, *Statement) // результат вычислений и следующий Statement (может быть nil)
+		DoDebug func(self *Statement) (T, *Statement) // тоже самое, что Do, но с выводом в логгер дебажной инфы
 		// инты передаю всегда через int64
 		// это поле говорит об ограничениях, например INT -> int16
 		// эти ограничения надо учитывать для возможного неявного приведения
@@ -19,17 +21,22 @@ type (
 		// у константы тип приводиться к аргументу не константе
 		// TODO константы вообще можно не через оператор передавать, а сразу аргументом
 		IsConstant    bool
-		NextStatement *Statement
+		nextStatement *Statement
 		// мета инфа для дебага
-		ctx     *parser.CustomContext
-		snippet string
-		IsLast  bool
+		ctx           *parser.CustomContext
+		snippet       string
+		isPlaceholder bool
 	}
-	Statement = Op[struct{}]
-	Int64     = Op[int64]
-	Bool      = Op[bool]
-	Float64   = Op[float64]
-	Any       interface {
+	// структура сохраняет все заглушки,
+	// чтобы в случае замены на новую заглушку заменить везде указатели,
+	// и в случае замены на другую заглушку тоже
+	// это нужно, когда будут ветвления внутри ветвлений для вставки следующего шага
+	Placeholders struct{ m map[*Statement][]*Statement }
+	Statement    = Op[struct{}]
+	Int64        = Op[int64]
+	Bool         = Op[bool]
+	Float64      = Op[float64]
+	Any          interface {
 		Statement | Int64 | Float64 | Bool
 	}
 
@@ -47,9 +54,61 @@ type (
 	}
 )
 
+// указатель, для подстановке ип оследующей замены содержимого
+func EmptyStatement() *Statement {
+	return &Statement{
+		Do:            func(*Statement) (struct{}, *Statement) { return struct{}{}, nil },
+		DoDebug:       func(*Statement) (struct{}, *Statement) { return struct{}{}, nil },
+		isPlaceholder: true,
+	}
+}
+
+func NewPlaceholders() *Placeholders {
+	return &Placeholders{m: make(map[*Statement][]*Statement)}
+}
+
+func (x *Placeholders) SetNextStatement(dest, next *Statement) {
+	if dest.isPlaceholder {
+		// замена плейсхолдера на реальный Statement
+		*dest = *next
+		return
+	}
+	// TODO замена плейсхолдера на другой плейсхолдер?
+	for s := dest; ; s = s.nextStatement {
+
+		if s.nextStatement == nil {
+			s.nextStatement = next
+			// подстановка плейсхолжера, который в будущем может быть заменён
+			if next.isPlaceholder {
+				x.m[next] = append(x.m[next], s)
+			}
+			return
+		}
+
+		// замена плейсхолдера (замена сожержимого по указателю)
+		if s.nextStatement.isPlaceholder && !next.isPlaceholder {
+			*(s.nextStatement) = *next
+			return
+		}
+
+		// замена плейсхолдеров на новый плейсхолдер (замена указателей)
+		if s.nextStatement.isPlaceholder && next.isPlaceholder {
+			p := s.nextStatement
+			for _, s := range x.m[p] {
+				s.nextStatement = next
+				x.m[next] = append(x.m[next], s)
+			}
+			delete(x.m, p)
+		}
+	}
+
+}
+
 func Constant[T OpTypes](v T) Op[T] {
 	op := Op[T]{
 		IsConstant: true,
+		Do:         func(*Statement) (T, *Statement) { return v, nil },
+		DoDebug:    func(*Statement) (T, *Statement) { return v, nil },
 	}
 	var tmp any = v
 	switch tmp.(type) {
@@ -62,29 +121,23 @@ func Constant[T OpTypes](v T) Op[T] {
 	case bool:
 		op.ResultType = types.BOOL
 	}
-	op.Do = func() T {
-		return v
-	}
-	op.DoDebug = func() T {
-		return v
-	}
 	return op
 }
 
 func Variable[T OpTypes](ctx *parser.CustomContext, name string, variable types.Variable) Op[T] {
+	v := (*T)(variable.Pointer())
 	op := Op[T]{
 		ResultType: variable.Type(),
 		ctx:        ctx,
 		snippet:    ctx.MakeSnippet(),
-	}
-	v := (*T)(variable.Pointer())
-	op.Do = func() T {
-		return *v
-	}
-	op.DoDebug = func() T {
-		msg := fmt.Sprintf("%s:%v", name, *v)
-		ctx.Debug(op.snippet, msg)
-		return *v
+		Do: func(*Statement) (T, *Statement) {
+			return *v, nil
+		},
+		DoDebug: func(*Statement) (T, *Statement) {
+			msg := fmt.Sprintf("%s:%v", name, *v)
+			ctx.Debug(ctx.MakeSnippet(), msg)
+			return *v, nil
+		},
 	}
 	return op
 }
@@ -108,23 +161,18 @@ func Assign[T int64 | float64](ctx *parser.CustomContext, name string, v types.V
 	return op(v, expr)
 }
 
-// в циклах NextStatement используется в логике цикла и его нельзя заменять на следующий
-// поэтому оборачиваем с добавлением нового NextStatement
-func Wrap(x *Statement) *Statement {
-	op := &Statement{
-		NextStatement: emptyStatement(),
+func Jump(ctx *parser.CustomContext, to *Statement, message string) *Statement {
+	return &Statement{
+		ctx:     ctx,
+		snippet: ctx.MakeSnippet(),
+		Do: func(*Statement) (struct{}, *Statement) {
+			return struct{}{}, to
+		},
+		DoDebug: func(self *Statement) (struct{}, *Statement) {
+			ctx.Debug(self.snippet, message)
+			return struct{}{}, to
+		},
 	}
-	op.Do = func() struct{} {
-		x.Do()
-		op.NextStatement.Do()
-		return struct{}{}
-	}
-	op.DoDebug = func() struct{} {
-		x.DoDebug()
-		op.NextStatement.DoDebug()
-		return struct{}{}
-	}
-	return op
 }
 
 // разные функции под разные типы -> мапа не подходит
@@ -305,40 +353,26 @@ func Compare[Left, Right NumberOpTypes](
 	return ops[K{op, resultType}](left, right)
 }
 
-func If(ctx *parser.CustomContext, cond Bool, then_, else_ *Statement) *Statement {
-	op := &Statement{
-		ctx:           ctx,
-		snippet:       ctx.MakeSnippet(),
-		NextStatement: emptyStatement(),
+func IfTrue(_ *parser.CustomContext, cond Bool, body *Statement) *Statement {
+	return &Statement{
+		ctx:     cond.ctx,
+		snippet: cond.ctx.MakeSnippet(),
+		Do: func(self *Statement) (struct{}, *Statement) {
+			if cond, _ := cond.Do(nil); cond {
+				return struct{}{}, body
+			}
+			return struct{}{}, self.nextStatement
+		},
+		DoDebug: func(self *Statement) (struct{}, *Statement) {
+			v, _ := cond.DoDebug(nil)
+			msg := fmt.Sprintf("condition = %v", v)
+			cond.ctx.Debug(self.snippet, msg)
+			if v {
+				return struct{}{}, body
+			}
+			return struct{}{}, self.nextStatement
+		},
 	}
-	elseDo := func() struct{} { return struct{}{} }
-	elseDoDebug := func() struct{} { return struct{}{} }
-	if else_ != nil {
-		elseDo = else_.Do
-		elseDoDebug = else_.DoDebug
-	}
-	op.Do = func() struct{} {
-		if cond.Do() {
-			then_.Do()
-		} else {
-			elseDo()
-		}
-		op.NextStatement.Do()
-		return struct{}{}
-	}
-	op.DoDebug = func() struct{} {
-		v := cond.DoDebug()
-		msg := fmt.Sprintf("condition = %v", v)
-		ctx.Debug(op.snippet, msg)
-		if v {
-			then_.DoDebug()
-		} else {
-			elseDoDebug()
-		}
-		op.NextStatement.DoDebug()
-		return struct{}{}
-	}
-	return op
 }
 
 func greater[T Number, Left, Right NumberOpTypes](
@@ -346,26 +380,25 @@ func greater[T Number, Left, Right NumberOpTypes](
 	left Op[Left],
 	right Op[Right],
 ) Bool {
-	op := Bool{
+	return Bool{
 		ResultType: types.BOOL,
 		IsConstant: left.IsConstant && right.IsConstant,
 		ctx:        ctx,
 		snippet:    ctx.MakeSnippet(),
+		Do: func(*Statement) (bool, *Statement) {
+			l, _ := left.Do(nil)
+			r, _ := right.Do(nil)
+			return T(l) > T(r), nil
+		},
+		DoDebug: func(*Statement) (bool, *Statement) {
+			l, _ := left.DoDebug(nil)
+			r, _ := right.DoDebug(nil)
+			v := T(l) > T(r)
+			msg := fmt.Sprintf("%v>%v:%v", l, r, v)
+			ctx.Debug(ctx.MakeSnippet(), msg)
+			return v, nil
+		},
 	}
-	op.Do = func() bool {
-		l := T(left.Do())
-		r := T(right.Do())
-		return l > r
-	}
-	op.DoDebug = func() bool {
-		l := T(left.DoDebug())
-		r := T(right.DoDebug())
-		v := l > r
-		msg := fmt.Sprintf("%v > %v: %v", l, r, v)
-		ctx.Debug(op.snippet, msg)
-		return v
-	}
-	return op
 }
 
 func greaterOrEqual[T Number, Left, Right NumberOpTypes](
@@ -373,26 +406,25 @@ func greaterOrEqual[T Number, Left, Right NumberOpTypes](
 	left Op[Left],
 	right Op[Right],
 ) Bool {
-	op := Bool{
+	return Bool{
 		ResultType: types.BOOL,
 		IsConstant: left.IsConstant && right.IsConstant,
 		ctx:        ctx,
 		snippet:    ctx.MakeSnippet(),
+		Do: func(*Statement) (bool, *Statement) {
+			l, _ := left.Do(nil)
+			r, _ := right.Do(nil)
+			return T(l) >= T(r), nil
+		},
+		DoDebug: func(*Statement) (bool, *Statement) {
+			l, _ := left.DoDebug(nil)
+			r, _ := right.DoDebug(nil)
+			v := T(l) >= T(r)
+			msg := fmt.Sprintf("%v>=%v:%v", l, r, v)
+			ctx.Debug(ctx.MakeSnippet(), msg)
+			return v, nil
+		},
 	}
-	op.Do = func() bool {
-		l := T(left.Do())
-		r := T(right.Do())
-		return l >= r
-	}
-	op.DoDebug = func() bool {
-		l := T(left.DoDebug())
-		r := T(right.DoDebug())
-		v := l >= r
-		msg := fmt.Sprintf("%v >= %v: %v", l, r, v)
-		ctx.Debug(op.snippet, msg)
-		return v
-	}
-	return op
 }
 
 func less[T Number, Left, Right NumberOpTypes](
@@ -400,26 +432,25 @@ func less[T Number, Left, Right NumberOpTypes](
 	left Op[Left],
 	right Op[Right],
 ) Bool {
-	op := Bool{
+	return Bool{
 		ResultType: types.BOOL,
 		IsConstant: left.IsConstant && right.IsConstant,
 		ctx:        ctx,
 		snippet:    ctx.MakeSnippet(),
+		Do: func(*Statement) (bool, *Statement) {
+			l, _ := left.Do(nil)
+			r, _ := right.Do(nil)
+			return T(l) < T(r), nil
+		},
+		DoDebug: func(*Statement) (bool, *Statement) {
+			l, _ := left.DoDebug(nil)
+			r, _ := right.DoDebug(nil)
+			v := T(l) < T(r)
+			msg := fmt.Sprintf("%v<%v:%v", l, r, v)
+			ctx.Debug(ctx.MakeSnippet(), msg)
+			return v, nil
+		},
 	}
-	op.Do = func() bool {
-		l := T(left.Do())
-		r := T(right.Do())
-		return l < r
-	}
-	op.DoDebug = func() bool {
-		l := T(left.DoDebug())
-		r := T(right.DoDebug())
-		v := l < r
-		msg := fmt.Sprintf("%v < %v: %v", l, r, v)
-		ctx.Debug(op.snippet, msg)
-		return v
-	}
-	return op
 }
 
 func lessOrEqual[T Number, Left, Right NumberOpTypes](
@@ -427,26 +458,25 @@ func lessOrEqual[T Number, Left, Right NumberOpTypes](
 	left Op[Left],
 	right Op[Right],
 ) Bool {
-	op := Bool{
+	return Bool{
 		ResultType: types.BOOL,
 		IsConstant: left.IsConstant && right.IsConstant,
 		ctx:        ctx,
 		snippet:    ctx.MakeSnippet(),
+		Do: func(*Statement) (bool, *Statement) {
+			l, _ := left.Do(nil)
+			r, _ := right.Do(nil)
+			return T(l) <= T(r), nil
+		},
+		DoDebug: func(*Statement) (bool, *Statement) {
+			l, _ := left.DoDebug(nil)
+			r, _ := right.DoDebug(nil)
+			v := T(l) <= T(r)
+			msg := fmt.Sprintf("%v<=%v:%v", l, r, v)
+			ctx.Debug(ctx.MakeSnippet(), msg)
+			return v, nil
+		},
 	}
-	op.Do = func() bool {
-		l := T(left.Do())
-		r := T(right.Do())
-		return l <= r
-	}
-	op.DoDebug = func() bool {
-		l := T(left.DoDebug())
-		r := T(right.DoDebug())
-		v := l <= r
-		msg := fmt.Sprintf("%v <= %v: %v", l, r, v)
-		ctx.Debug(op.snippet, msg)
-		return v
-	}
-	return op
 }
 
 func equal[T Number, Left, Right NumberOpTypes](
@@ -454,26 +484,25 @@ func equal[T Number, Left, Right NumberOpTypes](
 	left Op[Left],
 	right Op[Right],
 ) Bool {
-	op := Bool{
+	return Bool{
 		ResultType: types.BOOL,
 		IsConstant: left.IsConstant && right.IsConstant,
 		ctx:        ctx,
 		snippet:    ctx.MakeSnippet(),
+		Do: func(*Statement) (bool, *Statement) {
+			l, _ := left.Do(nil)
+			r, _ := right.Do(nil)
+			return T(l) == T(r), nil
+		},
+		DoDebug: func(*Statement) (bool, *Statement) {
+			l, _ := left.DoDebug(nil)
+			r, _ := right.DoDebug(nil)
+			v := T(l) == T(r)
+			msg := fmt.Sprintf("%v=%v:%v", l, r, v)
+			ctx.Debug(ctx.MakeSnippet(), msg)
+			return v, nil
+		},
 	}
-	op.Do = func() bool {
-		l := T(left.Do())
-		r := T(right.Do())
-		return l == r
-	}
-	op.DoDebug = func() bool {
-		l := T(left.DoDebug())
-		r := T(right.DoDebug())
-		v := l == r
-		msg := fmt.Sprintf("%v = %v: %v", l, r, v)
-		ctx.Debug(op.snippet, msg)
-		return v
-	}
-	return op
 }
 
 func notEqual[T Number, Left, Right NumberOpTypes](
@@ -481,71 +510,65 @@ func notEqual[T Number, Left, Right NumberOpTypes](
 	left Op[Left],
 	right Op[Right],
 ) Bool {
-	op := Bool{
+	return Bool{
 		ResultType: types.BOOL,
 		IsConstant: left.IsConstant && right.IsConstant,
 		ctx:        ctx,
 		snippet:    ctx.MakeSnippet(),
+		Do: func(*Statement) (bool, *Statement) {
+			l, _ := left.Do(nil)
+			r, _ := right.Do(nil)
+			return T(l) != T(r), nil
+		},
+		DoDebug: func(*Statement) (bool, *Statement) {
+			l, _ := left.DoDebug(nil)
+			r, _ := right.DoDebug(nil)
+			v := T(l) != T(r)
+			msg := fmt.Sprintf("%v<>%v:%v", l, r, v)
+			ctx.Debug(ctx.MakeSnippet(), msg)
+			return v, nil
+		},
 	}
-	op.Do = func() bool {
-		l := T(left.Do())
-		r := T(right.Do())
-		return l != r
-	}
-	op.DoDebug = func() bool {
-		l := T(left.DoDebug())
-		r := T(right.DoDebug())
-		v := l != r
-		msg := fmt.Sprintf("%v <> %v: %v", l, r, v)
-		ctx.Debug(op.snippet, msg)
-		return v
-	}
-	return op
 }
 
+// TODO T не нужен?
 func assign[T Number, R int64 | float64](ctx *parser.CustomContext, variable types.Variable, expr Op[R]) *Statement {
-	op := &Statement{
-		ctx:           ctx,
-		snippet:       ctx.MakeSnippet(),
-		NextStatement: emptyStatement(),
-	}
 	val := (*R)(variable.Pointer())
-
-	op.Do = func() struct{} {
-		v := T(expr.Do())
-		*val = R(v)
-		op.NextStatement.Do()
-		return struct{}{}
+	return &Statement{
+		ctx:     ctx,
+		snippet: ctx.MakeSnippet(),
+		Do: func(self *Statement) (struct{}, *Statement) {
+			v, _ := expr.Do(nil)
+			*val = R(v)
+			return struct{}{}, self.nextStatement
+		},
+		DoDebug: func(self *Statement) (struct{}, *Statement) {
+			v, _ := expr.DoDebug(nil)
+			*val = R(v)
+			msg := fmt.Sprintf("%v->%s", v, ctx.Name)
+			ctx.Debug(self.snippet, msg)
+			return struct{}{}, self.nextStatement
+		},
 	}
-	op.DoDebug = func() struct{} {
-		v := T(expr.DoDebug())
-		*val = R(v)
-		msg := fmt.Sprintf("%v->%s", v, ctx.Name)
-		ctx.Debug(op.snippet, msg)
-		op.NextStatement.DoDebug()
-		return struct{}{}
-	}
-	return op
 }
 
 func cast[T Number, Tout, Tin int64 | float64](ctx *parser.CustomContext, expr Op[Tin]) Op[Tout] {
-	op := Op[Tout]{
+	return Op[Tout]{
 		IsConstant: expr.IsConstant,
 		ResultType: BasicType[T](),
 		ctx:        ctx,
 		snippet:    ctx.MakeSnippet(),
+		Do: func(*Statement) (Tout, *Statement) {
+			v, _ := expr.Do(nil)
+			return Tout(T(v)), nil
+		},
+		DoDebug: func(*Statement) (Tout, *Statement) {
+			v, _ := expr.DoDebug(nil)
+			msg := fmt.Sprintf("%T(%v)", defaultValue[Tout](), v)
+			ctx.Debug(ctx.MakeSnippet(), msg)
+			return Tout(v), nil
+		},
 	}
-	op.Do = func() Tout {
-		v := T(expr.Do())
-		return Tout(v)
-	}
-	op.DoDebug = func() Tout {
-		v := T(expr.DoDebug())
-		msg := fmt.Sprintf("%T(%v)", defaultValue[Tout](), v)
-		ctx.Debug(op.snippet, msg)
-		return Tout(v)
-	}
-	return op
 }
 
 func defaultValue[T any]() T { var v T; return v }
@@ -556,26 +579,25 @@ func plus[T Number, Result, Left, Right NumberOpTypes](
 	left Op[Left],
 	right Op[Right],
 ) Op[Result] {
-	op := Op[Result]{
+	return Op[Result]{
 		ResultType: BasicType[T](),
 		IsConstant: left.IsConstant && right.IsConstant,
 		ctx:        ctx,
 		snippet:    ctx.MakeSnippet(),
+		Do: func(*Statement) (Result, *Statement) {
+			l, _ := left.Do(nil)
+			r, _ := right.Do(nil)
+			return Result(T(l) + T(r)), nil
+		},
+		DoDebug: func(*Statement) (Result, *Statement) {
+			l, _ := left.DoDebug(nil)
+			r, _ := right.DoDebug(nil)
+			v := Result(T(l) + T(r))
+			msg := fmt.Sprintf("%v+%v:%v", l, r, v)
+			ctx.Debug(ctx.MakeSnippet(), msg)
+			return v, nil
+		},
 	}
-	op.Do = func() Result {
-		l := T(left.Do())
-		r := T(right.Do())
-		return Result(l + r)
-	}
-	op.DoDebug = func() Result {
-		l := T(left.DoDebug())
-		r := T(right.DoDebug())
-		v := Result(l + r)
-		msg := fmt.Sprintf("%v + %v = %v", l, r, v)
-		ctx.Debug(op.snippet, msg)
-		return v
-	}
-	return op
 }
 
 func BasicType[T Number]() types.Basic {
@@ -612,26 +634,25 @@ func sub[T Number, Result, Left, Right NumberOpTypes](
 	left Op[Left],
 	right Op[Right],
 ) Op[Result] {
-	op := Op[Result]{
+	return Op[Result]{
 		ResultType: BasicType[T](),
 		IsConstant: left.IsConstant && right.IsConstant,
 		ctx:        ctx,
 		snippet:    ctx.MakeSnippet(),
+		Do: func(*Statement) (Result, *Statement) {
+			l, _ := left.Do(nil)
+			r, _ := right.Do(nil)
+			return Result(T(l) - T(r)), nil
+		},
+		DoDebug: func(*Statement) (Result, *Statement) {
+			l, _ := left.DoDebug(nil)
+			r, _ := right.DoDebug(nil)
+			v := Result(T(l) - T(r))
+			msg := fmt.Sprintf("%v-%v:%v", l, r, v)
+			ctx.Debug(ctx.MakeSnippet(), msg)
+			return v, nil
+		},
 	}
-	op.Do = func() Result {
-		l := T(left.Do())
-		r := T(right.Do())
-		return Result(l - r)
-	}
-	op.DoDebug = func() Result {
-		l := T(left.DoDebug())
-		r := T(right.DoDebug())
-		v := Result(l - r)
-		msg := fmt.Sprintf("%v - %v = %v", l, r, v)
-		ctx.Debug(op.snippet, msg)
-		return v
-	}
-	return op
 }
 
 func mult[T Number, Result, Left, Right NumberOpTypes](
@@ -639,26 +660,25 @@ func mult[T Number, Result, Left, Right NumberOpTypes](
 	left Op[Left],
 	right Op[Right],
 ) Op[Result] {
-	op := Op[Result]{
+	return Op[Result]{
 		ResultType: BasicType[T](),
 		IsConstant: left.IsConstant && right.IsConstant,
 		ctx:        ctx,
 		snippet:    ctx.MakeSnippet(),
+		Do: func(*Statement) (Result, *Statement) {
+			l, _ := left.Do(nil)
+			r, _ := right.Do(nil)
+			return Result(T(l) * T(r)), nil
+		},
+		DoDebug: func(*Statement) (Result, *Statement) {
+			l, _ := left.DoDebug(nil)
+			r, _ := right.DoDebug(nil)
+			v := Result(T(l) * T(r))
+			msg := fmt.Sprintf("%v*%v:%v", l, r, v)
+			ctx.Debug(ctx.MakeSnippet(), msg)
+			return v, nil
+		},
 	}
-	op.Do = func() Result {
-		l := T(left.Do())
-		r := T(right.Do())
-		return Result(l * r)
-	}
-	op.DoDebug = func() Result {
-		l := T(left.DoDebug())
-		r := T(right.DoDebug())
-		v := Result(l * r)
-		msg := fmt.Sprintf("%v * %v = %v", l, r, v)
-		ctx.Debug(op.snippet, msg)
-		return v
-	}
-	return op
 }
 
 func div[T Number, Result, Left, Right NumberOpTypes](
@@ -666,26 +686,25 @@ func div[T Number, Result, Left, Right NumberOpTypes](
 	left Op[Left],
 	right Op[Right],
 ) Op[Result] {
-	op := Op[Result]{
+	return Op[Result]{
 		ResultType: BasicType[T](),
 		IsConstant: left.IsConstant && right.IsConstant,
 		ctx:        ctx,
 		snippet:    ctx.MakeSnippet(),
+		Do: func(*Statement) (Result, *Statement) {
+			l, _ := left.Do(nil)
+			r, _ := right.Do(nil)
+			return Result(T(l) / T(r)), nil
+		},
+		DoDebug: func(*Statement) (Result, *Statement) {
+			l, _ := left.DoDebug(nil)
+			r, _ := right.DoDebug(nil)
+			v := Result(T(l) / T(r))
+			msg := fmt.Sprintf("%v/%v:%v", l, r, v)
+			ctx.Debug(ctx.MakeSnippet(), msg)
+			return v, nil
+		},
 	}
-	op.Do = func() Result {
-		l := T(left.Do())
-		r := T(right.Do())
-		return Result(l / r)
-	}
-	op.DoDebug = func() Result {
-		l := T(left.DoDebug())
-		r := T(right.DoDebug())
-		v := Result(l / r)
-		msg := fmt.Sprintf("%v / %v = %v", l, r, v)
-		ctx.Debug(op.snippet, msg)
-		return v
-	}
-	return op
 }
 
 func mod[T constraints.Integer, Result, Left, Right NumberOpTypes](
@@ -693,32 +712,23 @@ func mod[T constraints.Integer, Result, Left, Right NumberOpTypes](
 	left Op[Left],
 	right Op[Right],
 ) Op[Result] {
-	op := Op[Result]{
+	return Op[Result]{
 		ResultType: BasicType[T](),
 		IsConstant: left.IsConstant && right.IsConstant,
 		ctx:        ctx,
 		snippet:    ctx.MakeSnippet(),
-	}
-	op.Do = func() Result {
-		l := T(left.Do())
-		r := T(right.Do())
-		return Result(l % r)
-	}
-	op.DoDebug = func() Result {
-		l := T(left.DoDebug())
-		r := T(right.DoDebug())
-		v := Result(l % r)
-		msg := fmt.Sprintf("%v MOD %v = %v", l, r, v)
-		ctx.Debug(op.snippet, msg)
-		return v
-	}
-	return op
-}
-
-func emptyStatement() *Statement {
-	return &Statement{
-		Do:      func() struct{} { return struct{}{} },
-		DoDebug: func() struct{} { return struct{}{} },
-		IsLast:  true,
+		Do: func(*Statement) (Result, *Statement) {
+			l, _ := left.Do(nil)
+			r, _ := right.Do(nil)
+			return Result(T(l) % T(r)), nil
+		},
+		DoDebug: func(*Statement) (Result, *Statement) {
+			l, _ := left.DoDebug(nil)
+			r, _ := right.DoDebug(nil)
+			v := Result(T(l) % T(r))
+			msg := fmt.Sprintf("%v%%%v:%v", l, r, v)
+			ctx.Debug(ctx.MakeSnippet(), msg)
+			return v, nil
+		},
 	}
 }

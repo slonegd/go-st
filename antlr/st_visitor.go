@@ -38,6 +38,12 @@ type STVisitor interface {
 	// Visit a parse tree produced by STParser#while_statement.
 	VisitWhile_statement(ctx *While_statementContext) interface{}
 
+	// Visit a parse tree produced by STParser#continue_statement.
+	VisitContinue_statement(ctx *Continue_statementContext) interface{}
+
+	// Visit a parse tree produced by STParser#exit_statement.
+	VisitExit_statement(ctx *Exit_statementContext) interface{}
+
 	// Visit a parse tree produced by STParser#condition.
 	VisitCondition(ctx *ConditionContext) interface{}
 

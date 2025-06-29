@@ -48,6 +48,14 @@ func (v *BaseSTVisitor) VisitWhile_statement(ctx *While_statementContext) interf
 	return v.VisitChildren(ctx)
 }
 
+func (v *BaseSTVisitor) VisitContinue_statement(ctx *Continue_statementContext) interface{} {
+	return v.VisitChildren(ctx)
+}
+
+func (v *BaseSTVisitor) VisitExit_statement(ctx *Exit_statementContext) interface{} {
+	return v.VisitChildren(ctx)
+}
+
 func (v *BaseSTVisitor) VisitCondition(ctx *ConditionContext) interface{} {
 	return v.VisitChildren(ctx)
 }

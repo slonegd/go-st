@@ -35,7 +35,7 @@ func Parse(script string) (x *AST, err error) {
 		source: source.Source(script),
 		vars:   map[string]types.Variable{},
 	}
-	visitor := &visitor{AST: x}
+	visitor := &visitor{AST: x, Placeholders: ops.NewPlaceholders()}
 	p.BaseRecognizer.AddErrorListener(visitor)
 	// выход из обхода дерева сделан через панику, поэтому ловим
 	defer func() {
@@ -66,11 +66,17 @@ func (x *AST) GetVars() map[string]types.Variable {
 }
 
 func (x *AST) Execute() {
-	x.programm.Do()
+	_, s := x.programm.Do(x.programm)
+	for s != nil {
+		_, s = s.Do(s)
+	}
 }
 
 func (x *AST) ExecuteDebug() {
-	x.programm.DoDebug()
+	_, s := x.programm.DoDebug(x.programm)
+	for s != nil {
+		_, s = s.DoDebug(s)
+	}
 }
 
 type log struct{}
