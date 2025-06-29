@@ -34,8 +34,7 @@ func Benchmark_st_001(b *testing.B) {
 }
 
 func Benchmark_go_001(b *testing.B) {
-	var i, j int
-	k := 42
+	k = 42
 	f := func() {
 		i = 15 + j
 		j = 5 + 2*i*(30-i)/5

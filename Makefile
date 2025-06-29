@@ -20,4 +20,5 @@ test:
 	go test ./...
 
 bench:
-	cd bench && go test -bench=. . && cd ..
+	cd bench && go test -bench=. ./arithmetic_if && cd ..
+	cd bench && go test -bench=. ./arithmetic_if_while && cd ..
