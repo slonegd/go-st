@@ -21,4 +21,13 @@ PROGRAM while_test
       END_IF
       r2 := r2 + counter; // Суммируем только нечетные
   END_WHILE
+
+  // ===== ТЕСТ: WHILE с EXIT =====
+  counter := 0;
+  WHILE counter < 10 DO
+      counter := counter + 1;
+      IF counter >= 7 THEN
+          EXIT; // Выходим после 7 итераций
+      END_IF
+  END_WHILE
 END_PROGRAM

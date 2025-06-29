@@ -24,9 +24,8 @@ type (
 		*ops.Placeholders
 	}
 	cycle struct {
-		condition  *ops.Statement
-		out        *ops.Statement
-		isTopLevel bool
+		condition *ops.Statement
+		out       *ops.Statement
 	}
 )
 
@@ -227,7 +226,7 @@ func (x visitor) VisitIf_statement(ctx *parser.If_statementContext) any {
 	conditions := ctx.GetCond()
 	thens := ctx.GetThenlist()
 	var firstIf, lastIf *ops.Statement
-	out := ops.EmptyStatement() // для выхода из всех body
+	out := ops.Placeholder() // для выхода из всех body
 	for i := range conditions {
 		cond := conditions[i].Accept(x).(ops.Bool)
 		body := thens[i].Accept(x).(*ops.Statement)
@@ -253,24 +252,28 @@ func (x visitor) VisitIf_statement(ctx *parser.If_statementContext) any {
 
 func (x visitor) VisitWhile_statement(ctx *parser.While_statementContext) any {
 	condition := ctx.GetCond().Accept(x).(ops.Bool)
-	body := ops.EmptyStatement()
+	body := ops.Placeholder()
 	condOp := ops.IfTrue(ctx.CustomContext, condition, body)
 	x.cycle.condition = condOp
+	x.cycle.out = x.SetNextStatement(condOp, ops.Placeholder())
 	// Accept выполняется после, так как ему нужен x.cycle
 	x.SetNextStatement(body, ctx.GetBody().Accept(x).(*ops.Statement))
 	x.SetNextStatement(body, condOp) // зацикливание на условии
 	return condOp
 }
 
-func (x visitor) VisitContinue_statement(ctx *parser.Continue_statementContext) interface{} {
+func (x visitor) VisitContinue_statement(ctx *parser.Continue_statementContext) any {
 	if x.cycle.condition == nil {
 		return x.CheckError(ctx, errors.New("no cycle body there"))
 	}
 	return ops.Jump(ctx.CustomContext, x.cycle.condition, "CONTINUE")
 }
 
-func (x visitor) VisitExit_statement(ctx *parser.Exit_statementContext) interface{} {
-	panic("unimplemented")
+func (x visitor) VisitExit_statement(ctx *parser.Exit_statementContext) any {
+	if x.cycle.out == nil {
+		return x.CheckError(ctx, errors.New("no cycle body there"))
+	}
+	return ops.Jump(ctx.CustomContext, x.cycle.out, "EXIT")
 }
 
 func (x visitor) VisitInteger(ctx *parser.IntegerContext) any {
@@ -350,8 +353,7 @@ func (x visitor) VisitStatement_list(ctx *parser.Statement_listContext) any {
 			next = tmp
 			continue
 		}
-		x.SetNextStatement(next, tmp)
-		next = tmp
+		next = x.SetNextStatement(next, tmp)
 	}
 	return r
 }

@@ -17,6 +17,7 @@ func Test_Execute_007(t *testing.T) {
 	require.Equal(int64(10), p.GetVar("r").Int())
 	require.Equal(int64(2), p.GetVar("i").Int())
 	require.Equal(int64(9), p.GetVar("r2").Int())
+	require.Equal(int64(7), p.GetVar("counter").Int())
 
 	p.Execute()
 	require.Equal(int64(19), p.GetVar("r").Int())

@@ -54,8 +54,8 @@ type (
 	}
 )
 
-// указатель, для подстановке ип оследующей замены содержимого
-func EmptyStatement() *Statement {
+// указатель, для подстановки и последующей замены содержимого
+func Placeholder() *Statement {
 	return &Statement{
 		Do:            func(*Statement) (struct{}, *Statement) { return struct{}{}, nil },
 		DoDebug:       func(*Statement) (struct{}, *Statement) { return struct{}{}, nil },
@@ -67,11 +67,13 @@ func NewPlaceholders() *Placeholders {
 	return &Placeholders{m: make(map[*Statement][]*Statement)}
 }
 
-func (x *Placeholders) SetNextStatement(dest, next *Statement) {
+// возвращает указатель на последний вставленный Statement
+// может отличаться от next, когда происходит замена плейсхолдера
+func (x *Placeholders) SetNextStatement(dest, next *Statement) *Statement {
 	if dest.isPlaceholder {
 		// замена плейсхолдера на реальный Statement
 		*dest = *next
-		return
+		return dest
 	}
 	// TODO замена плейсхолдера на другой плейсхолдер?
 	for s := dest; ; s = s.nextStatement {
@@ -82,13 +84,13 @@ func (x *Placeholders) SetNextStatement(dest, next *Statement) {
 			if next.isPlaceholder {
 				x.m[next] = append(x.m[next], s)
 			}
-			return
+			return s.nextStatement
 		}
 
 		// замена плейсхолдера (замена сожержимого по указателю)
 		if s.nextStatement.isPlaceholder && !next.isPlaceholder {
 			*(s.nextStatement) = *next
-			return
+			return s.nextStatement
 		}
 
 		// замена плейсхолдеров на новый плейсхолдер (замена указателей)
@@ -99,6 +101,7 @@ func (x *Placeholders) SetNextStatement(dest, next *Statement) {
 				x.m[next] = append(x.m[next], s)
 			}
 			delete(x.m, p)
+			return next
 		}
 	}
 
