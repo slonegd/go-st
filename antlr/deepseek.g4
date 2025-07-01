@@ -293,7 +293,20 @@ exit_statement
 
 // Иерархия выражений с правильными приоритетами
 expression
-    : logical_or_expression
+    : LPAREN expression RPAREN                                       # parenExpression
+    | operator=(PLUS|MINUS|NOT) expression                           # unaryExpression
+    | left=expression operator=POWER right=expression                # binaryExpression
+    | left=expression operator=(MULT|DIV|MOD) right=expression       # binaryExpression
+    | left=expression operator=(PLUS|MINUS) right=expression         # binaryExpression
+    | left=expression operator=(LESS|LESS_EQ|GREATER|GREATER_EQ) 
+      right=expression                                               # binaryExpression
+    | left=expression operator=(EQUAL|NOT_EQUAL) right=expression    # binaryExpression
+    | left=expression operator=AND right=expression                  # binaryExpression
+    | left=expression operator=XOR right=expression                  # binaryExpression
+    | left=expression operator=OR right=expression                   # binaryExpression
+    | literal                                                        # literalExpression
+    | variable                                                       # varExpression
+    | function_invocation                                            # funcCallExpression
     ;
 
 logical_or_expression

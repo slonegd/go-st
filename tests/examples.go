@@ -50,7 +50,7 @@ func tree(example string) {
 	p := parser.NewSTParser(stream)
 
 	root := p.Program()
-	log.Printf("root node %T %+v", root, root.GetIdentifier())
+	log.Printf("root node %T %+v", root, root.GetId())
 	printChildren(root, "")
 }
 

@@ -1,106 +1,441 @@
 grammar ST;
 
 options {
-    // для пробрасывания по дереву доп объектов (логгер, исходный код и тп)
     contextSuperClass = CustomContext;
 }
 
-program :
-    'PROGRAM' identifier=ID 
-        var_declaration_blocks
-        statement_list 
-    'END_PROGRAM'
-;
+// Лексер
+INT_TYPE_NAME   : 'SINT' | 'INT' | 'DINT' | 'LINT' | 'USINT' | 'UINT' | 'UDINT' | 'ULINT';
+REAL_TYPE_NAME  : 'REAL' | 'LREAL';
+TIME_TYPE_NAME  : 'TIME' | 'LTIME';
+DATE_TYPE_NAME  : 'DATE' | 'LDATE';
+TOD_TYPE_NAME   : 'TIME_OF_DAY' | 'TOD' | 'LTOD';
+DT_TYPE_NAME    : 'DATE_AND_TIME' | 'DT' | 'LDT';
+BOOL_TYPE_NAME  : 'BOOL';
+BIT_TYPE_NAME   : 'BYTE' | 'WORD' | 'DWORD' | 'LWORD';
+STRING_TYPE_NAME: 'STRING' ('[' [0-9]+ ']')? | 'WSTRING' ('[' [0-9]+ ']')?;
 
-var_declaration_blocks : (var_declaration_block)*;
+VAR         : 'VAR';
+VAR_INPUT   : 'VAR_INPUT';
+VAR_OUTPUT  : 'VAR_OUTPUT';
+VAR_IN_OUT  : 'VAR_IN_OUT';
+VAR_EXTERNAL: 'VAR_EXTERNAL';
+VAR_GLOBAL  : 'VAR_GLOBAL';
+VAR_TEMP    : 'VAR_TEMP';
+END_VAR     : 'END_VAR';
+FUNCTION    : 'FUNCTION';
+END_FUNCTION: 'END_FUNCTION';
+FUNCTION_BLOCK : 'FUNCTION_BLOCK';
+END_FUNCTION_BLOCK : 'END_FUNCTION_BLOCK';
+PROGRAM     : 'PROGRAM';
+END_PROGRAM : 'END_PROGRAM';
+IF          : 'IF';
+THEN        : 'THEN';
+ELSE        : 'ELSE';
+ELSIF       : 'ELSIF';
+END_IF      : 'END_IF';
+FOR         : 'FOR';
+TO          : 'TO';
+BY          : 'BY';
+DO          : 'DO';
+END_FOR     : 'END_FOR';
+WHILE       : 'WHILE';
+END_WHILE   : 'END_WHILE';
+REPEAT      : 'REPEAT';
+UNTIL       : 'UNTIL';
+END_REPEAT  : 'END_REPEAT';
+CASE        : 'CASE';
+OF          : 'OF';
+END_CASE    : 'END_CASE';
+RETURN      : 'RETURN';
+NOT         : 'NOT';
+AND         : 'AND';
+OR          : 'OR';
+XOR         : 'XOR';
+ARRAY       : 'ARRAY';
+STRUCT      : 'STRUCT';
+END_STRUCT  : 'END_STRUCT';
+TYPE        : 'TYPE';
+END_TYPE    : 'END_TYPE';
+CONSTANT    : 'CONSTANT';
+RETAIN      : 'RETAIN';
+NON_RETAIN  : 'NON_RETAIN';
+CONTINUE    : 'CONTINUE';
+EXIT        : 'EXIT';
 
-var_declaration_block :
-	'VAR'
-	var_declaration*
-	'END_VAR'
-;
+ASSIGN      : ':=';
+EQUAL       : '=';
+NOT_EQUAL   : '<>';
+LESS        : '<';
+LESS_EQ     : '<=';
+GREATER     : '>';
+GREATER_EQ  : '>=';
+PLUS        : '+';
+MINUS       : '-';
+MULT        : '*';
+DIV         : '/';
+MOD         : 'MOD';
+POWER       : '**';
+DOT         : '.';
+COMMA       : ',';
+COLON       : ':';
+SEMICOLON   : ';';
+LPAREN      : '(';
+RPAREN      : ')';
+LBRACK      : '[';
+RBRACK      : ']';
+DOTDOT      : '..';
 
-var_declaration : identifier=ID ':' type=type_name ( ':=' default=number )? ';'; 
+IDENTIFIER  : [A-Za-z_][A-Za-z0-9_]*;
 
-type_name: 'SINT'
-         | 'INT'
-         | 'DINT'
-         | 'LINT'
-         | 'USINT'
-         | 'UINT'
-         | 'UDINT'
-         | 'ULINT'
-         | 'REAL'
-         | 'LREAL'
-         | 'BOOL'
-         | 'STRING'
-; // TODO другие типы
+// Числовые литералы должны обрабатываться до операторов
+INT_LITERAL
+    : DECIMAL_LITERAL
+    | BINARY_LITERAL
+    | OCTAL_LITERAL
+    | HEX_LITERAL
+    ;
+fragment DECIMAL_LITERAL
+    : [0-9]+ ('_' [0-9]+)*
+    ;
 
-statement_list : (statement)*;
+fragment BINARY_LITERAL
+    : '2#' [01]+ ('_' [01]+)*
+    ;
 
-statement : assignment_statement ';'
-          | if_statement ';'?
-          | while_statement ';'?
-          | continue_statement ';'?
-          | exit_statement ';'?
-; // TODO другие виды выражений
+fragment OCTAL_LITERAL
+    : '8#' [0-7]+ ('_' [0-7]+)*
+    ;
 
-assignment_statement : left=ID ':=' right=expression; // TODO другие виды присваиваний?
+fragment HEX_LITERAL
+    : '16#' [0-9A-Fa-f]+ ('_' [0-9A-Fa-f]+)*
+    ;
 
-if_statement :
-	'IF' cond+=condition 'THEN' thenlist+=then_list
-	('ELSIF' cond+=condition 'THEN' thenlist+=then_list)* 
-	('ELSE' elselist = else_list)?
-	'END_IF' ';'?
-;
+REAL_LITERAL
+    : (REAL_TYPE_NAME '#')? 
+      ( 
+        // Полная форма: 123.456e+78
+        DECIMAL_LITERAL '.' DECIMAL_LITERAL EXPONENT?
+        
+        // Сокращенные формы:
+        | DECIMAL_LITERAL '.' EXPONENT?  // 123.
+        | '.' DECIMAL_LITERAL EXPONENT?  // .456
+        | DECIMAL_LITERAL EXPONENT       // 123e+78
+      )
+    ;
 
-while_statement : 'WHILE' cond=expression 'DO' body=statement_list 'END_WHILE';
+fragment EXPONENT
+    : [Ee] [+-]? DECIMAL_LITERAL
+    ;
 
-continue_statement : 'CONTINUE';
-exit_statement     : 'EXIT';
 
-// семантически нужно отличать (для ветвления)
-condition : expression;
-then_list : statement_list;
-else_list: statement_list;
+BOOL_LITERAL    : 'TRUE' | 'FALSE' | '0' | '1';
+TIME_LITERAL    : DURATION | TIME_OF_DAY | DATE | DATE_AND_TIME;
+STRING_LITERAL  : '\'' (~['\r\n] | '\'\'')* '\'' | '"' (~["\r\n] | '""')* '"';
+DIRECT_VARIABLE : '%' [IQM] [XBWD]? [0-9]+ ('.' [0-9]+)*;
 
-expression : number                                                             #constant
-           | id=ID '(' sub=expression ')'                                       #callExpr
-           | ID                                                                 #variable
-           | '(' sub=expression ')'                                             #parenExpr
-           | left=expression op =('*'|'/'|'MOD') right=expression               #binaryPowerExpr
-           | left=expression op =('+'|'-') right=expression                     #binaryPlusExpr
-           | left=expression op =('>'|'>='|'<'|'<='|'='|'<>') right=expression  #binaryCompareExpr
-; // TODO остальные типы выражений
+COMMENT     : '(*' .*? '*)' -> skip;
+COMMENT2    : '/*' .*? '*/' -> skip;
+LINE_COMMENT: '//' ~[\r\n]* -> skip;
+WS          : [ \t\r\n]+ -> skip;
 
-number : FLOAT 
-       | integer  
-;
+fragment DURATION : (TIME_TYPE_NAME '#')? ('+' | '-')? INTERVAL;
+fragment INTERVAL : DAYS | HOURS | MINUTES | SECONDS;
+fragment DAYS     : [0-9]+ 'd' ('_'? HOURS)?;
+fragment HOURS    : [0-9]+ 'h' ('_'? MINUTES)?;
+fragment MINUTES  : [0-9]+ 'm' ('_'? SECONDS)?;
+fragment SECONDS  : [0-9]+ ('_'? [0-9]*)? 's';
+fragment TIME_OF_DAY : TOD_TYPE_NAME '#' DAY_HOUR ':' DAY_MINUTE ':' DAY_SECOND;
+fragment DATE     : DATE_TYPE_NAME '#' YEAR '-' MONTH '-' DAY;
+fragment DATE_AND_TIME : DT_TYPE_NAME '#' YEAR '-' MONTH '-' DAY '-' DAY_HOUR ':' DAY_MINUTE ':' DAY_SECOND;
+fragment DAY_HOUR : [0-9]+;
+fragment DAY_MINUTE : [0-9]+;
+fragment DAY_SECOND : [0-9]+ ('.' [0-9]+)?;
+fragment YEAR      : [0-9]+;
+fragment MONTH     : [0-9]+;
+fragment DAY       : [0-9]+;
 
-integer: (signed_integer|unsign_integer);
+// Парсер
+program
+    : PROGRAM id=IDENTIFIER 
+      (vars=var_declaration_block | function_decl | function_block_decl)* 
+      stmts=statement_list
+      END_PROGRAM
+    ;
 
-signed_integer: sign=(PLUS | MINUS) unsign_integer;
+function_decl
+    : FUNCTION IDENTIFIER 
+      ((':' data_type)? (VAR_INPUT input_decl* END_VAR)?)
+      (VAR_OUTPUT output_decl* END_VAR)?
+      (VAR var_decl* END_VAR)?
+      statement_list
+      END_FUNCTION
+    ;
 
-unsign_integer: Integer | Hex_Int;
+function_block_decl
+    : FUNCTION_BLOCK IDENTIFIER
+      (VAR_INPUT input_decl* END_VAR)?
+      (VAR_OUTPUT output_decl* END_VAR)?
+      (VAR var_decl* END_VAR)?
+      statement_list
+      END_FUNCTION_BLOCK
+    ;
 
-Integer : Digit+;
-Hex_Int : '16#' ( '_' ? Hex_Digit )+;
-FLOAT   :   MINUS? ( Digit+  '.' Digit*  // -0.5 или 3.14
-                     | '.' Digit+)       // .5 
-                   ('E' (PLUS|MINUS)? Digit+)?     // экспонента (1E2 или 1e-3)
-;
+var_declaration_block
+    : (VAR | VAR_INPUT | VAR_OUTPUT | VAR_IN_OUT | VAR_EXTERNAL | VAR_GLOBAL | VAR_TEMP)
+      decls+=var_decl+
+      END_VAR
+    ;
 
-ID : ([a-zA-Z_]) ([$a-zA-Z0-9_])*;
+var_decl
+    : id=IDENTIFIER (COMMA IDENTIFIER)* COLON type=data_type (ASSIGN expr=expression)? SEMICOLON
+    ;
 
-Digit : '0'..'9';
-Hex_Digit : '0'..'9' | 'A'..'F';
+data_type
+    : elementary_type_name 
+    | array_type 
+    | structured_type
+    | IDENTIFIER
+    ;
 
-PLUS : '+';
-MINUS: '-';
+elementary_type_name
+    : INT_TYPE_NAME
+    | REAL_TYPE_NAME
+    | BOOL_TYPE_NAME
+    | TIME_TYPE_NAME
+    | DATE_TYPE_NAME
+    | STRING_TYPE_NAME
+    | BIT_TYPE_NAME
+    ;
 
-Comment : (
-               '//' ~( '\n' | '\r' )* '\r' ? '\n' 
-             | '(*' .*? '*)' 
-             | '/*' .*? '*/' 
-          ) -> channel(HIDDEN);
-WHITESPACE: [ \r\n\t]+ -> skip;
+array_type
+    : ARRAY '[' subrange (COMMA subrange)* ']' OF data_type
+    ;
+
+subrange
+    : expression DOTDOT expression
+    ;
+
+structured_type
+    : STRUCT var_decl+ END_STRUCT
+    ;
+
+statement_list
+    : (statement SEMICOLON?)+
+    ;
+
+statement
+    : assignment_statement
+    | if_statement
+    | case_statement
+    | for_statement
+    | while_statement
+    | repeat_statement
+    | function_invocation
+    | return_statement
+    | continue_statement  // Добавляем
+    | exit_statement      // Добавляем
+    ;
+
+assignment_statement
+    : variable ASSIGN expression
+    ;
+
+if_statement
+    : IF expression THEN statement_list
+      (ELSIF expression THEN statement_list)*
+      (ELSE statement_list)?
+      END_IF
+    ;
+
+case_statement
+    : CASE expression OF
+      case_element+
+      (ELSE statement_list)?
+      END_CASE
+    ;
+
+case_element
+    : case_label (COMMA case_label)* COLON statement_list
+    ;
+
+case_label
+    : expression
+    | subrange
+    ;
+
+for_statement
+    : FOR IDENTIFIER ASSIGN expression TO expression (BY expression)? 
+      DO statement_list 
+      END_FOR
+    ;
+
+while_statement
+    : WHILE expression DO statement_list END_WHILE
+    ;
+
+repeat_statement
+    : REPEAT statement_list UNTIL expression END_REPEAT
+    ;
+
+function_invocation
+    : IDENTIFIER LPAREN (expression (COMMA expression)*)? RPAREN
+    ;
+
+return_statement
+    : RETURN expression?
+    ;
+
+continue_statement
+    : CONTINUE SEMICOLON?
+    ;
+
+exit_statement
+    : EXIT SEMICOLON?
+    ;
+
+
+// Иерархия выражений с правильными приоритетами
+expression
+    : LPAREN expression RPAREN                                       # parenExpression
+    | operator=(PLUS|MINUS|NOT) expression                           # unaryExpression
+    | left=expression operator=POWER right=expression                # binaryExpression
+    | left=expression operator=(MULT|DIV|MOD) right=expression       # binaryExpression
+    | left=expression operator=(PLUS|MINUS) right=expression         # binaryExpression
+    | left=expression operator=(LESS|LESS_EQ|GREATER|GREATER_EQ) 
+      right=expression                                               # binaryExpression
+    | left=expression operator=(EQUAL|NOT_EQUAL) right=expression    # binaryExpression
+    | left=expression operator=AND right=expression                  # binaryExpression
+    | left=expression operator=XOR right=expression                  # binaryExpression
+    | left=expression operator=OR right=expression                   # binaryExpression
+    | literal                                                        # literalExpression
+    | variable                                                       # varExpression
+    | function_invocation                                            # funcCallExpression
+    ;
+
+literal
+    : INT_LITERAL
+    | REAL_LITERAL
+    | BOOL_LITERAL
+    | TIME_LITERAL
+    | STRING_LITERAL
+    | typed_literal
+    ;
+
+typed_literal
+    : type_name '#' (INT_LITERAL | REAL_LITERAL | BIT_STRING_LITERAL)
+    ;
+
+type_name
+    : INT_TYPE_NAME
+    | REAL_TYPE_NAME
+    | BIT_TYPE_NAME
+    | BOOL_TYPE_NAME
+    ;
+
+BIT_STRING_LITERAL
+    : BIT_TYPE_NAME '#' (BINARY_LITERAL | OCTAL_LITERAL | HEX_LITERAL | DECIMAL_LITERAL)
+    ;
+
+variable
+    : IDENTIFIER (DOT IDENTIFIER | LBRACK expression RBRACK)*
+    | DIRECT_VARIABLE
+    ;
+
+// Дополнение к существующей грамматике
+
+input_decl
+    : var_decl
+    | edge_decl
+    | array_conform_decl
+    ;
+
+output_decl
+    : var_decl
+    | array_conform_decl
+    ;
+
+edge_decl
+    : variable_list COLON BOOL_TYPE_NAME (R_EDGE | F_EDGE)
+    ;
+
+array_conform_decl
+    : variable_list COLON array_conformand
+    ;
+
+array_conformand
+    : ARRAY LBRACK MULT (COMMA MULT)* RBRACK OF data_type_access
+    ;
+
+variable_list
+    : IDENTIFIER (COMMA IDENTIFIER)*
+    ;
+
+data_type_access
+    : elementary_type_name
+    | derived_type_access
+    ;
+
+derived_type_access
+    : single_elem_type_access
+    | array_type_access
+    | struct_type_access
+    | string_type_access
+    ;
+
+single_elem_type_access
+    : simple_type_access
+    | subrange_type_access
+    | enum_type_access
+    ;
+
+simple_type_access
+    : (namespace_name DOT)* simple_type_name
+    ;
+
+subrange_type_access
+    : (namespace_name DOT)* subrange_type_name
+    ;
+
+enum_type_access
+    : (namespace_name DOT)* enum_type_name
+    ;
+
+array_type_access
+    : (namespace_name DOT)* array_type_name
+    ;
+
+struct_type_access
+    : (namespace_name DOT)* struct_type_name
+    ;
+
+string_type_access
+    : (namespace_name DOT)* STRING_TYPE_NAME
+    ;
+
+namespace_name
+    : IDENTIFIER (DOT IDENTIFIER)*
+    ;
+
+simple_type_name
+    : IDENTIFIER
+    ;
+
+subrange_type_name
+    : IDENTIFIER
+    ;
+
+enum_type_name
+    : IDENTIFIER
+    ;
+
+array_type_name
+    : IDENTIFIER
+    ;
+
+struct_type_name
+    : IDENTIFIER
+    ;
+
+R_EDGE: 'R_EDGE';
+F_EDGE: 'F_EDGE';

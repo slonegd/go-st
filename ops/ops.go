@@ -205,6 +205,33 @@ func Cast[T int64 | float64](ctx *parser.CustomContext, t types.Basic, expr Op[T
 	return nil
 }
 
+func UnaryMinus[T NumberOpTypes](
+	ctx *parser.CustomContext,
+	expr Op[T],
+) Op[T] {
+	// TODO такая же логика и для остальных выражений
+	if expr.IsConstant {
+		v, _ := expr.Do(nil)
+		return Constant(-v)
+	}
+	return Op[T]{
+		IsConstant: expr.IsConstant,
+		ResultType: BasicType[T](),
+		ctx:        ctx,
+		snippet:    ctx.MakeSnippet(),
+		Do: func(*Statement) (T, *Statement) {
+			v, _ := expr.Do(nil)
+			return -v, nil
+		},
+		DoDebug: func(*Statement) (T, *Statement) {
+			v, _ := expr.DoDebug(nil)
+			msg := fmt.Sprintf("-%v", v)
+			ctx.Debug(ctx.MakeSnippet(), msg)
+			return -v, nil
+		},
+	}
+}
+
 func Arithmetic[Result, Left, Right NumberOpTypes](
 	ctx *parser.CustomContext,
 	op string,
