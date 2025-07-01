@@ -1,8 +1,5 @@
 .PHONY: all vendor bench
 
-gen-external:
-	antlr4 -Dlanguage=Go ./antlr/external/ST_lexer.g4 ./antlr/external/ST_parser.g4
-
 gen-antlr:
 	antlr4 -visitor -no-listener -Dlanguage=Go ./antlr/ST.g4 
 
