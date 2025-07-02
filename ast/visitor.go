@@ -1,8 +1,11 @@
 package ast
 
 import (
+	"errors"
 	"fmt"
+	"math/big"
 	"strconv"
+	"strings"
 
 	"github.com/antlr4-go/antlr/v4"
 	parser "github.com/slonegd/go-st/antlr"
@@ -246,7 +249,7 @@ func (x visitor) VisitFor_statement(ctx *parser.For_statementContext) any {
 
 // VisitFuncCallExpression implements parser.STVisitor.
 func (x visitor) VisitFuncCallExpression(ctx *parser.FuncCallExpressionContext) any {
-	panic("unimplemented")
+	return ctx.Function_invocation().Accept(x)
 }
 
 // VisitFunction_block_decl implements parser.STVisitor.
@@ -261,7 +264,40 @@ func (x visitor) VisitFunction_decl(ctx *parser.Function_declContext) any {
 
 // VisitFunction_invocation implements parser.STVisitor.
 func (x visitor) VisitFunction_invocation(ctx *parser.Function_invocationContext) any {
-	panic("unimplemented")
+	name := ctx.IDENTIFIER().GetText()
+	parts := strings.Split(name, "_TO_")
+	if len(parts) != 2 {
+		x.CheckError(ctx, errors.New("unknown function"))
+	}
+	from := types.TypeFromString(parts[0])
+	if from == types.ANY {
+		x.CheckError(ctx, errors.New("unknown function"))
+	}
+	to := types.TypeFromString(parts[1])
+	if to == types.ANY {
+		x.CheckError(ctx, errors.New("unknown function"))
+	}
+
+	args := ctx.GetArgs()
+	if len(args) != 1 {
+		x.CheckError(ctx, errors.New("cast must have only one argument"))
+	}
+
+	switch expr := args[0].Accept(x).(type) {
+	case ops.Int64:
+		if from != expr.ResultType {
+			x.CheckError(ctx, fmt.Errorf("expression has %s type", expr.ResultType))
+		}
+		return ops.Cast(ctx.CustomContext, to, expr)
+	case ops.Float64:
+		if from != expr.ResultType {
+			x.CheckError(ctx, fmt.Errorf("expression has %s type", expr.ResultType))
+		}
+		return ops.Cast(ctx.CustomContext, to, expr)
+	default:
+		x.CheckError(ctx, fmt.Errorf("expression operator has unknown type: %T", expr))
+		return nil
+	}
 }
 
 // VisitIf_statement implements parser.STVisitor.
@@ -300,6 +336,15 @@ func (x visitor) VisitInput_decl(ctx *parser.Input_declContext) any {
 
 // VisitLiteral implements parser.STVisitor.
 func (x visitor) VisitLiteral(ctx *parser.LiteralContext) any {
+	v := ctx.INT_LITERAL().GetText()
+	if v, ok := strings.CutPrefix(v, "16#"); ok {
+		v = strings.ReplaceAll(v, "_", "")
+		bint, ok := big.NewInt(0).SetString(v, 16)
+		if ok {
+			return ops.Constant(bint.Int64())
+		}
+		x.CheckError(ctx, fmt.Errorf("fail parse int from %q", v))
+	}
 	i, err := strconv.Atoi(ctx.INT_LITERAL().GetText())
 	x.CheckError(ctx, err)
 	return ops.Constant(int64(i))

@@ -279,7 +279,7 @@ repeat_statement
     ;
 
 function_invocation
-    : IDENTIFIER LPAREN (expression (COMMA expression)*)? RPAREN
+    : IDENTIFIER LPAREN (args+=expression (COMMA args+=expression)*)? RPAREN
     ;
 
 return_statement

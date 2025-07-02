@@ -5352,6 +5352,18 @@ type IFunction_invocationContext interface {
 	// GetParser returns the parser.
 	GetParser() antlr.Parser
 
+	// Get_expression returns the _expression rule contexts.
+	Get_expression() IExpressionContext
+
+	// Set_expression sets the _expression rule contexts.
+	Set_expression(IExpressionContext)
+
+	// GetArgs returns the args rule context list.
+	GetArgs() []IExpressionContext
+
+	// SetArgs sets the args rule context list.
+	SetArgs([]IExpressionContext)
+
 	// Getter signatures
 	IDENTIFIER() antlr.TerminalNode
 	LPAREN() antlr.TerminalNode
@@ -5367,7 +5379,9 @@ type IFunction_invocationContext interface {
 
 type Function_invocationContext struct {
 	*CustomContext
-	parser antlr.Parser
+	parser      antlr.Parser
+	_expression IExpressionContext
+	args        []IExpressionContext
 }
 
 func NewEmptyFunction_invocationContext() *Function_invocationContext {
@@ -5395,6 +5409,14 @@ func NewFunction_invocationContext(parser antlr.Parser, parent antlr.ParserRuleC
 }
 
 func (s *Function_invocationContext) GetParser() antlr.Parser { return s.parser }
+
+func (s *Function_invocationContext) Get_expression() IExpressionContext { return s._expression }
+
+func (s *Function_invocationContext) Set_expression(v IExpressionContext) { s._expression = v }
+
+func (s *Function_invocationContext) GetArgs() []IExpressionContext { return s.args }
+
+func (s *Function_invocationContext) SetArgs(v []IExpressionContext) { s.args = v }
 
 func (s *Function_invocationContext) IDENTIFIER() antlr.TerminalNode {
 	return s.GetToken(STParserIDENTIFIER, 0)
@@ -5507,8 +5529,12 @@ func (p *STParser) Function_invocation() (localctx IFunction_invocationContext) 
 	if ((int64(_la) & ^0x3f) == 0 && ((int64(1)<<_la)&17592186045196) != 0) || ((int64((_la-65)) & ^0x3f) == 0 && ((int64(1)<<(_la-65))&4162563) != 0) {
 		{
 			p.SetState(346)
-			p.expression(0)
+
+			var _x = p.expression(0)
+
+			localctx.(*Function_invocationContext)._expression = _x
 		}
+		localctx.(*Function_invocationContext).args = append(localctx.(*Function_invocationContext).args, localctx.(*Function_invocationContext)._expression)
 		p.SetState(351)
 		p.GetErrorHandler().Sync(p)
 		if p.HasError() {
@@ -5527,8 +5553,12 @@ func (p *STParser) Function_invocation() (localctx IFunction_invocationContext) 
 			}
 			{
 				p.SetState(348)
-				p.expression(0)
+
+				var _x = p.expression(0)
+
+				localctx.(*Function_invocationContext)._expression = _x
 			}
+			localctx.(*Function_invocationContext).args = append(localctx.(*Function_invocationContext).args, localctx.(*Function_invocationContext)._expression)
 
 			p.SetState(353)
 			p.GetErrorHandler().Sync(p)
