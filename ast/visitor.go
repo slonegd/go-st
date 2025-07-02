@@ -80,7 +80,50 @@ func (x visitor) VisitAssignment_statement(ctx *parser.Assignment_statementConte
 
 // VisitBinaryExpression implements parser.STVisitor.
 func (x visitor) VisitBinaryExpression(ctx *parser.BinaryExpressionContext) any {
-	panic("unimplemented")
+	right := ctx.GetRight().Accept(x)
+	left := ctx.GetLeft().Accept(x)
+	token := ctx.GetOperator()
+	op := Ops[token.GetTokenType()]
+	switch op {
+	case ops.Plus, ops.Minus, ops.Mult, ops.Div, ops.Mod:
+		switch right := right.(type) {
+		case ops.Int64:
+			switch left := left.(type) {
+			case ops.Int64:
+				resultType, err := types.BinaryResult(
+					types.Expression{left.IsConstant, left.ResultType},
+					types.Expression{right.IsConstant, right.ResultType},
+				)
+				x.CheckError(ctx, err)
+				return ops.Arithmetic[int64](ctx.GetCustomContext(), op, left, right, resultType)
+			case ops.Float64:
+				resultType, err := types.BinaryResult(
+					types.Expression{left.IsConstant, left.ResultType},
+					types.Expression{right.IsConstant, right.ResultType},
+				)
+				x.CheckError(ctx, err)
+				return ops.Arithmetic[float64](ctx.GetCustomContext(), op, left, right, resultType)
+			}
+		case ops.Float64:
+			switch left := left.(type) {
+			case ops.Int64:
+				resultType, err := types.BinaryResult(
+					types.Expression{left.IsConstant, left.ResultType},
+					types.Expression{right.IsConstant, right.ResultType},
+				)
+				x.CheckError(ctx, err)
+				return ops.Arithmetic[float64](ctx.GetCustomContext(), op, left, right, resultType)
+			case ops.Float64:
+				resultType, err := types.BinaryResult(
+					types.Expression{left.IsConstant, left.ResultType},
+					types.Expression{right.IsConstant, right.ResultType},
+				)
+				x.CheckError(ctx, err)
+				return ops.Arithmetic[float64](ctx.GetCustomContext(), op, left, right, resultType)
+			}
+		}
+	}
+	return x.CheckError(ctx, fmt.Errorf("undefined operator %v (token type %d)", token, token.GetTokenType()))
 }
 
 // VisitCase_element implements parser.STVisitor.
@@ -217,7 +260,7 @@ func (x visitor) VisitOutput_decl(ctx *parser.Output_declContext) any {
 
 // VisitParenExpression implements parser.STVisitor.
 func (x visitor) VisitParenExpression(ctx *parser.ParenExpressionContext) any {
-	panic("unimplemented")
+	return ctx.Expression().Accept(x)
 }
 
 // VisitProgram implements parser.STVisitor.
@@ -344,7 +387,7 @@ func (x visitor) VisitUnaryExpression(ctx *parser.UnaryExpressionContext) any {
 
 // VisitVarExpression implements parser.STVisitor.
 func (x visitor) VisitVarExpression(ctx *parser.VarExpressionContext) any {
-	panic("unimplemented")
+	return ctx.Variable().Accept(x)
 }
 
 // VisitVar_decl implements parser.STVisitor.
@@ -381,7 +424,15 @@ func (x visitor) VisitVar_declaration_block(ctx *parser.Var_declaration_blockCon
 
 // VisitVariable implements parser.STVisitor.
 func (x visitor) VisitVariable(ctx *parser.VariableContext) any {
-	panic("unimplemented")
+	varName := ctx.GetName().GetText() // TODO там немного сложнее со структурами/массивами
+	v := x.vars[varName]
+	if v.Type().IsInteger() { // TODO другие типы
+		return ops.Variable[int64](ctx.CustomContext, varName, v)
+	}
+	if v.Type().IsFloat() {
+		return ops.Variable[float64](ctx.CustomContext, varName, v)
+	}
+	return x.CheckError(ctx, fmt.Errorf("unknown type of variable: %s", v.Type()))
 }
 
 // VisitVariable_list implements parser.STVisitor.

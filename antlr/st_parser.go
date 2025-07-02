@@ -7158,6 +7158,12 @@ type IVariableContext interface {
 	// GetParser returns the parser.
 	GetParser() antlr.Parser
 
+	// GetName returns the name token.
+	GetName() antlr.Token
+
+	// SetName sets the name token.
+	SetName(antlr.Token)
+
 	// Getter signatures
 	AllIDENTIFIER() []antlr.TerminalNode
 	IDENTIFIER(i int) antlr.TerminalNode
@@ -7178,6 +7184,7 @@ type IVariableContext interface {
 type VariableContext struct {
 	*CustomContext
 	parser antlr.Parser
+	name   antlr.Token
 }
 
 func NewEmptyVariableContext() *VariableContext {
@@ -7205,6 +7212,10 @@ func NewVariableContext(parser antlr.Parser, parent antlr.ParserRuleContext, inv
 }
 
 func (s *VariableContext) GetParser() antlr.Parser { return s.parser }
+
+func (s *VariableContext) GetName() antlr.Token { return s.name }
+
+func (s *VariableContext) SetName(v antlr.Token) { s.name = v }
 
 func (s *VariableContext) AllIDENTIFIER() []antlr.TerminalNode {
 	return s.GetTokens(STParserIDENTIFIER)
@@ -7317,7 +7328,10 @@ func (p *STParser) Variable() (localctx IVariableContext) {
 		p.EnterOuterAlt(localctx, 1)
 		{
 			p.SetState(425)
-			p.Match(STParserIDENTIFIER)
+
+			var _m = p.Match(STParserIDENTIFIER)
+
+			localctx.(*VariableContext).name = _m
 			if p.HasError() {
 				// Recognition error - abort rule
 				goto errorExit

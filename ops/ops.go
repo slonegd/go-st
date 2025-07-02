@@ -232,71 +232,82 @@ func UnaryMinus[T NumberOpTypes](
 	}
 }
 
+type Operator int
+
+const (
+	Undefined Operator = iota
+	Plus
+	Minus
+	Mult
+	Div
+	Mod
+)
+
 func Arithmetic[Result, Left, Right NumberOpTypes](
 	ctx *parser.CustomContext,
-	op string,
+	op Operator,
 	left Op[Left],
 	right Op[Right],
 	resultType types.Basic,
 ) Op[Result] {
 	type K struct {
-		op         string
+		op         Operator
 		resultType types.Basic
 	}
 
 	ops := map[K]func(l Op[Left], r Op[Right]) Op[Result]{
-		{"+", types.SINT}:  func(l Op[Left], r Op[Right]) Op[Result] { return plus[int8, Result](ctx, l, r) },
-		{"+", types.INT}:   func(l Op[Left], r Op[Right]) Op[Result] { return plus[int16, Result](ctx, l, r) },
-		{"+", types.DINT}:  func(l Op[Left], r Op[Right]) Op[Result] { return plus[int32, Result](ctx, l, r) },
-		{"+", types.LINT}:  func(l Op[Left], r Op[Right]) Op[Result] { return plus[int64, Result](ctx, l, r) },
-		{"+", types.USINT}: func(l Op[Left], r Op[Right]) Op[Result] { return plus[uint8, Result](ctx, l, r) },
-		{"+", types.UINT}:  func(l Op[Left], r Op[Right]) Op[Result] { return plus[uint16, Result](ctx, l, r) },
-		{"+", types.UDINT}: func(l Op[Left], r Op[Right]) Op[Result] { return plus[uint32, Result](ctx, l, r) },
-		{"+", types.ULINT}: func(l Op[Left], r Op[Right]) Op[Result] { return plus[uint64, Result](ctx, l, r) },
-		{"+", types.REAL}:  func(l Op[Left], r Op[Right]) Op[Result] { return plus[float32, Result](ctx, l, r) },
-		{"+", types.LREAL}: func(l Op[Left], r Op[Right]) Op[Result] { return plus[float64, Result](ctx, l, r) },
+		{Plus, types.SINT}:  func(l Op[Left], r Op[Right]) Op[Result] { return plus[int8, Result](ctx, l, r) },
+		{Plus, types.INT}:   func(l Op[Left], r Op[Right]) Op[Result] { return plus[int16, Result](ctx, l, r) },
+		{Plus, types.DINT}:  func(l Op[Left], r Op[Right]) Op[Result] { return plus[int32, Result](ctx, l, r) },
+		{Plus, types.LINT}:  func(l Op[Left], r Op[Right]) Op[Result] { return plus[int64, Result](ctx, l, r) },
+		{Plus, types.USINT}: func(l Op[Left], r Op[Right]) Op[Result] { return plus[uint8, Result](ctx, l, r) },
+		{Plus, types.UINT}:  func(l Op[Left], r Op[Right]) Op[Result] { return plus[uint16, Result](ctx, l, r) },
+		{Plus, types.UDINT}: func(l Op[Left], r Op[Right]) Op[Result] { return plus[uint32, Result](ctx, l, r) },
+		{Plus, types.ULINT}: func(l Op[Left], r Op[Right]) Op[Result] { return plus[uint64, Result](ctx, l, r) },
+		{Plus, types.REAL}:  func(l Op[Left], r Op[Right]) Op[Result] { return plus[float32, Result](ctx, l, r) },
+		{Plus, types.LREAL}: func(l Op[Left], r Op[Right]) Op[Result] { return plus[float64, Result](ctx, l, r) },
 
-		{"-", types.SINT}:  func(l Op[Left], r Op[Right]) Op[Result] { return sub[int8, Result](ctx, l, r) },
-		{"-", types.INT}:   func(l Op[Left], r Op[Right]) Op[Result] { return sub[int16, Result](ctx, l, r) },
-		{"-", types.DINT}:  func(l Op[Left], r Op[Right]) Op[Result] { return sub[int32, Result](ctx, l, r) },
-		{"-", types.LINT}:  func(l Op[Left], r Op[Right]) Op[Result] { return sub[int64, Result](ctx, l, r) },
-		{"-", types.USINT}: func(l Op[Left], r Op[Right]) Op[Result] { return sub[uint8, Result](ctx, l, r) },
-		{"-", types.UINT}:  func(l Op[Left], r Op[Right]) Op[Result] { return sub[uint16, Result](ctx, l, r) },
-		{"-", types.UDINT}: func(l Op[Left], r Op[Right]) Op[Result] { return sub[uint32, Result](ctx, l, r) },
-		{"-", types.ULINT}: func(l Op[Left], r Op[Right]) Op[Result] { return sub[uint64, Result](ctx, l, r) },
-		{"-", types.REAL}:  func(l Op[Left], r Op[Right]) Op[Result] { return sub[float32, Result](ctx, l, r) },
-		{"-", types.LREAL}: func(l Op[Left], r Op[Right]) Op[Result] { return sub[float64, Result](ctx, l, r) },
+		{Minus, types.SINT}:  func(l Op[Left], r Op[Right]) Op[Result] { return sub[int8, Result](ctx, l, r) },
+		{Minus, types.INT}:   func(l Op[Left], r Op[Right]) Op[Result] { return sub[int16, Result](ctx, l, r) },
+		{Minus, types.DINT}:  func(l Op[Left], r Op[Right]) Op[Result] { return sub[int32, Result](ctx, l, r) },
+		{Minus, types.LINT}:  func(l Op[Left], r Op[Right]) Op[Result] { return sub[int64, Result](ctx, l, r) },
+		{Minus, types.USINT}: func(l Op[Left], r Op[Right]) Op[Result] { return sub[uint8, Result](ctx, l, r) },
+		{Minus, types.UINT}:  func(l Op[Left], r Op[Right]) Op[Result] { return sub[uint16, Result](ctx, l, r) },
+		{Minus, types.UDINT}: func(l Op[Left], r Op[Right]) Op[Result] { return sub[uint32, Result](ctx, l, r) },
+		{Minus, types.ULINT}: func(l Op[Left], r Op[Right]) Op[Result] { return sub[uint64, Result](ctx, l, r) },
+		{Minus, types.REAL}:  func(l Op[Left], r Op[Right]) Op[Result] { return sub[float32, Result](ctx, l, r) },
+		{Minus, types.LREAL}: func(l Op[Left], r Op[Right]) Op[Result] { return sub[float64, Result](ctx, l, r) },
 
-		{"*", types.SINT}:  func(l Op[Left], r Op[Right]) Op[Result] { return mult[int8, Result](ctx, l, r) },
-		{"*", types.INT}:   func(l Op[Left], r Op[Right]) Op[Result] { return mult[int16, Result](ctx, l, r) },
-		{"*", types.DINT}:  func(l Op[Left], r Op[Right]) Op[Result] { return mult[int32, Result](ctx, l, r) },
-		{"*", types.LINT}:  func(l Op[Left], r Op[Right]) Op[Result] { return mult[int64, Result](ctx, l, r) },
-		{"*", types.USINT}: func(l Op[Left], r Op[Right]) Op[Result] { return mult[uint8, Result](ctx, l, r) },
-		{"*", types.UINT}:  func(l Op[Left], r Op[Right]) Op[Result] { return mult[uint16, Result](ctx, l, r) },
-		{"*", types.UDINT}: func(l Op[Left], r Op[Right]) Op[Result] { return mult[uint32, Result](ctx, l, r) },
-		{"*", types.ULINT}: func(l Op[Left], r Op[Right]) Op[Result] { return mult[uint64, Result](ctx, l, r) },
-		{"*", types.REAL}:  func(l Op[Left], r Op[Right]) Op[Result] { return mult[float32, Result](ctx, l, r) },
-		{"*", types.LREAL}: func(l Op[Left], r Op[Right]) Op[Result] { return mult[float64, Result](ctx, l, r) },
+		{Mult, types.SINT}:  func(l Op[Left], r Op[Right]) Op[Result] { return mult[int8, Result](ctx, l, r) },
+		{Mult, types.INT}:   func(l Op[Left], r Op[Right]) Op[Result] { return mult[int16, Result](ctx, l, r) },
+		{Mult, types.DINT}:  func(l Op[Left], r Op[Right]) Op[Result] { return mult[int32, Result](ctx, l, r) },
+		{Mult, types.LINT}:  func(l Op[Left], r Op[Right]) Op[Result] { return mult[int64, Result](ctx, l, r) },
+		{Mult, types.USINT}: func(l Op[Left], r Op[Right]) Op[Result] { return mult[uint8, Result](ctx, l, r) },
+		{Mult, types.UINT}:  func(l Op[Left], r Op[Right]) Op[Result] { return mult[uint16, Result](ctx, l, r) },
+		{Mult, types.UDINT}: func(l Op[Left], r Op[Right]) Op[Result] { return mult[uint32, Result](ctx, l, r) },
+		{Mult, types.ULINT}: func(l Op[Left], r Op[Right]) Op[Result] { return mult[uint64, Result](ctx, l, r) },
+		{Mult, types.REAL}:  func(l Op[Left], r Op[Right]) Op[Result] { return mult[float32, Result](ctx, l, r) },
+		{Mult, types.LREAL}: func(l Op[Left], r Op[Right]) Op[Result] { return mult[float64, Result](ctx, l, r) },
 
-		{"/", types.SINT}:  func(l Op[Left], r Op[Right]) Op[Result] { return div[int8, Result](ctx, l, r) },
-		{"/", types.INT}:   func(l Op[Left], r Op[Right]) Op[Result] { return div[int16, Result](ctx, l, r) },
-		{"/", types.DINT}:  func(l Op[Left], r Op[Right]) Op[Result] { return div[int32, Result](ctx, l, r) },
-		{"/", types.LINT}:  func(l Op[Left], r Op[Right]) Op[Result] { return div[int64, Result](ctx, l, r) },
-		{"/", types.USINT}: func(l Op[Left], r Op[Right]) Op[Result] { return div[uint8, Result](ctx, l, r) },
-		{"/", types.UINT}:  func(l Op[Left], r Op[Right]) Op[Result] { return div[uint16, Result](ctx, l, r) },
-		{"/", types.UDINT}: func(l Op[Left], r Op[Right]) Op[Result] { return div[uint32, Result](ctx, l, r) },
-		{"/", types.ULINT}: func(l Op[Left], r Op[Right]) Op[Result] { return div[uint64, Result](ctx, l, r) },
-		{"/", types.REAL}:  func(l Op[Left], r Op[Right]) Op[Result] { return div[float32, Result](ctx, l, r) },
-		{"/", types.LREAL}: func(l Op[Left], r Op[Right]) Op[Result] { return div[float64, Result](ctx, l, r) },
+		{Div, types.SINT}:  func(l Op[Left], r Op[Right]) Op[Result] { return div[int8, Result](ctx, l, r) },
+		{Div, types.INT}:   func(l Op[Left], r Op[Right]) Op[Result] { return div[int16, Result](ctx, l, r) },
+		{Div, types.DINT}:  func(l Op[Left], r Op[Right]) Op[Result] { return div[int32, Result](ctx, l, r) },
+		{Div, types.LINT}:  func(l Op[Left], r Op[Right]) Op[Result] { return div[int64, Result](ctx, l, r) },
+		{Div, types.USINT}: func(l Op[Left], r Op[Right]) Op[Result] { return div[uint8, Result](ctx, l, r) },
+		{Div, types.UINT}:  func(l Op[Left], r Op[Right]) Op[Result] { return div[uint16, Result](ctx, l, r) },
+		{Div, types.UDINT}: func(l Op[Left], r Op[Right]) Op[Result] { return div[uint32, Result](ctx, l, r) },
+		{Div, types.ULINT}: func(l Op[Left], r Op[Right]) Op[Result] { return div[uint64, Result](ctx, l, r) },
+		{Div, types.REAL}:  func(l Op[Left], r Op[Right]) Op[Result] { return div[float32, Result](ctx, l, r) },
+		{Div, types.LREAL}: func(l Op[Left], r Op[Right]) Op[Result] { return div[float64, Result](ctx, l, r) },
 
-		{"MOD", types.SINT}:  func(l Op[Left], r Op[Right]) Op[Result] { return mod[int8, Result](ctx, l, r) },
-		{"MOD", types.INT}:   func(l Op[Left], r Op[Right]) Op[Result] { return mod[int16, Result](ctx, l, r) },
-		{"MOD", types.DINT}:  func(l Op[Left], r Op[Right]) Op[Result] { return mod[int32, Result](ctx, l, r) },
-		{"MOD", types.LINT}:  func(l Op[Left], r Op[Right]) Op[Result] { return mod[int64, Result](ctx, l, r) },
-		{"MOD", types.USINT}: func(l Op[Left], r Op[Right]) Op[Result] { return mod[uint8, Result](ctx, l, r) },
-		{"MOD", types.UINT}:  func(l Op[Left], r Op[Right]) Op[Result] { return mod[uint16, Result](ctx, l, r) },
-		{"MOD", types.UDINT}: func(l Op[Left], r Op[Right]) Op[Result] { return mod[uint32, Result](ctx, l, r) },
-		{"MOD", types.ULINT}: func(l Op[Left], r Op[Right]) Op[Result] { return mod[uint64, Result](ctx, l, r) },
+		{Mod, types.SINT}:  func(l Op[Left], r Op[Right]) Op[Result] { return mod[int8, Result](ctx, l, r) },
+		{Mod, types.INT}:   func(l Op[Left], r Op[Right]) Op[Result] { return mod[int16, Result](ctx, l, r) },
+		{Mod, types.DINT}:  func(l Op[Left], r Op[Right]) Op[Result] { return mod[int32, Result](ctx, l, r) },
+		{Mod, types.LINT}:  func(l Op[Left], r Op[Right]) Op[Result] { return mod[int64, Result](ctx, l, r) },
+		{Mod, types.USINT}: func(l Op[Left], r Op[Right]) Op[Result] { return mod[uint8, Result](ctx, l, r) },
+		{Mod, types.UINT}:  func(l Op[Left], r Op[Right]) Op[Result] { return mod[uint16, Result](ctx, l, r) },
+		{Mod, types.UDINT}: func(l Op[Left], r Op[Right]) Op[Result] { return mod[uint32, Result](ctx, l, r) },
+		{Mod, types.ULINT}: func(l Op[Left], r Op[Right]) Op[Result] { return mod[uint64, Result](ctx, l, r) },
 	}
 	return ops[K{op, resultType}](left, right)
 }

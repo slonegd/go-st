@@ -338,7 +338,7 @@ BIT_STRING_LITERAL
     ;
 
 variable
-    : IDENTIFIER (DOT IDENTIFIER | LBRACK expression RBRACK)*
+    : name=IDENTIFIER (DOT IDENTIFIER | LBRACK expression RBRACK)*
     | DIRECT_VARIABLE
     ;
 
