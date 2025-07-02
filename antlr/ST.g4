@@ -242,9 +242,9 @@ assignment_statement
     ;
 
 if_statement
-    : IF expression THEN statement_list
-      (ELSIF expression THEN statement_list)*
-      (ELSE statement_list)?
+    : IF conds+=expression THEN thens+=statement_list
+      (ELSIF conds+=expression THEN thens+=statement_list)*
+      (ELSE else=statement_list)?
       END_IF
     ;
 

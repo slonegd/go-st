@@ -3813,15 +3813,45 @@ type IIf_statementContext interface {
 	// GetParser returns the parser.
 	GetParser() antlr.Parser
 
+	// Get_expression returns the _expression rule contexts.
+	Get_expression() IExpressionContext
+
+	// Get_statement_list returns the _statement_list rule contexts.
+	Get_statement_list() IStatement_listContext
+
+	// GetElse_ returns the else_ rule contexts.
+	GetElse_() IStatement_listContext
+
+	// Set_expression sets the _expression rule contexts.
+	Set_expression(IExpressionContext)
+
+	// Set_statement_list sets the _statement_list rule contexts.
+	Set_statement_list(IStatement_listContext)
+
+	// SetElse_ sets the else_ rule contexts.
+	SetElse_(IStatement_listContext)
+
+	// GetConds returns the conds rule context list.
+	GetConds() []IExpressionContext
+
+	// GetThens returns the thens rule context list.
+	GetThens() []IStatement_listContext
+
+	// SetConds sets the conds rule context list.
+	SetConds([]IExpressionContext)
+
+	// SetThens sets the thens rule context list.
+	SetThens([]IStatement_listContext)
+
 	// Getter signatures
 	IF() antlr.TerminalNode
-	AllExpression() []IExpressionContext
-	Expression(i int) IExpressionContext
 	AllTHEN() []antlr.TerminalNode
 	THEN(i int) antlr.TerminalNode
+	END_IF() antlr.TerminalNode
+	AllExpression() []IExpressionContext
+	Expression(i int) IExpressionContext
 	AllStatement_list() []IStatement_listContext
 	Statement_list(i int) IStatement_listContext
-	END_IF() antlr.TerminalNode
 	AllELSIF() []antlr.TerminalNode
 	ELSIF(i int) antlr.TerminalNode
 	ELSE() antlr.TerminalNode
@@ -3832,7 +3862,12 @@ type IIf_statementContext interface {
 
 type If_statementContext struct {
 	*CustomContext
-	parser antlr.Parser
+	parser          antlr.Parser
+	_expression     IExpressionContext
+	conds           []IExpressionContext
+	_statement_list IStatement_listContext
+	thens           []IStatement_listContext
+	else_           IStatement_listContext
 }
 
 func NewEmptyIf_statementContext() *If_statementContext {
@@ -3861,8 +3896,40 @@ func NewIf_statementContext(parser antlr.Parser, parent antlr.ParserRuleContext,
 
 func (s *If_statementContext) GetParser() antlr.Parser { return s.parser }
 
+func (s *If_statementContext) Get_expression() IExpressionContext { return s._expression }
+
+func (s *If_statementContext) Get_statement_list() IStatement_listContext { return s._statement_list }
+
+func (s *If_statementContext) GetElse_() IStatement_listContext { return s.else_ }
+
+func (s *If_statementContext) Set_expression(v IExpressionContext) { s._expression = v }
+
+func (s *If_statementContext) Set_statement_list(v IStatement_listContext) { s._statement_list = v }
+
+func (s *If_statementContext) SetElse_(v IStatement_listContext) { s.else_ = v }
+
+func (s *If_statementContext) GetConds() []IExpressionContext { return s.conds }
+
+func (s *If_statementContext) GetThens() []IStatement_listContext { return s.thens }
+
+func (s *If_statementContext) SetConds(v []IExpressionContext) { s.conds = v }
+
+func (s *If_statementContext) SetThens(v []IStatement_listContext) { s.thens = v }
+
 func (s *If_statementContext) IF() antlr.TerminalNode {
 	return s.GetToken(STParserIF, 0)
+}
+
+func (s *If_statementContext) AllTHEN() []antlr.TerminalNode {
+	return s.GetTokens(STParserTHEN)
+}
+
+func (s *If_statementContext) THEN(i int) antlr.TerminalNode {
+	return s.GetToken(STParserTHEN, i)
+}
+
+func (s *If_statementContext) END_IF() antlr.TerminalNode {
+	return s.GetToken(STParserEND_IF, 0)
 }
 
 func (s *If_statementContext) AllExpression() []IExpressionContext {
@@ -3906,14 +3973,6 @@ func (s *If_statementContext) Expression(i int) IExpressionContext {
 	return t.(IExpressionContext)
 }
 
-func (s *If_statementContext) AllTHEN() []antlr.TerminalNode {
-	return s.GetTokens(STParserTHEN)
-}
-
-func (s *If_statementContext) THEN(i int) antlr.TerminalNode {
-	return s.GetToken(STParserTHEN, i)
-}
-
 func (s *If_statementContext) AllStatement_list() []IStatement_listContext {
 	children := s.GetChildren()
 	len := 0
@@ -3953,10 +4012,6 @@ func (s *If_statementContext) Statement_list(i int) IStatement_listContext {
 	}
 
 	return t.(IStatement_listContext)
-}
-
-func (s *If_statementContext) END_IF() antlr.TerminalNode {
-	return s.GetToken(STParserEND_IF, 0)
 }
 
 func (s *If_statementContext) AllELSIF() []antlr.TerminalNode {
@@ -4005,8 +4060,12 @@ func (p *STParser) If_statement() (localctx IIf_statementContext) {
 	}
 	{
 		p.SetState(270)
-		p.expression(0)
+
+		var _x = p.expression(0)
+
+		localctx.(*If_statementContext)._expression = _x
 	}
+	localctx.(*If_statementContext).conds = append(localctx.(*If_statementContext).conds, localctx.(*If_statementContext)._expression)
 	{
 		p.SetState(271)
 		p.Match(STParserTHEN)
@@ -4017,8 +4076,12 @@ func (p *STParser) If_statement() (localctx IIf_statementContext) {
 	}
 	{
 		p.SetState(272)
-		p.Statement_list()
+
+		var _x = p.Statement_list()
+
+		localctx.(*If_statementContext)._statement_list = _x
 	}
+	localctx.(*If_statementContext).thens = append(localctx.(*If_statementContext).thens, localctx.(*If_statementContext)._statement_list)
 	p.SetState(280)
 	p.GetErrorHandler().Sync(p)
 	if p.HasError() {
@@ -4037,8 +4100,12 @@ func (p *STParser) If_statement() (localctx IIf_statementContext) {
 		}
 		{
 			p.SetState(274)
-			p.expression(0)
+
+			var _x = p.expression(0)
+
+			localctx.(*If_statementContext)._expression = _x
 		}
+		localctx.(*If_statementContext).conds = append(localctx.(*If_statementContext).conds, localctx.(*If_statementContext)._expression)
 		{
 			p.SetState(275)
 			p.Match(STParserTHEN)
@@ -4049,8 +4116,12 @@ func (p *STParser) If_statement() (localctx IIf_statementContext) {
 		}
 		{
 			p.SetState(276)
-			p.Statement_list()
+
+			var _x = p.Statement_list()
+
+			localctx.(*If_statementContext)._statement_list = _x
 		}
+		localctx.(*If_statementContext).thens = append(localctx.(*If_statementContext).thens, localctx.(*If_statementContext)._statement_list)
 
 		p.SetState(282)
 		p.GetErrorHandler().Sync(p)
@@ -4077,7 +4148,10 @@ func (p *STParser) If_statement() (localctx IIf_statementContext) {
 		}
 		{
 			p.SetState(284)
-			p.Statement_list()
+
+			var _x = p.Statement_list()
+
+			localctx.(*If_statementContext).else_ = _x
 		}
 
 	}

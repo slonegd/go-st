@@ -122,6 +122,44 @@ func (x visitor) VisitBinaryExpression(ctx *parser.BinaryExpressionContext) any 
 				return ops.Arithmetic[float64](ctx.GetCustomContext(), op, left, right, resultType)
 			}
 		}
+
+	case ops.Eq, ops.NotEq, ops.Gt, ops.Gte, ops.Lt, ops.Lte:
+		switch right := right.(type) {
+		case ops.Int64:
+			switch left := left.(type) {
+			case ops.Int64:
+				resultType, err := types.BinaryResult(
+					types.Expression{left.IsConstant, left.ResultType},
+					types.Expression{right.IsConstant, right.ResultType},
+				)
+				x.CheckError(ctx, err)
+				return ops.Compare(ctx.GetCustomContext(), op, left, right, resultType)
+			case ops.Float64:
+				resultType, err := types.BinaryResult(
+					types.Expression{left.IsConstant, left.ResultType},
+					types.Expression{right.IsConstant, right.ResultType},
+				)
+				x.CheckError(ctx, err)
+				return ops.Compare(ctx.GetCustomContext(), op, left, right, resultType)
+			}
+		case ops.Float64:
+			switch left := left.(type) {
+			case ops.Int64:
+				resultType, err := types.BinaryResult(
+					types.Expression{left.IsConstant, left.ResultType},
+					types.Expression{right.IsConstant, right.ResultType},
+				)
+				x.CheckError(ctx, err)
+				return ops.Compare(ctx.GetCustomContext(), op, left, right, resultType)
+			case ops.Float64:
+				resultType, err := types.BinaryResult(
+					types.Expression{left.IsConstant, left.ResultType},
+					types.Expression{right.IsConstant, right.ResultType},
+				)
+				x.CheckError(ctx, err)
+				return ops.Compare(ctx.GetCustomContext(), op, left, right, resultType)
+			}
+		}
 	}
 	return x.CheckError(ctx, fmt.Errorf("undefined operator %v (token type %d)", token, token.GetTokenType()))
 }
@@ -228,7 +266,31 @@ func (x visitor) VisitFunction_invocation(ctx *parser.Function_invocationContext
 
 // VisitIf_statement implements parser.STVisitor.
 func (x visitor) VisitIf_statement(ctx *parser.If_statementContext) any {
-	panic("unimplemented")
+	conditions := ctx.GetConds()
+	thens := ctx.GetThens()
+	var enterOp, lastIf *ops.Statement
+	out := ops.Placeholder() // для выхода из всех body
+	for i := range conditions {
+		cond := conditions[i].Accept(x).(ops.Bool)
+		body := thens[i].Accept(x).(*ops.Statement)
+		x.SetNextStatement(body, out)
+		prevIf := lastIf
+		lastIf = ops.IfTrue(ctx.CustomContext, cond, body)
+		if prevIf == nil {
+			enterOp = lastIf
+			continue
+		}
+		x.SetNextStatement(prevIf, lastIf)
+	}
+	if ctx.GetElse_() != nil {
+		// else добаляется в конец последнего if
+		s := ctx.GetElse_().Accept(x).(*ops.Statement)
+		x.SetNextStatement(lastIf, s)
+		x.SetNextStatement(s, out)
+	} else {
+		x.SetNextStatement(lastIf, out)
+	}
+	return enterOp
 }
 
 // VisitInput_decl implements parser.STVisitor.
@@ -373,6 +435,7 @@ func (x visitor) VisitUnaryExpression(ctx *parser.UnaryExpressionContext) any {
 	case parser.STLexerNOT, parser.STLexerPLUS:
 		return x.CheckError(ctx, fmt.Errorf("unimplemented unary expression with operator %q (token: %d)", ctx.GetOperator().GetText(), token))
 	case parser.STLexerMINUS:
+		// TODO может лучше перенести в операторы?
 		switch expr := expr.(type) {
 		case ops.Int64:
 			return ops.UnaryMinus(ctx.CustomContext, expr)
