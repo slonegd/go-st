@@ -192,7 +192,10 @@ func (x visitor) VisitChildren(node antlr.RuleNode) any {
 
 // VisitContinue_statement implements parser.STVisitor.
 func (x visitor) VisitContinue_statement(ctx *parser.Continue_statementContext) any {
-	panic("unimplemented")
+	if x.cycle.condition == nil {
+		return x.CheckError(ctx, errors.New("no cycle body there"))
+	}
+	return ops.Jump(ctx.CustomContext, x.cycle.condition, "CONTINUE")
 }
 
 // VisitData_type implements parser.STVisitor.
@@ -239,7 +242,10 @@ func (x visitor) VisitErrorNode(node antlr.ErrorNode) any {
 
 // VisitExit_statement implements parser.STVisitor.
 func (x visitor) VisitExit_statement(ctx *parser.Exit_statementContext) any {
-	panic("unimplemented")
+	if x.cycle.out == nil {
+		return x.CheckError(ctx, errors.New("no cycle body there"))
+	}
+	return ops.Jump(ctx.CustomContext, x.cycle.out, "EXIT")
 }
 
 // VisitFor_statement implements parser.STVisitor.
@@ -336,18 +342,28 @@ func (x visitor) VisitInput_decl(ctx *parser.Input_declContext) any {
 
 // VisitLiteral implements parser.STVisitor.
 func (x visitor) VisitLiteral(ctx *parser.LiteralContext) any {
-	v := ctx.INT_LITERAL().GetText()
-	if v, ok := strings.CutPrefix(v, "16#"); ok {
-		v = strings.ReplaceAll(v, "_", "")
-		bint, ok := big.NewInt(0).SetString(v, 16)
-		if ok {
-			return ops.Constant(bint.Int64())
+	switch {
+	case ctx.INT_LITERAL() != nil:
+		v := ctx.INT_LITERAL().GetText()
+		if v, ok := strings.CutPrefix(v, "16#"); ok {
+			v = strings.ReplaceAll(v, "_", "")
+			bint, ok := big.NewInt(0).SetString(v, 16)
+			if ok {
+				return ops.Constant(bint.Int64())
+			}
+			x.CheckError(ctx, fmt.Errorf("fail parse int from %q", v))
 		}
-		x.CheckError(ctx, fmt.Errorf("fail parse int from %q", v))
+		i, err := strconv.Atoi(ctx.INT_LITERAL().GetText())
+		x.CheckError(ctx, err)
+		return ops.Constant(int64(i))
+
+	case ctx.REAL_LITERAL() != nil:
+		v := ctx.REAL_LITERAL()
+		result, err := strconv.ParseFloat(v.GetText(), 64)
+		x.CheckError(ctx, err)
+		return ops.Constant(result)
 	}
-	i, err := strconv.Atoi(ctx.INT_LITERAL().GetText())
-	x.CheckError(ctx, err)
-	return ops.Constant(int64(i))
+	return x.CheckError(ctx, fmt.Errorf("unknown literal: %q", ctx.GetText()))
 }
 
 // VisitLiteralExpression implements parser.STVisitor.
@@ -550,7 +566,15 @@ func (x visitor) VisitVariable_list(ctx *parser.Variable_listContext) any {
 
 // VisitWhile_statement implements parser.STVisitor.
 func (x visitor) VisitWhile_statement(ctx *parser.While_statementContext) any {
-	panic("unimplemented")
+	condition := ctx.Expression().Accept(x).(ops.Bool)
+	body := ops.Placeholder()
+	condOp := ops.IfTrue(ctx.CustomContext, condition, body)
+	x.cycle.condition = condOp
+	x.cycle.out = x.SetNextStatement(condOp, ops.Placeholder())
+	// Accept выполняется после, так как ему нужен x.cycle
+	x.SetNextStatement(body, ctx.Statement_list().Accept(x).(*ops.Statement))
+	x.SetNextStatement(body, condOp) // зацикливание на условии
+	return condOp
 }
 
 var (

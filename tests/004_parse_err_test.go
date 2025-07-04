@@ -16,7 +16,7 @@ func TestProgram_Execute_004(t *testing.T) {
   3|    i : INT := 5;
   4|  END_VAR
   5|  i := 1x5;
-   |........^    mismatched input 'x5' expecting 'END_PROGRAM'
+   |........^    extraneous input 'x5' expecting ';'
   6|END_PROGRAM
 `, err.Error())
 }

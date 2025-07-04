@@ -9,27 +9,6 @@ import (
 
 const iterations = 1000 // при большем бенчмарк gpython зависает
 
-//go:embed 002_arithmetic_if_while.st
-var arithmetic_st_while string
-
-// cpu: Intel(R) Core(TM) i5-6400 CPU @ 2.70GHz
-// Benchmark_go_001-4          1000000000    0.0000487 ns/op (x0.04)  // pure go
-// Benchmark_st_001-4          1000000000    0.0011470 ns/op (x1)     // this
-// Benchmark_yaegi_001-4       1000000000    0.0036320 ns/op (x3)     // github.com/traefik/yaegi v0.16.1
-// Benchmark_lua_001-4         1000000000    0.0207000 ns/op (x18)    // github.com/Shopify/go-lua
-func Benchmark_st_001(b *testing.B) {
-	p, err := st.NewProgram(arithmetic_st_while)
-	if err != nil {
-		b.Log(err)
-		b.Fail()
-	}
-
-	b.ResetTimer()
-	for range iterations {
-		p.Execute()
-	}
-}
-
 func Benchmark_go_001(b *testing.B) {
 	var i, j int
 	k = 42
@@ -94,5 +73,26 @@ func Benchmark_go_001(b *testing.B) {
 	b.ResetTimer()
 	for range iterations {
 		f()
+	}
+}
+
+//go:embed 002_arithmetic_if_while.st
+var arithmetic_st_while string
+
+// cpu: Intel(R) Core(TM) i5-6400 CPU @ 2.70GHz
+// Benchmark_go_001-4          1000000000    0.0000487 ns/op (x0.04)  // pure go
+// Benchmark_st_001-4          1000000000    0.0011470 ns/op (x1)     // this
+// Benchmark_yaegi_001-4       1000000000    0.0036320 ns/op (x3)     // github.com/traefik/yaegi v0.16.1
+// Benchmark_lua_001-4         1000000000    0.0207000 ns/op (x18)    // github.com/Shopify/go-lua
+func Benchmark_st_001(b *testing.B) {
+	p, err := st.NewProgram(arithmetic_st_while)
+	if err != nil {
+		b.Log(err)
+		b.Fail()
+	}
+
+	b.ResetTimer()
+	for range iterations {
+		p.Execute()
 	}
 }

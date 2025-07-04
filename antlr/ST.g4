@@ -1,3 +1,4 @@
+// файл сгенерирован в deepseek за несколько итераций
 grammar ST;
 
 options {
@@ -221,20 +222,20 @@ structured_type
     ;
 
 statement_list
-    : (statement SEMICOLON?)+
+    : (statement)+
     ;
 
 statement
-    : assignment_statement
-    | if_statement
-    | case_statement
-    | for_statement
-    | while_statement
-    | repeat_statement
-    | function_invocation
-    | return_statement
-    | continue_statement  // Добавляем
-    | exit_statement      // Добавляем
+    : assignment_statement SEMICOLON
+    | function_invocation SEMICOLON
+    | continue_statement SEMICOLON?
+    | exit_statement SEMICOLON?
+    | return_statement SEMICOLON?
+    | if_statement SEMICOLON?
+    | case_statement SEMICOLON?
+    | for_statement SEMICOLON?
+    | while_statement SEMICOLON?
+    | repeat_statement SEMICOLON?
     ;
 
 assignment_statement
@@ -287,11 +288,11 @@ return_statement
     ;
 
 continue_statement
-    : CONTINUE SEMICOLON?
+    : CONTINUE
     ;
 
 exit_statement
-    : EXIT SEMICOLON?
+    : EXIT
     ;
 
 

@@ -578,7 +578,6 @@ func notEqual[T Number, Left, Right NumberOpTypes](
 	}
 }
 
-// TODO T не нужен?
 func assign[T Number, R int64 | float64](ctx *parser.CustomContext, variable types.Variable, expr Op[R]) *Statement {
 	val := (*R)(variable.Pointer())
 	return &Statement{
@@ -586,12 +585,12 @@ func assign[T Number, R int64 | float64](ctx *parser.CustomContext, variable typ
 		snippet: ctx.MakeSnippet(),
 		Do: func(self *Statement) (struct{}, *Statement) {
 			v, _ := expr.Do(nil)
-			*val = R(v)
+			*val = R(T(v))
 			return struct{}{}, self.nextStatement
 		},
 		DoDebug: func(self *Statement) (struct{}, *Statement) {
 			v, _ := expr.DoDebug(nil)
-			*val = R(v)
+			*val = R(T(v))
 			msg := fmt.Sprintf("%v->%s", v, ctx.Name)
 			ctx.Debug(self.snippet, msg)
 			return struct{}{}, self.nextStatement

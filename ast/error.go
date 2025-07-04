@@ -17,7 +17,13 @@ func (x visitor) ReportAttemptingFullContext(recognizer antlr.Parser, dfa *antlr
 	if x.err != nil {
 		return
 	}
-	x.err = fmt.Errorf("some ReportAttemptingFullContext (TODO): %+v", dfa)
+	tokens := recognizer.GetTokenStream().(*antlr.CommonTokenStream).GetAllTokens()
+	msg := fmt.Sprintf("Неоднозначность при разборе токенов %+v", convert(tokens[startIndex:stopIndex+1], antlr.Token.GetText))
+	err := &Error{
+		Message: msg,
+		Snippet: x.source.Snippet(tokens[startIndex].GetLine(), tokens[startIndex].GetColumn(), 2),
+	}
+	x.err = err
 }
 
 func (x visitor) ReportContextSensitivity(recognizer antlr.Parser, dfa *antlr.DFA, startIndex int, stopIndex int, prediction int, configs *antlr.ATNConfigSet) {
@@ -58,4 +64,12 @@ func (e *Error) Error() string {
 		return e.Message
 	}
 	return fmt.Sprintf(e.Snippet, e.Message)
+}
+
+func convert[T any, A ~[]T, R any](a A, c func(T) R) []R {
+	r := make([]R, 0, len(a))
+	for _, a := range a {
+		r = append(r, c(a))
+	}
+	return r
 }
