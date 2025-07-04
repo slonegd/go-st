@@ -1,6 +1,6 @@
 // копипаст из стандарта, для сравнения, не генерации
 // cудя по всему в стандарте для ANTLRv3
-grammar iec61131;
+grammar standard;
 
 // Table 1 - Character sets
 // Table 2 - Identifiers

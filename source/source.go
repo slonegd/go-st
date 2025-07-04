@@ -9,8 +9,15 @@ import (
 
 type Source []rune
 
+// offset - доп строки до и после для контекста
+func (x Source) PositionSnippet(position, offset int) string {
+	line, column := x.findLineColumn(position)
+	return x.Snippet(line, column, offset)
+}
+
+// offset - доп строки до и после для контекста
 func (x Source) Snippet(line, column, offset int) string {
-	lines, messageLine, ok := x.FindLines(line, offset)
+	lines, messageLine, ok := x.findLines(line, offset)
 	if !ok {
 		return ""
 	}
@@ -36,7 +43,7 @@ func (x Source) Snippet(line, column, offset int) string {
 // поиск строк с несколькими строками до и после для контекста
 // а также вставка пустой строки для сообщения
 // вставка номера строки
-func (s Source) FindLines(line int, offset int) ([]string, int, bool) {
+func (s Source) findLines(line int, offset int) ([]string, int, bool) {
 	if len(s) == 0 {
 		return nil, 0, false
 	}
@@ -74,6 +81,18 @@ func (s Source) FindLines(line int, offset int) ([]string, int, bool) {
 		}
 	}
 	return r, messageLine, true
+}
+
+func (s Source) findLineColumn(position int) (line, column int) {
+	lines := strings.Split(string(s), "\n")
+	count := 0
+	for i, line := range lines {
+		count += len(line) + 1
+		if position <= count {
+			return i, count - position
+		}
+	}
+	return 0, 0
 }
 
 func powerOf10(n int) int {

@@ -58,7 +58,11 @@ func Parse(script string) (x *AST, err error) {
 }
 
 func (x *AST) GetVar(name string) types.Variable {
-	return x.vars[name]
+	v, ok := x.vars[name]
+	if !ok {
+		return types.IntVariable(0)
+	}
+	return v
 }
 
 func (x *AST) GetVars() map[string]types.Variable {

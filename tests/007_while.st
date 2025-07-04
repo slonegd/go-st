@@ -18,9 +18,9 @@ PROGRAM while_test
       counter := counter + 1;
       IF counter MOD 2 = 0 THEN
           CONTINUE; // Пропускаем четные числа
-      END_IF
+      END_IF;
       r2 := r2 + counter; // Суммируем только нечетные
-  END_WHILE
+  END_WHILE;
 
   // ===== ТЕСТ: WHILE с EXIT =====
   counter := 0;
@@ -28,6 +28,6 @@ PROGRAM while_test
       counter := counter + 1;
       IF counter >= 7 THEN
           EXIT; // Выходим после 7 итераций
-      END_IF
-  END_WHILE
+      END_IF;
+  END_WHILE;
 END_PROGRAM

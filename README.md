@@ -12,7 +12,7 @@ Benchmark_lua_001-4       0.002826 ns/op  (x13)    // github.com/Shopify/go-lua
 Benchmark_expr_001-4      0.005552 ns/op  (x26)    // github.com/expr-lang/expr v1.17.5
 Benchmark_tengo_001-4     0.01662 ns/op   (x80)    // github.com/d5/tengo/v2
 ```
-Подробнее см: [bench/bench_test.go](https://github.com/slonegd/go-st/blob/main/bench/bench_test.go)
+Подробнее см: [bench/arithmetic_if/0_bench_test.go](https://github.com/slonegd/go-st/blob/main/bench/arithmetic_if/0_bench_test.go)
 
 ## Реализовано
 
