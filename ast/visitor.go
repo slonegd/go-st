@@ -23,6 +23,7 @@ type (
 		lastOp any
 		cycle  cycle
 		*ops.Placeholders
+		state string // для добавления имени функции/ФБ к имени их переменных
 	}
 	cycle struct {
 		condition *ops.Statement
@@ -37,6 +38,11 @@ func (x visitor) VisitGlobal_var_declaration(ctx *parser.Global_var_declarationC
 
 // VisitPou implements parser.STVisitor.
 func (x visitor) VisitPous(ctx *parser.PousContext) any {
+	// TODO пока не рассматриваю вариант, когда в функции вызывается другая функция
+	for _, p := range ctx.AllFunction_decl() {
+		p.Accept(x)
+
+	}
 	for _, p := range ctx.AllProgram() {
 		p.Accept(x)
 	}
@@ -288,13 +294,65 @@ func (x visitor) VisitFunction_block_decl(ctx *parser.Function_block_declContext
 
 // VisitFunction_decl implements parser.STVisitor.
 func (x visitor) VisitFunction_decl(ctx *parser.Function_declContext) any {
-	panic("unimplemented")
+	funcName := ctx.GetId().GetText() // TODO общий код с VisitVar_decl
+	valueType := ctx.GetResType().Accept(x).(string)
+	v := types.SetType(types.NewAnyVariable(""), types.TypeFromString(valueType))
+	x.vars[funcName] = v
+	f := function{
+		name: funcName,
+		args: nil,
+	}
+
+	x.state = funcName + "."
+	for _, a := range ctx.AllInput_decl() {
+		v := a.Accept(x).(funcArg)
+		f.args = append(f.args, v)
+	}
+
+	f.body = ctx.Statement_list().Accept(x).(*ops.Statement)
+
+	x.funcs[funcName] = f
+	return nil
 }
 
 // VisitFunction_invocation implements parser.STVisitor.
 func (x visitor) VisitFunction_invocation(ctx *parser.Function_invocationContext) any {
-	name := ctx.IDENTIFIER().GetText()
-	parts := strings.Split(name, "_TO_")
+	funcName := ctx.IDENTIFIER().GetText()
+	body := ops.Placeholder()
+	// собрать аргументы и положить в перменные
+	if f, ok := x.funcs[funcName]; ok {
+		for i, a := range ctx.GetArgs() {
+			expr := a.Accept(x)
+			arg := f.args[i]
+			varName := arg.name
+			v := x.vars[varName] // TODO вынести в common вместе с присвоением
+			switch expr := expr.(type) {
+			case ops.Int64:
+				if !expr.IsConstant {
+					x.CheckError(a, types.CheckAssign(v.Type(), expr.ResultType))
+				}
+				x.SetNextStatement(body, ops.Assign(ctx.CustomContext, varName, v, expr))
+			case ops.Float64:
+				if !expr.IsConstant {
+					x.CheckError(a, types.CheckAssign(v.Type(), expr.ResultType))
+				}
+				x.SetNextStatement(body, ops.Assign(ctx.CustomContext, varName, v, expr))
+			}
+		}
+		// вызвать тело функции, в ней результат будет лежать уже
+		x.SetNextStatement(body, f.body)
+		// вернуть переменную
+		v := x.vars[funcName]     // TODO вынести в common вместе с доступом к переменной?
+		if v.Type().IsInteger() { // TODO другие типы
+			return ops.StatementVariable[int64](ctx.CustomContext, body, funcName, v)
+		}
+		if v.Type().IsFloat() {
+			return ops.StatementVariable[float64](ctx.CustomContext, body, funcName, v)
+		}
+		return x.CheckError(ctx, fmt.Errorf("unimplemented type of variable in function call result: %v", v.Type()))
+	}
+
+	parts := strings.Split(funcName, "_TO_")
 	if len(parts) != 2 {
 		x.CheckError(ctx, errors.New("unknown function"))
 	}
@@ -360,7 +418,7 @@ func (x visitor) VisitIf_statement(ctx *parser.If_statementContext) any {
 
 // VisitInput_decl implements parser.STVisitor.
 func (x visitor) VisitInput_decl(ctx *parser.Input_declContext) any {
-	panic("unimplemented")
+	return ctx.Var_decl().Accept(x)
 }
 
 // VisitLiteral implements parser.STVisitor.
@@ -539,7 +597,7 @@ func (x visitor) VisitVarExpression(ctx *parser.VarExpressionContext) any {
 
 // VisitVar_decl implements parser.STVisitor.
 func (x visitor) VisitVar_decl(ctx *parser.Var_declContext) any {
-	varName := ctx.GetId().GetText()
+	varName := x.state + ctx.GetId().GetText()
 	var v types.Variable
 	if ctx := ctx.GetExpr(); ctx != nil {
 		switch op := ctx.Accept(x).(type) {
@@ -555,10 +613,11 @@ func (x visitor) VisitVar_decl(ctx *parser.Var_declContext) any {
 	} else {
 		v = types.NewAnyVariable("")
 	}
-	valueType := ctx.GetType_().Accept(x).(string)
-	v = types.SetType(v, types.TypeFromString(valueType))
+	tmp := ctx.GetType_().Accept(x).(string)
+	valueType := types.TypeFromString(tmp)
+	v = types.SetType(v, valueType)
 	x.vars[varName] = v
-	return x.lastOp
+	return funcArg{name: varName, type_: valueType}
 }
 
 // VisitVar_declaration_block implements parser.STVisitor.
@@ -571,7 +630,7 @@ func (x visitor) VisitVar_declaration_block(ctx *parser.Var_declaration_blockCon
 
 // VisitVariable implements parser.STVisitor.
 func (x visitor) VisitVariable(ctx *parser.VariableContext) any {
-	varName := ctx.GetName().GetText() // TODO там немного сложнее со структурами/массивами
+	varName := x.state + ctx.GetName().GetText() // TODO там немного сложнее со структурами/массивами
 	v := x.vars[varName]
 	if v.Type().IsInteger() { // TODO другие типы
 		return ops.Variable[int64](ctx.CustomContext, varName, v)

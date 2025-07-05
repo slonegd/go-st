@@ -1194,18 +1194,30 @@ type IFunction_declContext interface {
 	// GetParser returns the parser.
 	GetParser() antlr.Parser
 
+	// GetId returns the id token.
+	GetId() antlr.Token
+
+	// SetId sets the id token.
+	SetId(antlr.Token)
+
+	// GetResType returns the resType rule contexts.
+	GetResType() IData_typeContext
+
+	// SetResType sets the resType rule contexts.
+	SetResType(IData_typeContext)
+
 	// Getter signatures
 	FUNCTION() antlr.TerminalNode
-	IDENTIFIER() antlr.TerminalNode
 	Statement_list() IStatement_listContext
 	END_FUNCTION() antlr.TerminalNode
+	IDENTIFIER() antlr.TerminalNode
 	VAR_OUTPUT() antlr.TerminalNode
 	AllEND_VAR() []antlr.TerminalNode
 	END_VAR(i int) antlr.TerminalNode
 	VAR() antlr.TerminalNode
 	COLON() antlr.TerminalNode
-	Data_type() IData_typeContext
 	VAR_INPUT() antlr.TerminalNode
+	Data_type() IData_typeContext
 	AllOutput_decl() []IOutput_declContext
 	Output_decl(i int) IOutput_declContext
 	AllVar_decl() []IVar_declContext
@@ -1219,7 +1231,9 @@ type IFunction_declContext interface {
 
 type Function_declContext struct {
 	*CustomContext
-	parser antlr.Parser
+	parser  antlr.Parser
+	id      antlr.Token
+	resType IData_typeContext
 }
 
 func NewEmptyFunction_declContext() *Function_declContext {
@@ -1248,12 +1262,16 @@ func NewFunction_declContext(parser antlr.Parser, parent antlr.ParserRuleContext
 
 func (s *Function_declContext) GetParser() antlr.Parser { return s.parser }
 
+func (s *Function_declContext) GetId() antlr.Token { return s.id }
+
+func (s *Function_declContext) SetId(v antlr.Token) { s.id = v }
+
+func (s *Function_declContext) GetResType() IData_typeContext { return s.resType }
+
+func (s *Function_declContext) SetResType(v IData_typeContext) { s.resType = v }
+
 func (s *Function_declContext) FUNCTION() antlr.TerminalNode {
 	return s.GetToken(STParserFUNCTION, 0)
-}
-
-func (s *Function_declContext) IDENTIFIER() antlr.TerminalNode {
-	return s.GetToken(STParserIDENTIFIER, 0)
 }
 
 func (s *Function_declContext) Statement_list() IStatement_listContext {
@@ -1276,6 +1294,10 @@ func (s *Function_declContext) END_FUNCTION() antlr.TerminalNode {
 	return s.GetToken(STParserEND_FUNCTION, 0)
 }
 
+func (s *Function_declContext) IDENTIFIER() antlr.TerminalNode {
+	return s.GetToken(STParserIDENTIFIER, 0)
+}
+
 func (s *Function_declContext) VAR_OUTPUT() antlr.TerminalNode {
 	return s.GetToken(STParserVAR_OUTPUT, 0)
 }
@@ -1296,6 +1318,10 @@ func (s *Function_declContext) COLON() antlr.TerminalNode {
 	return s.GetToken(STParserCOLON, 0)
 }
 
+func (s *Function_declContext) VAR_INPUT() antlr.TerminalNode {
+	return s.GetToken(STParserVAR_INPUT, 0)
+}
+
 func (s *Function_declContext) Data_type() IData_typeContext {
 	var t antlr.RuleContext
 	for _, ctx := range s.GetChildren() {
@@ -1310,10 +1336,6 @@ func (s *Function_declContext) Data_type() IData_typeContext {
 	}
 
 	return t.(IData_typeContext)
-}
-
-func (s *Function_declContext) VAR_INPUT() antlr.TerminalNode {
-	return s.GetToken(STParserVAR_INPUT, 0)
 }
 
 func (s *Function_declContext) AllOutput_decl() []IOutput_declContext {
@@ -1473,7 +1495,10 @@ func (p *STParser) Function_decl() (localctx IFunction_declContext) {
 	}
 	{
 		p.SetState(132)
-		p.Match(STParserIDENTIFIER)
+
+		var _m = p.Match(STParserIDENTIFIER)
+
+		localctx.(*Function_declContext).id = _m
 		if p.HasError() {
 			// Recognition error - abort rule
 			goto errorExit
@@ -1498,7 +1523,10 @@ func (p *STParser) Function_decl() (localctx IFunction_declContext) {
 		}
 		{
 			p.SetState(134)
-			p.Data_type()
+
+			var _x = p.Data_type()
+
+			localctx.(*Function_declContext).resType = _x
 		}
 
 	}

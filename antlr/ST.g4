@@ -169,8 +169,8 @@ program
     ;
 
 function_decl
-    : FUNCTION IDENTIFIER 
-      ((':' data_type)? (VAR_INPUT input_decl* END_VAR)?)
+    : FUNCTION id=IDENTIFIER 
+      ((':' resType = data_type)? (VAR_INPUT input_decl* END_VAR)?)
       (VAR_OUTPUT output_decl* END_VAR)?
       (VAR var_decl* END_VAR)?
       statement_list

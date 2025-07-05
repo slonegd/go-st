@@ -145,6 +145,29 @@ func Variable[T OpTypes](ctx *parser.CustomContext, name string, variable types.
 	return op
 }
 
+// сначала выполняются инструкции, потом возвращается переменная
+func StatementVariable[T OpTypes](ctx *parser.CustomContext, stmt *Statement, name string, variable types.Variable) Op[T] {
+	v := (*T)(variable.Pointer())
+	op := Op[T]{
+		ResultType: variable.Type(),
+		ctx:        ctx,
+		snippet:    ctx.MakeSnippet(),
+		Do: func(*Statement) (T, *Statement) {
+			for _, s := stmt.Do(stmt); s != nil; _, s = s.Do(s) {
+			}
+			return *v, nil
+		},
+		DoDebug: func(*Statement) (T, *Statement) {
+			for _, s := stmt.DoDebug(stmt); s != nil; _, s = s.DoDebug(s) {
+			}
+			msg := fmt.Sprintf("%s:%v", name, *v)
+			ctx.Debug(ctx.MakeSnippet(), msg)
+			return *v, nil
+		},
+	}
+	return op
+}
+
 func Assign[T int64 | float64](ctx *parser.CustomContext, name string, v types.Variable, expr Op[T]) *Statement {
 	ctx.Name = name // добавляем для дебага
 	ops := map[types.Basic]func(v types.Variable, expr Op[T]) *Statement{

@@ -14,9 +14,21 @@ import (
 type (
 	AST struct {
 		source   source.Source
-		vars     map[string]types.Variable
+		vars     map[VarName]types.Variable
 		programs []*ops.Statement
+		funcs    map[FuncName]function
 		err      error
+	}
+	VarName  = string
+	FuncName = string
+	function struct {
+		name string
+		args []funcArg
+		body *ops.Statement
+	}
+	funcArg struct {
+		name  string
+		type_ types.Basic
 	}
 )
 
@@ -34,8 +46,12 @@ func Parse(script string) (x *AST, err error) {
 	x = &AST{
 		source: source.Source(script),
 		vars:   map[string]types.Variable{},
+		funcs:  make(map[FuncName]function),
 	}
-	visitor := &visitor{AST: x, Placeholders: ops.NewPlaceholders()}
+	visitor := &visitor{
+		AST:          x,
+		Placeholders: ops.NewPlaceholders(),
+	}
 	p.BaseRecognizer.AddErrorListener(visitor)
 	// выход из обхода дерева сделан через панику, поэтому ловим
 	defer func() {
