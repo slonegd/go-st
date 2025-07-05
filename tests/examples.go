@@ -25,6 +25,8 @@ var (
 	floats string
 	//go:embed 007_while.st
 	while string
+	//go:embed 008_func.st
+	function string
 )
 
 func main() {

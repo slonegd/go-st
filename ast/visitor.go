@@ -30,6 +30,29 @@ type (
 	}
 )
 
+// VisitGlobal_var_declaration implements parser.STVisitor.
+func (x visitor) VisitGlobal_var_declaration(ctx *parser.Global_var_declarationContext) any {
+	panic("unimplemented")
+}
+
+// VisitPou implements parser.STVisitor.
+func (x visitor) VisitPous(ctx *parser.PousContext) any {
+	for _, p := range ctx.AllProgram() {
+		p.Accept(x)
+	}
+	return nil
+}
+
+// VisitType_declaration implements parser.STVisitor.
+func (x visitor) VisitType_declaration(ctx *parser.Type_declarationContext) any {
+	panic("unimplemented")
+}
+
+// VisitType_definition implements parser.STVisitor.
+func (x visitor) VisitType_definition(ctx *parser.Type_definitionContext) any {
+	panic("unimplemented")
+}
+
 // Visit implements parser.STVisitor.
 func (x visitor) Visit(tree antlr.ParseTree) any {
 	return tree.Accept(x)
@@ -388,11 +411,11 @@ func (x visitor) VisitParenExpression(ctx *parser.ParenExpressionContext) any {
 
 // VisitProgram implements parser.STVisitor.
 func (x visitor) VisitProgram(ctx *parser.ProgramContext) any {
-	vars := ctx.GetVars()
-	if vars != nil {
-		vars.Accept(x)
+	for _, v := range ctx.GetVars() {
+		v.Accept(x)
 	}
-	return ctx.GetStmts().Accept(x).(*ops.Statement)
+	x.programs = append(x.programs, ctx.GetStmts().Accept(x).(*ops.Statement))
+	return nil
 }
 
 // VisitRepeat_statement implements parser.STVisitor.

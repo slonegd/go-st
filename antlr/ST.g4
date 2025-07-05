@@ -157,9 +157,13 @@ fragment MONTH     : [0-9]+;
 fragment DAY       : [0-9]+;
 
 // Парсер
+pous
+    : (program | function_decl | function_block_decl | type_declaration | global_var_declaration)* EOF 
+    ;
+
 program
     : PROGRAM id=IDENTIFIER 
-      (vars=var_declaration_block | function_decl | function_block_decl)* 
+      (vars+=var_declaration_block)* 
       stmts=statement_list
       END_PROGRAM
     ;
@@ -180,6 +184,18 @@ function_block_decl
       (VAR var_decl* END_VAR)?
       statement_list
       END_FUNCTION_BLOCK
+    ;
+
+type_declaration
+    : TYPE type_definition+ END_TYPE
+    ;
+
+type_definition
+    : IDENTIFIER ':' data_type SEMICOLON
+    ;
+
+global_var_declaration
+    : VAR_GLOBAL var_decl* END_VAR
     ;
 
 var_declaration_block

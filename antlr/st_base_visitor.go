@@ -8,6 +8,10 @@ type BaseSTVisitor struct {
 	*antlr.BaseParseTreeVisitor
 }
 
+func (v *BaseSTVisitor) VisitPous(ctx *PousContext) interface{} {
+	return v.VisitChildren(ctx)
+}
+
 func (v *BaseSTVisitor) VisitProgram(ctx *ProgramContext) interface{} {
 	return v.VisitChildren(ctx)
 }
@@ -17,6 +21,18 @@ func (v *BaseSTVisitor) VisitFunction_decl(ctx *Function_declContext) interface{
 }
 
 func (v *BaseSTVisitor) VisitFunction_block_decl(ctx *Function_block_declContext) interface{} {
+	return v.VisitChildren(ctx)
+}
+
+func (v *BaseSTVisitor) VisitType_declaration(ctx *Type_declarationContext) interface{} {
+	return v.VisitChildren(ctx)
+}
+
+func (v *BaseSTVisitor) VisitType_definition(ctx *Type_definitionContext) interface{} {
+	return v.VisitChildren(ctx)
+}
+
+func (v *BaseSTVisitor) VisitGlobal_var_declaration(ctx *Global_var_declarationContext) interface{} {
 	return v.VisitChildren(ctx)
 }
 

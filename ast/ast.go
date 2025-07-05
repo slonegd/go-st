@@ -15,7 +15,7 @@ type (
 	AST struct {
 		source   source.Source
 		vars     map[string]types.Variable
-		programm *ops.Statement
+		programs []*ops.Statement
 		err      error
 	}
 )
@@ -48,9 +48,9 @@ func Parse(script string) (x *AST, err error) {
 		}
 	}()
 
-	ctx := p.Program().(*parser.ProgramContext)
+	ctx := p.Pous().(*parser.PousContext)
 	ctx.Set(log{}, source.Source(script))
-	x.programm = ctx.Accept(visitor).(*ops.Statement)
+	ctx.Accept(visitor)
 
 	err = x.err
 
@@ -70,14 +70,15 @@ func (x *AST) GetVars() map[string]types.Variable {
 }
 
 func (x *AST) Execute() {
-	_, s := x.programm.Do(x.programm)
+	// TODO если несколько программ
+	_, s := x.programs[0].Do(x.programs[0])
 	for s != nil {
 		_, s = s.Do(s)
 	}
 }
 
 func (x *AST) ExecuteDebug() {
-	_, s := x.programm.DoDebug(x.programm)
+	_, s := x.programs[0].DoDebug(x.programs[0])
 	for s != nil {
 		_, s = s.DoDebug(s)
 	}

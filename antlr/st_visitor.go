@@ -8,6 +8,9 @@ import "github.com/antlr4-go/antlr/v4"
 type STVisitor interface {
 	antlr.ParseTreeVisitor
 
+	// Visit a parse tree produced by STParser#pous.
+	VisitPous(ctx *PousContext) interface{}
+
 	// Visit a parse tree produced by STParser#program.
 	VisitProgram(ctx *ProgramContext) interface{}
 
@@ -16,6 +19,15 @@ type STVisitor interface {
 
 	// Visit a parse tree produced by STParser#function_block_decl.
 	VisitFunction_block_decl(ctx *Function_block_declContext) interface{}
+
+	// Visit a parse tree produced by STParser#type_declaration.
+	VisitType_declaration(ctx *Type_declarationContext) interface{}
+
+	// Visit a parse tree produced by STParser#type_definition.
+	VisitType_definition(ctx *Type_definitionContext) interface{}
+
+	// Visit a parse tree produced by STParser#global_var_declaration.
+	VisitGlobal_var_declaration(ctx *Global_var_declarationContext) interface{}
 
 	// Visit a parse tree produced by STParser#var_declaration_block.
 	VisitVar_declaration_block(ctx *Var_declaration_blockContext) interface{}
