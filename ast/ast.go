@@ -23,12 +23,13 @@ type (
 	FuncName = string
 	function struct {
 		name string
-		args []funcArg
+		args []variable
 		body *ops.Statement
 	}
-	funcArg struct {
-		name  string
-		type_ types.Basic
+	variable struct {
+		name     string
+		type_    types.Basic
+		defaultV types.Variable
 	}
 )
 

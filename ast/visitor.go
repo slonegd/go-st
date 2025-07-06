@@ -91,7 +91,7 @@ func (x visitor) VisitArray_type_name(ctx *parser.Array_type_nameContext) any {
 
 // VisitAssignment_statement implements parser.STVisitor.
 func (x visitor) VisitAssignment_statement(ctx *parser.Assignment_statementContext) any {
-	varName := ctx.Variable().GetText() // TODO там правило немного сложнее
+	varName := x.state + ctx.Variable().GetText() // TODO там правило немного сложнее
 	v := x.vars[varName]
 
 	expr := ctx.Expression().Accept(x)
@@ -279,7 +279,101 @@ func (x visitor) VisitExit_statement(ctx *parser.Exit_statementContext) any {
 
 // VisitFor_statement implements parser.STVisitor.
 func (x visitor) VisitFor_statement(ctx *parser.For_statementContext) any {
-	panic("unimplemented")
+	result := ops.Placeholder()
+	// стартовое состояние
+	name := x.state + ctx.IDENTIFIER().GetText()
+	v := x.vars[name] // TODO переменная и шаг могут быть только целочисленными!
+	start := ctx.GetStart_().Accept(x)
+	switch expr := start.(type) {
+	case ops.Int64:
+		if !expr.IsConstant {
+			x.CheckError(ctx.GetStart_(), types.CheckAssign(v.Type(), expr.ResultType))
+		}
+		x.SetNextStatement(result, ops.Assign(ctx.CustomContext, name, v, expr)) // TODO не тот контекст
+	case ops.Float64:
+		if !expr.IsConstant {
+			x.CheckError(ctx.GetStart_(), types.CheckAssign(v.Type(), expr.ResultType))
+		}
+		x.SetNextStatement(result, ops.Assign(ctx.CustomContext, name, v, expr))
+	default:
+		return x.CheckError(ctx, fmt.Errorf("undefined operator in assign statement: %+v", start))
+	}
+	// конечное значение
+	end := ctx.GetEnd().Accept(x)
+	endV := types.IntVariable(0)
+	endName := "_end_" + name
+	x.vars[endName] = endV
+	switch expr := end.(type) {
+	case ops.Int64:
+		if !expr.IsConstant {
+			x.CheckError(ctx.GetStart_(), types.CheckAssign(endV.Type(), expr.ResultType))
+		}
+		x.SetNextStatement(result, ops.Assign(ctx.CustomContext, endName, endV, expr)) // TODO не тот контекст
+	case ops.Float64:
+		if !expr.IsConstant {
+			x.CheckError(ctx.GetStart_(), types.CheckAssign(endV.Type(), expr.ResultType))
+		}
+		x.SetNextStatement(result, ops.Assign(ctx.CustomContext, endName, endV, expr))
+	default:
+		return x.CheckError(ctx, fmt.Errorf("undefined operator in assign statement: %+v", end))
+	}
+
+	// шаг
+	stepV := types.IntVariable(1)
+	stepName := "_step_" + name
+	x.vars[stepName] = stepV
+	if stepCtx := ctx.GetStep(); stepCtx != nil {
+		step := stepCtx.Accept(x)
+		switch expr := step.(type) {
+		case ops.Int64:
+			if !expr.IsConstant {
+				x.CheckError(ctx.GetStart_(), types.CheckAssign(stepV.Type(), expr.ResultType))
+			}
+			x.SetNextStatement(result, ops.Assign(ctx.CustomContext, stepName, stepV, expr)) // TODO не тот контекст
+		case ops.Float64:
+			if !expr.IsConstant {
+				x.CheckError(ctx.GetStart_(), types.CheckAssign(stepV.Type(), expr.ResultType))
+			}
+			x.SetNextStatement(result, ops.Assign(ctx.CustomContext, stepName, stepV, expr))
+		default:
+			return x.CheckError(ctx, fmt.Errorf("undefined operator in assign statement: %+v", end))
+		}
+	} else {
+		x.SetNextStatement(result, ops.Assign(ctx.CustomContext, stepName, stepV, ops.Constant(int64(1))))
+	}
+
+	// TODO само условие выхода зависит от того положительный шаг или нет
+	// пока только положительный делаю
+	condition := ops.Compare(
+		ctx.CustomContext,
+		ops.Lte,
+		ops.Variable[int64](ctx.CustomContext, name, v),
+		ops.Variable[int64](ctx.CustomContext, endName, endV),
+		types.LINT,
+	)
+
+	// сам цикл
+	body := ops.Placeholder()
+	condOp := ops.IfTrue(ctx.CustomContext, condition, body)
+	x.SetNextStatement(result, condOp)
+	x.cycle.condition = condOp
+	x.cycle.out = x.SetNextStatement(condOp, ops.Placeholder())
+	// Accept выполняется после, так как ему нужен x.cycle
+	x.SetNextStatement(body, ctx.Statement_list().Accept(x).(*ops.Statement))
+	x.SetNextStatement(body, ops.Assign(
+		ctx.CustomContext,
+		name,
+		v,
+		ops.Arithmetic[int64](
+			ctx.CustomContext,
+			ops.Plus,
+			ops.Variable[int64](ctx.CustomContext, name, v),
+			ops.Variable[int64](ctx.CustomContext, stepName, stepV),
+			v.Type(),
+		),
+	))
+	x.SetNextStatement(body, condOp) // зацикливание на условии
+	return result
 }
 
 // VisitFuncCallExpression implements parser.STVisitor.
@@ -298,6 +392,7 @@ func (x visitor) VisitFunction_decl(ctx *parser.Function_declContext) any {
 	valueType := ctx.GetResType().Accept(x).(string)
 	v := types.SetType(types.NewAnyVariable(""), types.TypeFromString(valueType))
 	x.vars[funcName] = v
+	x.vars[funcName+"."+funcName] = v // TODO пока проще так (обращение к результату по имени функции внутри функции)
 	f := function{
 		name: funcName,
 		args: nil,
@@ -305,11 +400,23 @@ func (x visitor) VisitFunction_decl(ctx *parser.Function_declContext) any {
 
 	x.state = funcName + "."
 	for _, a := range ctx.AllInput_decl() {
-		v := a.Accept(x).(funcArg)
+		v := a.Accept(x).(variable)
 		f.args = append(f.args, v)
 	}
 
-	f.body = ctx.Statement_list().Accept(x).(*ops.Statement)
+	body := ops.Placeholder()
+	for _, a := range ctx.AllVar_decl() {
+		v := a.Accept(x).(variable)
+		x.SetNextStatement(body, ops.Assign(
+			ctx.CustomContext,
+			v.name,
+			x.vars[v.name],
+			ops.Constant(v.defaultV.Int()), // TODO другие типы
+		))
+	}
+
+	x.SetNextStatement(body, ctx.Statement_list().Accept(x).(*ops.Statement))
+	f.body = body
 
 	x.funcs[funcName] = f
 	return nil
@@ -598,15 +705,21 @@ func (x visitor) VisitVarExpression(ctx *parser.VarExpressionContext) any {
 // VisitVar_decl implements parser.STVisitor.
 func (x visitor) VisitVar_decl(ctx *parser.Var_declContext) any {
 	varName := x.state + ctx.GetId().GetText()
+	variable := variable{
+		name:     varName,
+		defaultV: types.NewAnyVariable(""),
+	}
 	var v types.Variable
 	if ctx := ctx.GetExpr(); ctx != nil {
 		switch op := ctx.Accept(x).(type) {
 		case ops.Int64:
 			tmp, _ := op.Do(nil)
 			v = types.IntVariable(tmp)
+			variable.defaultV = v
 		case ops.Float64:
 			tmp, _ := op.Do(nil)
 			v = types.Float64Variable(tmp)
+			variable.defaultV = v
 		default:
 			return x.CheckError(ctx, fmt.Errorf("unknown data type %T(%v)", op, op))
 		}
@@ -615,9 +728,10 @@ func (x visitor) VisitVar_decl(ctx *parser.Var_declContext) any {
 	}
 	tmp := ctx.GetType_().Accept(x).(string)
 	valueType := types.TypeFromString(tmp)
-	v = types.SetType(v, valueType)
-	x.vars[varName] = v
-	return funcArg{name: varName, type_: valueType}
+	variable.type_ = valueType
+	variable.defaultV = types.SetType(variable.defaultV, valueType)
+	x.vars[varName] = types.SetType(variable.defaultV, valueType)
+	return variable
 }
 
 // VisitVar_declaration_block implements parser.STVisitor.

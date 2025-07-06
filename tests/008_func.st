@@ -1,13 +1,15 @@
 PROGRAM FunctionTest
   VAR
-    in        : INT := 0;
-    square    : INT := 0;
-    factorial : INT := 0;
+    in         : INT;
+    square     : INT;
+    factorial  : INT;
+    factorial6 : INT;
   END_VAR
 
   in := 5;
   square := Square(in);
-  // factorial := Factorial(in);
+  factorial := Factorial(in);
+  factorial6 := Factorial(6);
 END_PROGRAM
 
 // Функция вычисления квадрата числа
@@ -33,16 +35,16 @@ END_FUNCTION
 //     END_IF
 // END_FUNCTION
 
-// FUNCTION Factorial : INT
-// VAR_INPUT
-//     n : INT;
-// END_VAR
-// VAR
-//     result : INT := 1;
-//     i : INT;
-// END_VAR
-//     FOR i := 1 TO n BY 1 DO
-//         result := result * i;
-//     END_FOR
-//     Factorial := result;
-// END_FUNCTION
+FUNCTION Factorial : INT
+VAR_INPUT
+    n : INT;
+END_VAR
+VAR
+    result : INT := 1;
+    i : INT;
+END_VAR
+    FOR i := 1 TO n BY 1 DO
+        result := result * i;
+    END_FOR
+    Factorial := result;
+END_FUNCTION

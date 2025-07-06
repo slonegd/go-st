@@ -282,8 +282,8 @@ case_label
     ;
 
 for_statement
-    : FOR IDENTIFIER ASSIGN expression TO expression (BY expression)? 
-      DO statement_list 
+    : FOR IDENTIFIER ASSIGN start=expression TO end=expression (BY step=expression)? 
+      DO body=statement_list 
       END_FOR
     ;
 

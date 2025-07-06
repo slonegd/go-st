@@ -5724,16 +5724,40 @@ type IFor_statementContext interface {
 	// GetParser returns the parser.
 	GetParser() antlr.Parser
 
+	// GetStart_ returns the start_ rule contexts.
+	GetStart_() IExpressionContext
+
+	// GetEnd returns the end rule contexts.
+	GetEnd() IExpressionContext
+
+	// GetStep returns the step rule contexts.
+	GetStep() IExpressionContext
+
+	// GetBody returns the body rule contexts.
+	GetBody() IStatement_listContext
+
+	// SetStart_ sets the start_ rule contexts.
+	SetStart_(IExpressionContext)
+
+	// SetEnd sets the end rule contexts.
+	SetEnd(IExpressionContext)
+
+	// SetStep sets the step rule contexts.
+	SetStep(IExpressionContext)
+
+	// SetBody sets the body rule contexts.
+	SetBody(IStatement_listContext)
+
 	// Getter signatures
 	FOR() antlr.TerminalNode
 	IDENTIFIER() antlr.TerminalNode
 	ASSIGN() antlr.TerminalNode
-	AllExpression() []IExpressionContext
-	Expression(i int) IExpressionContext
 	TO() antlr.TerminalNode
 	DO() antlr.TerminalNode
-	Statement_list() IStatement_listContext
 	END_FOR() antlr.TerminalNode
+	AllExpression() []IExpressionContext
+	Expression(i int) IExpressionContext
+	Statement_list() IStatement_listContext
 	BY() antlr.TerminalNode
 
 	// IsFor_statementContext differentiates from other interfaces.
@@ -5743,6 +5767,10 @@ type IFor_statementContext interface {
 type For_statementContext struct {
 	*CustomContext
 	parser antlr.Parser
+	start_ IExpressionContext
+	end    IExpressionContext
+	step   IExpressionContext
+	body   IStatement_listContext
 }
 
 func NewEmptyFor_statementContext() *For_statementContext {
@@ -5771,6 +5799,22 @@ func NewFor_statementContext(parser antlr.Parser, parent antlr.ParserRuleContext
 
 func (s *For_statementContext) GetParser() antlr.Parser { return s.parser }
 
+func (s *For_statementContext) GetStart_() IExpressionContext { return s.start_ }
+
+func (s *For_statementContext) GetEnd() IExpressionContext { return s.end }
+
+func (s *For_statementContext) GetStep() IExpressionContext { return s.step }
+
+func (s *For_statementContext) GetBody() IStatement_listContext { return s.body }
+
+func (s *For_statementContext) SetStart_(v IExpressionContext) { s.start_ = v }
+
+func (s *For_statementContext) SetEnd(v IExpressionContext) { s.end = v }
+
+func (s *For_statementContext) SetStep(v IExpressionContext) { s.step = v }
+
+func (s *For_statementContext) SetBody(v IStatement_listContext) { s.body = v }
+
 func (s *For_statementContext) FOR() antlr.TerminalNode {
 	return s.GetToken(STParserFOR, 0)
 }
@@ -5781,6 +5825,18 @@ func (s *For_statementContext) IDENTIFIER() antlr.TerminalNode {
 
 func (s *For_statementContext) ASSIGN() antlr.TerminalNode {
 	return s.GetToken(STParserASSIGN, 0)
+}
+
+func (s *For_statementContext) TO() antlr.TerminalNode {
+	return s.GetToken(STParserTO, 0)
+}
+
+func (s *For_statementContext) DO() antlr.TerminalNode {
+	return s.GetToken(STParserDO, 0)
+}
+
+func (s *For_statementContext) END_FOR() antlr.TerminalNode {
+	return s.GetToken(STParserEND_FOR, 0)
 }
 
 func (s *For_statementContext) AllExpression() []IExpressionContext {
@@ -5824,14 +5880,6 @@ func (s *For_statementContext) Expression(i int) IExpressionContext {
 	return t.(IExpressionContext)
 }
 
-func (s *For_statementContext) TO() antlr.TerminalNode {
-	return s.GetToken(STParserTO, 0)
-}
-
-func (s *For_statementContext) DO() antlr.TerminalNode {
-	return s.GetToken(STParserDO, 0)
-}
-
 func (s *For_statementContext) Statement_list() IStatement_listContext {
 	var t antlr.RuleContext
 	for _, ctx := range s.GetChildren() {
@@ -5846,10 +5894,6 @@ func (s *For_statementContext) Statement_list() IStatement_listContext {
 	}
 
 	return t.(IStatement_listContext)
-}
-
-func (s *For_statementContext) END_FOR() antlr.TerminalNode {
-	return s.GetToken(STParserEND_FOR, 0)
 }
 
 func (s *For_statementContext) BY() antlr.TerminalNode {
@@ -5906,7 +5950,10 @@ func (p *STParser) For_statement() (localctx IFor_statementContext) {
 	}
 	{
 		p.SetState(386)
-		p.expression(0)
+
+		var _x = p.expression(0)
+
+		localctx.(*For_statementContext).start_ = _x
 	}
 	{
 		p.SetState(387)
@@ -5918,7 +5965,10 @@ func (p *STParser) For_statement() (localctx IFor_statementContext) {
 	}
 	{
 		p.SetState(388)
-		p.expression(0)
+
+		var _x = p.expression(0)
+
+		localctx.(*For_statementContext).end = _x
 	}
 	p.SetState(391)
 	p.GetErrorHandler().Sync(p)
@@ -5938,7 +5988,10 @@ func (p *STParser) For_statement() (localctx IFor_statementContext) {
 		}
 		{
 			p.SetState(390)
-			p.expression(0)
+
+			var _x = p.expression(0)
+
+			localctx.(*For_statementContext).step = _x
 		}
 
 	}
@@ -5952,7 +6005,10 @@ func (p *STParser) For_statement() (localctx IFor_statementContext) {
 	}
 	{
 		p.SetState(394)
-		p.Statement_list()
+
+		var _x = p.Statement_list()
+
+		localctx.(*For_statementContext).body = _x
 	}
 	{
 		p.SetState(395)

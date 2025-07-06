@@ -16,6 +16,7 @@ func (x Source) PositionSnippet(position, offset int) string {
 }
 
 // offset - доп строки до и после для контекста
+// TODO смещение номера строки по всему коду, чтоб не прыгал во время дебага (по номеру последней строки)
 func (x Source) Snippet(line, column, offset int) string {
 	lines, messageLine, ok := x.findLines(line, offset)
 	if !ok {
