@@ -69,14 +69,16 @@ func NewPlaceholders() *Placeholders {
 
 // возвращает указатель на последний вставленный Statement
 // может отличаться от next, когда происходит замена плейсхолдера
-func (x *Placeholders) SetNextStatement(dest, next *Statement) *Statement {
-	if dest.isPlaceholder {
+// так как плейсхолдера обычно используется для связи с другими узлами и его указатель менять нелья
+// меняется только содержимое по указателю, и возвращается этот неизменённый указатель
+func (x *Placeholders) AddToStatementChain(chain, next *Statement) *Statement {
+	if chain.isPlaceholder {
 		// замена плейсхолдера на реальный Statement
-		*dest = *next
-		return dest
+		*chain = *next
+		return chain
 	}
 	// TODO замена плейсхолдера на другой плейсхолдер?
-	for s := dest; ; s = s.nextStatement {
+	for s := chain; ; s = s.nextStatement {
 
 		if s.nextStatement == nil {
 			s.nextStatement = next
@@ -168,7 +170,52 @@ func StatementVariable[T OpTypes](ctx *parser.CustomContext, stmt *Statement, na
 	return op
 }
 
-func Assign[T int64 | float64](ctx *parser.CustomContext, name string, v types.Variable, expr Op[T]) *Statement {
+type (
+	AssignExpr interface {
+		Type() types.Basic
+		IsConstant() bool
+		IsAssignExpr()
+	}
+	AssignInt64   struct{ Int64 }
+	AssignFloat64 struct{ Float64 }
+)
+
+// IsAssignExpr implements AssignExpr.
+func (a AssignInt64) IsAssignExpr()       {}
+func (a AssignInt64) Type() types.Basic   { return a.ResultType }
+func (a AssignInt64) IsConstant() bool    { return a.Int64.IsConstant }
+func (a AssignFloat64) IsAssignExpr()     {}
+func (a AssignFloat64) Type() types.Basic { return a.ResultType }
+func (a AssignFloat64) IsConstant() bool  { return a.Float64.IsConstant }
+
+var (
+	_ AssignExpr = AssignInt64{}
+	_ AssignExpr = AssignFloat64{}
+)
+
+func MakeAssignExpr(v any) AssignExpr {
+	switch v := v.(type) {
+	case Int64:
+		return AssignInt64{v}
+	case Float64:
+		return AssignFloat64{v}
+	default:
+		return nil
+	}
+}
+
+func Assign(ctx *parser.CustomContext, name string, v types.Variable, expr AssignExpr) *Statement {
+	switch e := expr.(type) {
+	case AssignInt64:
+		return assignTable(ctx, name, v, e.Int64)
+	case AssignFloat64:
+		return assignTable(ctx, name, v, e.Float64)
+	default:
+		return nil
+	}
+}
+
+func assignTable[T int64 | float64](ctx *parser.CustomContext, name string, v types.Variable, expr Op[T]) *Statement {
 	ctx.Name = name // добавляем для дебага
 	ops := map[types.Basic]func(v types.Variable, expr Op[T]) *Statement{
 		types.SINT:  func(v types.Variable, expr Op[T]) *Statement { return assign[int8](ctx, v, expr) },

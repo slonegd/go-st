@@ -95,19 +95,14 @@ func (x visitor) VisitAssignment_statement(ctx *parser.Assignment_statementConte
 	v := x.vars[varName]
 
 	expr := ctx.Expression().Accept(x)
-	switch expr := expr.(type) {
-	case ops.Int64:
-		if !expr.IsConstant {
-			x.CheckError(ctx, types.CheckAssign(v.Type(), expr.ResultType))
-		}
-		return ops.Assign(ctx.CustomContext, varName, v, expr)
-	case ops.Float64:
-		if !expr.IsConstant {
-			x.CheckError(ctx, types.CheckAssign(v.Type(), expr.ResultType))
-		}
-		return ops.Assign(ctx.CustomContext, varName, v, expr)
+	assignExpr := ops.MakeAssignExpr(expr)
+	if assignExpr == nil {
+		return x.CheckError(ctx, fmt.Errorf("unimplemented assign expression from: %+v", expr))
 	}
-	return x.CheckError(ctx, fmt.Errorf("undefined operator in assign statement: %+v", expr))
+	if !assignExpr.IsConstant() {
+		x.CheckError(ctx.Expression(), types.CheckAssign(v.Type(), assignExpr.Type()))
+	}
+	return ops.Assign(ctx.CustomContext, varName, v, assignExpr)
 }
 
 // VisitBinaryExpression implements parser.STVisitor.
@@ -280,66 +275,52 @@ func (x visitor) VisitExit_statement(ctx *parser.Exit_statementContext) any {
 // VisitFor_statement implements parser.STVisitor.
 func (x visitor) VisitFor_statement(ctx *parser.For_statementContext) any {
 	result := ops.Placeholder()
+
 	// стартовое состояние
 	name := x.state + ctx.IDENTIFIER().GetText()
-	v := x.vars[name] // TODO переменная и шаг могут быть только целочисленными!
+	v := x.vars[name]
 	start := ctx.GetStart_().Accept(x)
-	switch expr := start.(type) {
-	case ops.Int64:
-		if !expr.IsConstant {
-			x.CheckError(ctx.GetStart_(), types.CheckAssign(v.Type(), expr.ResultType))
-		}
-		x.SetNextStatement(result, ops.Assign(ctx.CustomContext, name, v, expr)) // TODO не тот контекст
-	case ops.Float64:
-		if !expr.IsConstant {
-			x.CheckError(ctx.GetStart_(), types.CheckAssign(v.Type(), expr.ResultType))
-		}
-		x.SetNextStatement(result, ops.Assign(ctx.CustomContext, name, v, expr))
-	default:
-		return x.CheckError(ctx, fmt.Errorf("undefined operator in assign statement: %+v", start))
+	assignExpr := ops.MakeAssignExpr(start)
+	if assignExpr == nil {
+		return x.CheckError(ctx, fmt.Errorf("unimplemented assign expression from: %+v", start))
 	}
+	if !assignExpr.IsConstant() {
+		x.CheckError(ctx.GetStart_(), types.CheckAssign(v.Type(), assignExpr.Type()))
+	}
+	x.AddToStatementChain(result, ops.Assign(ctx.CustomContext, name, v, assignExpr))
+
 	// конечное значение
-	end := ctx.GetEnd().Accept(x)
-	endV := types.IntVariable(0)
+	endV := types.SetType(types.IntVariable(0), v.Type())
 	endName := "_end_" + name
 	x.vars[endName] = endV
-	switch expr := end.(type) {
-	case ops.Int64:
-		if !expr.IsConstant {
-			x.CheckError(ctx.GetStart_(), types.CheckAssign(endV.Type(), expr.ResultType))
-		}
-		x.SetNextStatement(result, ops.Assign(ctx.CustomContext, endName, endV, expr)) // TODO не тот контекст
-	case ops.Float64:
-		if !expr.IsConstant {
-			x.CheckError(ctx.GetStart_(), types.CheckAssign(endV.Type(), expr.ResultType))
-		}
-		x.SetNextStatement(result, ops.Assign(ctx.CustomContext, endName, endV, expr))
-	default:
-		return x.CheckError(ctx, fmt.Errorf("undefined operator in assign statement: %+v", end))
+	end := ctx.GetEnd().Accept(x)
+	assignExpr = ops.MakeAssignExpr(end)
+	if assignExpr == nil {
+		return x.CheckError(ctx, fmt.Errorf("unimplemented assign expression from: %+v", start))
 	}
+	if !assignExpr.IsConstant() {
+		x.CheckError(ctx.GetEnd(), types.CheckAssign(endV.Type(), assignExpr.Type()))
+	}
+	// TODO не тот контекст (проверить в дебаге)
+	x.AddToStatementChain(result, ops.Assign(ctx.CustomContext, endName, endV, assignExpr))
 
 	// шаг
-	stepV := types.IntVariable(1)
+	stepV := types.SetType(types.IntVariable(1), v.Type())
 	stepName := "_step_" + name
-	x.vars[stepName] = stepV
+	x.vars[endName] = endV
 	if stepCtx := ctx.GetStep(); stepCtx != nil {
 		step := stepCtx.Accept(x)
-		switch expr := step.(type) {
-		case ops.Int64:
-			if !expr.IsConstant {
-				x.CheckError(ctx.GetStart_(), types.CheckAssign(stepV.Type(), expr.ResultType))
-			}
-			x.SetNextStatement(result, ops.Assign(ctx.CustomContext, stepName, stepV, expr)) // TODO не тот контекст
-		case ops.Float64:
-			if !expr.IsConstant {
-				x.CheckError(ctx.GetStart_(), types.CheckAssign(stepV.Type(), expr.ResultType))
-			}
-			x.SetNextStatement(result, ops.Assign(ctx.CustomContext, stepName, stepV, expr))
-		default:
-			return x.CheckError(ctx, fmt.Errorf("undefined operator in assign statement: %+v", end))
+		assignExpr = ops.MakeAssignExpr(step)
+		if assignExpr == nil {
+			return x.CheckError(ctx, fmt.Errorf("unimplemented assign expression from: %+v", start))
 		}
+		if !assignExpr.IsConstant() {
+			x.CheckError(ctx.GetEnd(), types.CheckAssign(stepV.Type(), assignExpr.Type()))
+		}
+		x.AddToStatementChain(result, ops.Assign(ctx.CustomContext, stepName, stepV, assignExpr))
 	} else {
-		x.SetNextStatement(result, ops.Assign(ctx.CustomContext, stepName, stepV, ops.Constant(int64(1))))
+		assignExpr := ops.MakeAssignExpr(ops.Constant(int64(1)))
+		x.AddToStatementChain(result, ops.Assign(ctx.CustomContext, stepName, stepV, assignExpr))
 	}
 
 	// TODO само условие выхода зависит от того положительный шаг или нет
@@ -355,24 +336,25 @@ func (x visitor) VisitFor_statement(ctx *parser.For_statementContext) any {
 	// сам цикл
 	body := ops.Placeholder()
 	condOp := ops.IfTrue(ctx.CustomContext, condition, body)
-	x.SetNextStatement(result, condOp)
+	x.AddToStatementChain(result, condOp)
 	x.cycle.condition = condOp
-	x.cycle.out = x.SetNextStatement(condOp, ops.Placeholder())
+	x.cycle.out = x.AddToStatementChain(condOp, ops.Placeholder())
 	// Accept выполняется после, так как ему нужен x.cycle
-	x.SetNextStatement(body, ctx.Statement_list().Accept(x).(*ops.Statement))
-	x.SetNextStatement(body, ops.Assign(
+	x.AddToStatementChain(body, ctx.Statement_list().Accept(x).(*ops.Statement))
+	stepOp := ops.Arithmetic[int64](
+		ctx.CustomContext,
+		ops.Plus,
+		ops.Variable[int64](ctx.CustomContext, name, v),
+		ops.Variable[int64](ctx.CustomContext, stepName, stepV),
+		v.Type(),
+	)
+	x.AddToStatementChain(body, ops.Assign(
 		ctx.CustomContext,
 		name,
 		v,
-		ops.Arithmetic[int64](
-			ctx.CustomContext,
-			ops.Plus,
-			ops.Variable[int64](ctx.CustomContext, name, v),
-			ops.Variable[int64](ctx.CustomContext, stepName, stepV),
-			v.Type(),
-		),
+		ops.MakeAssignExpr(stepOp),
 	))
-	x.SetNextStatement(body, condOp) // зацикливание на условии
+	x.AddToStatementChain(body, condOp) // зацикливание на условии
 	return result
 }
 
@@ -407,15 +389,11 @@ func (x visitor) VisitFunction_decl(ctx *parser.Function_declContext) any {
 	body := ops.Placeholder()
 	for _, a := range ctx.AllVar_decl() {
 		v := a.Accept(x).(variable)
-		x.SetNextStatement(body, ops.Assign(
-			ctx.CustomContext,
-			v.name,
-			x.vars[v.name],
-			ops.Constant(v.defaultV.Int()), // TODO другие типы
-		))
+		expr := ops.MakeAssignExpr(ops.Constant(v.defaultV.Int())) // TODO другие типы
+		x.AddToStatementChain(body, ops.Assign(ctx.CustomContext, v.name, x.vars[v.name], expr))
 	}
 
-	x.SetNextStatement(body, ctx.Statement_list().Accept(x).(*ops.Statement))
+	x.AddToStatementChain(body, ctx.Statement_list().Accept(x).(*ops.Statement))
 	f.body = body
 
 	x.funcs[funcName] = f
@@ -428,26 +406,25 @@ func (x visitor) VisitFunction_invocation(ctx *parser.Function_invocationContext
 	body := ops.Placeholder()
 	// собрать аргументы и положить в перменные
 	if f, ok := x.funcs[funcName]; ok {
+		// присвоить аргументы функции
+		// TODO проверка на количество
 		for i, a := range ctx.GetArgs() {
-			expr := a.Accept(x)
 			arg := f.args[i]
 			varName := arg.name
-			v := x.vars[varName] // TODO вынести в common вместе с присвоением
-			switch expr := expr.(type) {
-			case ops.Int64:
-				if !expr.IsConstant {
-					x.CheckError(a, types.CheckAssign(v.Type(), expr.ResultType))
-				}
-				x.SetNextStatement(body, ops.Assign(ctx.CustomContext, varName, v, expr))
-			case ops.Float64:
-				if !expr.IsConstant {
-					x.CheckError(a, types.CheckAssign(v.Type(), expr.ResultType))
-				}
-				x.SetNextStatement(body, ops.Assign(ctx.CustomContext, varName, v, expr))
+			v := x.vars[varName]
+			expr := a.Accept(x)
+			assignExpr := ops.MakeAssignExpr(expr)
+			if assignExpr == nil {
+				return x.CheckError(ctx, fmt.Errorf("unimplemented assign expression from: %+v", expr))
 			}
+			if !assignExpr.IsConstant() {
+				x.CheckError(a, types.CheckAssign(v.Type(), assignExpr.Type()))
+			}
+			x.AddToStatementChain(body, ops.Assign(ctx.CustomContext, varName, v, assignExpr))
 		}
+
 		// вызвать тело функции, в ней результат будет лежать уже
-		x.SetNextStatement(body, f.body)
+		x.AddToStatementChain(body, f.body)
 		// вернуть переменную
 		v := x.vars[funcName]     // TODO вынести в common вместе с доступом к переменной?
 		if v.Type().IsInteger() { // TODO другие типы
@@ -503,22 +480,22 @@ func (x visitor) VisitIf_statement(ctx *parser.If_statementContext) any {
 	for i := range conditions {
 		cond := conditions[i].Accept(x).(ops.Bool)
 		body := thens[i].Accept(x).(*ops.Statement)
-		x.SetNextStatement(body, out)
+		x.AddToStatementChain(body, out)
 		prevIf := lastIf
 		lastIf = ops.IfTrue(ctx.CustomContext, cond, body)
 		if prevIf == nil {
 			enterOp = lastIf
 			continue
 		}
-		x.SetNextStatement(prevIf, lastIf)
+		x.AddToStatementChain(prevIf, lastIf)
 	}
 	if ctx.GetElse_() != nil {
 		// else добаляется в конец последнего if
 		s := ctx.GetElse_().Accept(x).(*ops.Statement)
-		x.SetNextStatement(lastIf, s)
-		x.SetNextStatement(s, out)
+		x.AddToStatementChain(lastIf, s)
+		x.AddToStatementChain(s, out)
 	} else {
-		x.SetNextStatement(lastIf, out)
+		x.AddToStatementChain(lastIf, out)
 	}
 	return enterOp
 }
@@ -623,7 +600,7 @@ func (x visitor) VisitStatement_list(ctx *parser.Statement_listContext) any {
 			next = tmp
 			continue
 		}
-		next = x.SetNextStatement(next, tmp)
+		next = x.AddToStatementChain(next, tmp)
 	}
 	return r
 }
@@ -766,10 +743,10 @@ func (x visitor) VisitWhile_statement(ctx *parser.While_statementContext) any {
 	body := ops.Placeholder()
 	condOp := ops.IfTrue(ctx.CustomContext, condition, body)
 	x.cycle.condition = condOp
-	x.cycle.out = x.SetNextStatement(condOp, ops.Placeholder())
+	x.cycle.out = x.AddToStatementChain(condOp, ops.Placeholder())
 	// Accept выполняется после, так как ему нужен x.cycle
-	x.SetNextStatement(body, ctx.Statement_list().Accept(x).(*ops.Statement))
-	x.SetNextStatement(body, condOp) // зацикливание на условии
+	x.AddToStatementChain(body, ctx.Statement_list().Accept(x).(*ops.Statement))
+	x.AddToStatementChain(body, condOp) // зацикливание на условии
 	return condOp
 }
 
