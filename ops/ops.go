@@ -36,6 +36,7 @@ type (
 	Int64        = Op[int64]
 	Bool         = Op[bool]
 	Float64      = Op[float64]
+	String       = Op[string]
 	Any          interface {
 		Statement | Int64 | Float64 | Bool
 	}
@@ -52,7 +53,69 @@ type (
 	Number interface {
 		constraints.Integer | constraints.Float
 	}
+	Expr interface {
+		Type() types.Basic
+		IsConstant() bool
+		IsExpr()
+	}
+	ExprNumber interface {
+		Expr
+		IsNumber()
+	}
+	ExprInt64   struct{ Int64 }
+	ExprFloat64 struct{ Float64 }
+	ExprBool    struct{ Bool }
+	ExprString  struct{ String }
 )
+
+var (
+	_ Expr       = ExprInt64{}
+	_ Expr       = ExprFloat64{}
+	_ Expr       = ExprBool{}
+	_ Expr       = ExprString{}
+	_ ExprNumber = ExprInt64{}
+	_ ExprNumber = ExprFloat64{}
+)
+
+func MakeExpr(v any) (Expr, error) {
+	switch v := v.(type) {
+	case Int64:
+		return ExprInt64{v}, nil
+	case Float64:
+		return ExprFloat64{v}, nil
+	case String:
+		return ExprString{v}, nil
+	case Bool:
+		return ExprBool{v}, nil
+	default:
+		return nil, fmt.Errorf("unexpected type for make expression: %T", v)
+	}
+}
+func MakeExprNumber(v any) (ExprNumber, error) {
+	switch v := v.(type) {
+	case Int64:
+		return ExprInt64{v}, nil
+	case Float64:
+		return ExprFloat64{v}, nil
+	default:
+		return nil, fmt.Errorf("unexpected type for make number expression: %T", v)
+	}
+}
+
+func (x ExprInt64) Type() types.Basic   { return x.ResultType }
+func (x ExprInt64) IsConstant() bool    { return x.Int64.IsConstant }
+func (x ExprInt64) IsExpr()             {}
+func (x ExprInt64) IsNumber()           {}
+func (x ExprFloat64) Type() types.Basic { return x.ResultType }
+func (x ExprFloat64) IsConstant() bool  { return x.Float64.IsConstant }
+func (x ExprFloat64) IsExpr()           {}
+func (x ExprFloat64) IsNumber()         {}
+func (x ExprBool) Type() types.Basic    { return types.BOOL }
+func (x ExprBool) IsConstant() bool     { return x.Bool.IsConstant }
+func (x ExprBool) IsExpr()              {}
+func (x ExprString) Type() types.Basic  { return x.ResultType }
+func (x ExprString) IsConstant() bool   { return x.String.IsConstant }
+func (x ExprString) IsExpr()            {}
 
 // указатель, для подстановки и последующей замены содержимого
 func Placeholder() *Statement {
@@ -170,45 +233,11 @@ func StatementVariable[T OpTypes](ctx *parser.CustomContext, stmt *Statement, na
 	return op
 }
 
-type (
-	AssignExpr interface {
-		Type() types.Basic
-		IsConstant() bool
-		IsAssignExpr()
-	}
-	AssignInt64   struct{ Int64 }
-	AssignFloat64 struct{ Float64 }
-)
-
-// IsAssignExpr implements AssignExpr.
-func (a AssignInt64) IsAssignExpr()       {}
-func (a AssignInt64) Type() types.Basic   { return a.ResultType }
-func (a AssignInt64) IsConstant() bool    { return a.Int64.IsConstant }
-func (a AssignFloat64) IsAssignExpr()     {}
-func (a AssignFloat64) Type() types.Basic { return a.ResultType }
-func (a AssignFloat64) IsConstant() bool  { return a.Float64.IsConstant }
-
-var (
-	_ AssignExpr = AssignInt64{}
-	_ AssignExpr = AssignFloat64{}
-)
-
-func MakeAssignExpr(v any) AssignExpr {
-	switch v := v.(type) {
-	case Int64:
-		return AssignInt64{v}
-	case Float64:
-		return AssignFloat64{v}
-	default:
-		return nil
-	}
-}
-
-func Assign(ctx *parser.CustomContext, name string, v types.Variable, expr AssignExpr) *Statement {
+func Assign(ctx *parser.CustomContext, name string, v types.Variable, expr ExprNumber) *Statement {
 	switch e := expr.(type) {
-	case AssignInt64:
+	case ExprInt64:
 		return assignTable(ctx, name, v, e.Int64)
-	case AssignFloat64:
+	case ExprFloat64:
 		return assignTable(ctx, name, v, e.Float64)
 	default:
 		return nil

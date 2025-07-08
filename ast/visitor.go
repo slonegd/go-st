@@ -94,15 +94,12 @@ func (x visitor) VisitAssignment_statement(ctx *parser.Assignment_statementConte
 	varName := x.state + ctx.Variable().GetText() // TODO там правило немного сложнее
 	v := x.vars[varName]
 
-	expr := ctx.Expression().Accept(x)
-	assignExpr := ops.MakeAssignExpr(expr)
-	if assignExpr == nil {
-		return x.CheckError(ctx, fmt.Errorf("unimplemented assign expression from: %+v", expr))
+	expr, err := ops.MakeExprNumber(ctx.Expression().Accept(x))
+	x.CheckError(ctx.Expression(), err)
+	if !expr.IsConstant() {
+		x.CheckError(ctx.Expression(), types.CheckAssign(v.Type(), expr.Type()))
 	}
-	if !assignExpr.IsConstant() {
-		x.CheckError(ctx.Expression(), types.CheckAssign(v.Type(), assignExpr.Type()))
-	}
-	return ops.Assign(ctx.CustomContext, varName, v, assignExpr)
+	return ops.Assign(ctx.CustomContext, varName, v, expr)
 }
 
 // VisitBinaryExpression implements parser.STVisitor.
@@ -279,48 +276,36 @@ func (x visitor) VisitFor_statement(ctx *parser.For_statementContext) any {
 	// стартовое состояние
 	name := x.state + ctx.IDENTIFIER().GetText()
 	v := x.vars[name]
-	start := ctx.GetStart_().Accept(x)
-	assignExpr := ops.MakeAssignExpr(start)
-	if assignExpr == nil {
-		return x.CheckError(ctx, fmt.Errorf("unimplemented assign expression from: %+v", start))
-	}
-	if !assignExpr.IsConstant() {
-		x.CheckError(ctx.GetStart_(), types.CheckAssign(v.Type(), assignExpr.Type()))
-	}
-	x.AddToStatementChain(result, ops.Assign(ctx.CustomContext, name, v, assignExpr))
+	start, err := ops.MakeExprNumber(ctx.GetStart_().Accept(x))
+	x.CheckError(ctx.GetStart_(), err)
+	x.AddToStatementChain(result, ops.Assign(ctx.CustomContext, name, v, start))
 
 	// конечное значение
 	endV := types.SetType(types.IntVariable(0), v.Type())
 	endName := "_end_" + name
 	x.vars[endName] = endV
-	end := ctx.GetEnd().Accept(x)
-	assignExpr = ops.MakeAssignExpr(end)
-	if assignExpr == nil {
-		return x.CheckError(ctx, fmt.Errorf("unimplemented assign expression from: %+v", start))
-	}
-	if !assignExpr.IsConstant() {
-		x.CheckError(ctx.GetEnd(), types.CheckAssign(endV.Type(), assignExpr.Type()))
+	end, err := ops.MakeExprNumber(ctx.GetEnd().Accept(x))
+	x.CheckError(ctx.GetEnd(), err)
+	if !end.IsConstant() {
+		x.CheckError(ctx.GetEnd(), types.CheckAssign(endV.Type(), end.Type()))
 	}
 	// TODO не тот контекст (проверить в дебаге)
-	x.AddToStatementChain(result, ops.Assign(ctx.CustomContext, endName, endV, assignExpr))
+	x.AddToStatementChain(result, ops.Assign(ctx.CustomContext, endName, endV, end))
 
 	// шаг
 	stepV := types.SetType(types.IntVariable(1), v.Type())
 	stepName := "_step_" + name
 	x.vars[endName] = endV
 	if stepCtx := ctx.GetStep(); stepCtx != nil {
-		step := stepCtx.Accept(x)
-		assignExpr = ops.MakeAssignExpr(step)
-		if assignExpr == nil {
-			return x.CheckError(ctx, fmt.Errorf("unimplemented assign expression from: %+v", start))
+		step, err := ops.MakeExprNumber(stepCtx.Accept(x))
+		x.CheckError(stepCtx, err)
+		if !step.IsConstant() {
+			x.CheckError(stepCtx, types.CheckAssign(stepV.Type(), step.Type()))
 		}
-		if !assignExpr.IsConstant() {
-			x.CheckError(ctx.GetEnd(), types.CheckAssign(stepV.Type(), assignExpr.Type()))
-		}
-		x.AddToStatementChain(result, ops.Assign(ctx.CustomContext, stepName, stepV, assignExpr))
+		x.AddToStatementChain(result, ops.Assign(ctx.CustomContext, stepName, stepV, step))
 	} else {
-		assignExpr := ops.MakeAssignExpr(ops.Constant(int64(1)))
-		x.AddToStatementChain(result, ops.Assign(ctx.CustomContext, stepName, stepV, assignExpr))
+		step := ops.ExprInt64{Int64: ops.Constant(int64(1))}
+		x.AddToStatementChain(result, ops.Assign(ctx.CustomContext, stepName, stepV, step))
 	}
 
 	// TODO само условие выхода зависит от того положительный шаг или нет
@@ -352,7 +337,7 @@ func (x visitor) VisitFor_statement(ctx *parser.For_statementContext) any {
 		ctx.CustomContext,
 		name,
 		v,
-		ops.MakeAssignExpr(stepOp),
+		ops.ExprInt64{Int64: stepOp}, // TODO может быть float
 	))
 	x.AddToStatementChain(body, condOp) // зацикливание на условии
 	return result
@@ -389,7 +374,7 @@ func (x visitor) VisitFunction_decl(ctx *parser.Function_declContext) any {
 	body := ops.Placeholder()
 	for _, a := range ctx.AllVar_decl() {
 		v := a.Accept(x).(variable)
-		expr := ops.MakeAssignExpr(ops.Constant(v.defaultV.Int())) // TODO другие типы
+		expr := ops.ExprInt64{Int64: ops.Constant(v.defaultV.Int())} // TODO другие типы
 		x.AddToStatementChain(body, ops.Assign(ctx.CustomContext, v.name, x.vars[v.name], expr))
 	}
 
@@ -412,15 +397,12 @@ func (x visitor) VisitFunction_invocation(ctx *parser.Function_invocationContext
 			arg := f.args[i]
 			varName := arg.name
 			v := x.vars[varName]
-			expr := a.Accept(x)
-			assignExpr := ops.MakeAssignExpr(expr)
-			if assignExpr == nil {
-				return x.CheckError(ctx, fmt.Errorf("unimplemented assign expression from: %+v", expr))
+			expr, err := ops.MakeExprNumber(a.Accept(x))
+			x.CheckError(a, err)
+			if !expr.IsConstant() {
+				x.CheckError(a, types.CheckAssign(v.Type(), expr.Type()))
 			}
-			if !assignExpr.IsConstant() {
-				x.CheckError(a, types.CheckAssign(v.Type(), assignExpr.Type()))
-			}
-			x.AddToStatementChain(body, ops.Assign(ctx.CustomContext, varName, v, assignExpr))
+			x.AddToStatementChain(body, ops.Assign(ctx.CustomContext, varName, v, expr))
 		}
 
 		// вызвать тело функции, в ней результат будет лежать уже
