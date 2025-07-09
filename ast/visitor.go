@@ -106,86 +106,22 @@ func (x visitor) VisitAssignment_statement(ctx *parser.Assignment_statementConte
 func (x visitor) VisitBinaryExpression(ctx *parser.BinaryExpressionContext) any {
 	right := ctx.GetRight().Accept(x)
 	left := ctx.GetLeft().Accept(x)
+	r, err := ops.MakeExprNumber(right)
+	x.CheckError(ctx.GetRight(), err)
+	l, err := ops.MakeExprNumber(left)
+	x.CheckError(ctx.GetLeft(), err)
+	castType, err := types.BinaryResult(
+		types.Expression{IsConstant: l.IsConstant(), Type: l.Type()},
+		types.Expression{IsConstant: r.IsConstant(), Type: r.Type()},
+	)
 	token := ctx.GetOperator()
 	op := Ops[token.GetTokenType()]
-	switch op {
-	case ops.Plus, ops.Minus, ops.Mult, ops.Div, ops.Mod:
-		switch right := right.(type) {
-		case ops.Int64:
-			switch left := left.(type) {
-			case ops.Int64:
-				resultType, err := types.BinaryResult(
-					types.Expression{left.IsConstant, left.ResultType},
-					types.Expression{right.IsConstant, right.ResultType},
-				)
-				x.CheckError(ctx, err)
-				return ops.Arithmetic[int64](ctx.GetCustomContext(), op, left, right, resultType)
-			case ops.Float64:
-				resultType, err := types.BinaryResult(
-					types.Expression{left.IsConstant, left.ResultType},
-					types.Expression{right.IsConstant, right.ResultType},
-				)
-				x.CheckError(ctx, err)
-				return ops.Arithmetic[float64](ctx.GetCustomContext(), op, left, right, resultType)
-			}
-		case ops.Float64:
-			switch left := left.(type) {
-			case ops.Int64:
-				resultType, err := types.BinaryResult(
-					types.Expression{left.IsConstant, left.ResultType},
-					types.Expression{right.IsConstant, right.ResultType},
-				)
-				x.CheckError(ctx, err)
-				return ops.Arithmetic[float64](ctx.GetCustomContext(), op, left, right, resultType)
-			case ops.Float64:
-				resultType, err := types.BinaryResult(
-					types.Expression{left.IsConstant, left.ResultType},
-					types.Expression{right.IsConstant, right.ResultType},
-				)
-				x.CheckError(ctx, err)
-				return ops.Arithmetic[float64](ctx.GetCustomContext(), op, left, right, resultType)
-			}
-		}
-
-	case ops.Eq, ops.NotEq, ops.Gt, ops.Gte, ops.Lt, ops.Lte:
-		switch right := right.(type) {
-		case ops.Int64:
-			switch left := left.(type) {
-			case ops.Int64:
-				resultType, err := types.BinaryResult(
-					types.Expression{left.IsConstant, left.ResultType},
-					types.Expression{right.IsConstant, right.ResultType},
-				)
-				x.CheckError(ctx, err)
-				return ops.Compare(ctx.GetCustomContext(), op, left, right, resultType)
-			case ops.Float64:
-				resultType, err := types.BinaryResult(
-					types.Expression{left.IsConstant, left.ResultType},
-					types.Expression{right.IsConstant, right.ResultType},
-				)
-				x.CheckError(ctx, err)
-				return ops.Compare(ctx.GetCustomContext(), op, left, right, resultType)
-			}
-		case ops.Float64:
-			switch left := left.(type) {
-			case ops.Int64:
-				resultType, err := types.BinaryResult(
-					types.Expression{left.IsConstant, left.ResultType},
-					types.Expression{right.IsConstant, right.ResultType},
-				)
-				x.CheckError(ctx, err)
-				return ops.Compare(ctx.GetCustomContext(), op, left, right, resultType)
-			case ops.Float64:
-				resultType, err := types.BinaryResult(
-					types.Expression{left.IsConstant, left.ResultType},
-					types.Expression{right.IsConstant, right.ResultType},
-				)
-				x.CheckError(ctx, err)
-				return ops.Compare(ctx.GetCustomContext(), op, left, right, resultType)
-			}
-		}
+	x.CheckError(ctx, err)
+	res := ops.Binary(ctx.GetCustomContext(), op, l, r, castType)
+	if res == nil {
+		return x.CheckError(ctx, fmt.Errorf("undefined operator %v (token type %d)", token, token.GetTokenType()))
 	}
-	return x.CheckError(ctx, fmt.Errorf("undefined operator %v (token type %d)", token, token.GetTokenType()))
+	return res
 }
 
 // VisitCase_element implements parser.STVisitor.
@@ -310,13 +246,13 @@ func (x visitor) VisitFor_statement(ctx *parser.For_statementContext) any {
 
 	// TODO само условие выхода зависит от того положительный шаг или нет
 	// пока только положительный делаю
-	condition := ops.Compare(
+	condition := ops.Binary(
 		ctx.CustomContext,
 		ops.Lte,
-		ops.Variable[int64](ctx.CustomContext, name, v),
-		ops.Variable[int64](ctx.CustomContext, endName, endV),
-		types.LINT,
-	)
+		ops.Variable(ctx.CustomContext, name, v).(ops.ExprNumber),
+		ops.Variable(ctx.CustomContext, endName, endV).(ops.ExprNumber),
+		v.Type(),
+	).(ops.ExprBool)
 
 	// сам цикл
 	body := ops.Placeholder()
@@ -326,18 +262,18 @@ func (x visitor) VisitFor_statement(ctx *parser.For_statementContext) any {
 	x.cycle.out = x.AddToStatementChain(condOp, ops.Placeholder())
 	// Accept выполняется после, так как ему нужен x.cycle
 	x.AddToStatementChain(body, ctx.Statement_list().Accept(x).(*ops.Statement))
-	stepOp := ops.Arithmetic[int64](
+	stepOp := ops.Binary(
 		ctx.CustomContext,
 		ops.Plus,
-		ops.Variable[int64](ctx.CustomContext, name, v),
-		ops.Variable[int64](ctx.CustomContext, stepName, stepV),
+		ops.Variable(ctx.CustomContext, name, v).(ops.ExprNumber),
+		ops.Variable(ctx.CustomContext, stepName, stepV).(ops.ExprNumber),
 		v.Type(),
-	)
+	).(ops.ExprNumber)
 	x.AddToStatementChain(body, ops.Assign(
 		ctx.CustomContext,
 		name,
 		v,
-		ops.ExprInt64{Int64: stepOp}, // TODO может быть float
+		stepOp,
 	))
 	x.AddToStatementChain(body, condOp) // зацикливание на условии
 	return result
@@ -436,21 +372,11 @@ func (x visitor) VisitFunction_invocation(ctx *parser.Function_invocationContext
 		x.CheckError(ctx, errors.New("cast must have only one argument"))
 	}
 
-	switch expr := args[0].Accept(x).(type) {
-	case ops.Int64:
-		if from != expr.ResultType {
-			x.CheckError(ctx, fmt.Errorf("expression has %s type", expr.ResultType))
-		}
-		return ops.Cast(ctx.CustomContext, to, expr)
-	case ops.Float64:
-		if from != expr.ResultType {
-			x.CheckError(ctx, fmt.Errorf("expression has %s type", expr.ResultType))
-		}
-		return ops.Cast(ctx.CustomContext, to, expr)
-	default:
-		x.CheckError(ctx, fmt.Errorf("expression operator has unknown type: %T", expr))
-		return nil
+	expr := args[0].Accept(x).(ops.ExprNumber)
+	if from != expr.Type() {
+		x.CheckError(ctx, fmt.Errorf("expression has %s type", expr.Type()))
 	}
+	return ops.Cast(ctx.CustomContext, to, expr)
 }
 
 // VisitIf_statement implements parser.STVisitor.
@@ -460,7 +386,7 @@ func (x visitor) VisitIf_statement(ctx *parser.If_statementContext) any {
 	var enterOp, lastIf *ops.Statement
 	out := ops.Placeholder() // для выхода из всех body
 	for i := range conditions {
-		cond := conditions[i].Accept(x).(ops.Bool)
+		cond := conditions[i].Accept(x).(ops.ExprBool)
 		body := thens[i].Accept(x).(*ops.Statement)
 		x.AddToStatementChain(body, out)
 		prevIf := lastIf
@@ -705,13 +631,11 @@ func (x visitor) VisitVar_declaration_block(ctx *parser.Var_declaration_blockCon
 func (x visitor) VisitVariable(ctx *parser.VariableContext) any {
 	varName := x.state + ctx.GetName().GetText() // TODO там немного сложнее со структурами/массивами
 	v := x.vars[varName]
-	if v.Type().IsInteger() { // TODO другие типы
-		return ops.Variable[int64](ctx.CustomContext, varName, v)
+	res := ops.Variable(ctx.CustomContext, varName, v)
+	if res == nil {
+		return x.CheckError(ctx, fmt.Errorf("unknown type of variable: %s", v.Type()))
 	}
-	if v.Type().IsFloat() {
-		return ops.Variable[float64](ctx.CustomContext, varName, v)
-	}
-	return x.CheckError(ctx, fmt.Errorf("unknown type of variable: %s", v.Type()))
+	return res
 }
 
 // VisitVariable_list implements parser.STVisitor.
@@ -721,7 +645,7 @@ func (x visitor) VisitVariable_list(ctx *parser.Variable_listContext) any {
 
 // VisitWhile_statement implements parser.STVisitor.
 func (x visitor) VisitWhile_statement(ctx *parser.While_statementContext) any {
-	condition := ctx.Expression().Accept(x).(ops.Bool)
+	condition := ctx.Expression().Accept(x).(ops.ExprBool)
 	body := ops.Placeholder()
 	condOp := ops.IfTrue(ctx.CustomContext, condition, body)
 	x.cycle.condition = condOp

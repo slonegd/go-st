@@ -87,6 +87,14 @@ func MakeExpr(v any) (Expr, error) {
 		return ExprString{v}, nil
 	case Bool:
 		return ExprBool{v}, nil
+	case ExprInt64:
+		return v, nil
+	case ExprFloat64:
+		return v, nil
+	case ExprString:
+		return v, nil
+	case ExprBool:
+		return v, nil
 	default:
 		return nil, fmt.Errorf("unexpected type for make expression: %T", v)
 	}
@@ -97,6 +105,10 @@ func MakeExprNumber(v any) (ExprNumber, error) {
 		return ExprInt64{v}, nil
 	case Float64:
 		return ExprFloat64{v}, nil
+	case ExprInt64:
+		return v, nil
+	case ExprFloat64:
+		return v, nil
 	default:
 		return nil, fmt.Errorf("unexpected type for make number expression: %T", v)
 	}
@@ -192,7 +204,21 @@ func Constant[T OpTypes](v T) Op[T] {
 	return op
 }
 
-func Variable[T OpTypes](ctx *parser.CustomContext, name string, variable types.Variable) Op[T] {
+func Variable(ctx *parser.CustomContext, name string, v types.Variable) Expr {
+	switch {
+	case v.Type().IsInteger():
+		return ExprInt64{Int64: variable[int64](ctx, name, v)}
+	case v.Type().IsFloat():
+		return ExprFloat64{Float64: variable[float64](ctx, name, v)}
+	case v.Type() == types.BOOL:
+		return ExprBool{Bool: variable[bool](ctx, name, v)}
+	case v.Type().IsString():
+		return ExprString{String: variable[string](ctx, name, v)}
+	}
+	return nil
+}
+
+func variable[T OpTypes](ctx *parser.CustomContext, name string, variable types.Variable) Op[T] {
 	v := (*T)(variable.Pointer())
 	op := Op[T]{
 		ResultType: variable.Type(),
@@ -278,28 +304,28 @@ func Jump(ctx *parser.CustomContext, to *Statement, message string) *Statement {
 }
 
 // разные функции под разные типы -> мапа не подходит
-func Cast[T int64 | float64](ctx *parser.CustomContext, t types.Basic, expr Op[T]) any {
+func Cast(ctx *parser.CustomContext, t types.Basic, expr ExprNumber) any {
 	switch t {
 	case types.SINT:
-		return cast[int8, int64](ctx, expr)
+		return cast[int8, int64](ctx, expr.(ExprInt64).Int64)
 	case types.INT:
-		return cast[int16, int64](ctx, expr)
+		return cast[int16, int64](ctx, expr.(ExprInt64).Int64)
 	case types.DINT:
-		return cast[int32, int64](ctx, expr)
+		return cast[int32, int64](ctx, expr.(ExprInt64).Int64)
 	case types.LINT:
-		return cast[int64, int64](ctx, expr)
+		return cast[int64, int64](ctx, expr.(ExprInt64).Int64)
 	case types.USINT:
-		return cast[uint8, int64](ctx, expr)
+		return cast[uint8, int64](ctx, expr.(ExprInt64).Int64)
 	case types.UINT:
-		return cast[uint16, int64](ctx, expr)
+		return cast[uint16, int64](ctx, expr.(ExprInt64).Int64)
 	case types.UDINT:
-		return cast[uint32, int64](ctx, expr)
+		return cast[uint32, int64](ctx, expr.(ExprInt64).Int64)
 	case types.ULINT:
-		return cast[uint64, int64](ctx, expr)
+		return cast[uint64, int64](ctx, expr.(ExprInt64).Int64)
 	case types.REAL:
-		return cast[float32, float64](ctx, expr)
+		return cast[float32, float64](ctx, expr.(ExprFloat64).Float64)
 	case types.LREAL:
-		return cast[float64, float64](ctx, expr)
+		return cast[float64, float64](ctx, expr.(ExprFloat64).Float64)
 	}
 	return nil
 }
@@ -348,7 +374,7 @@ const (
 	Lte   // <=
 )
 
-func Arithmetic[Result, Left, Right NumberOpTypes](
+func arithmetic[Result, Left, Right NumberOpTypes](
 	ctx *parser.CustomContext,
 	op Operator,
 	left Op[Left],
@@ -417,16 +443,66 @@ func Arithmetic[Result, Left, Right NumberOpTypes](
 	return ops[K{op, resultType}](left, right)
 }
 
-func Compare[Left, Right NumberOpTypes](
+func Binary(ctx *parser.CustomContext, op Operator, left, right ExprNumber, castType types.Basic) Expr {
+	switch op {
+	case Plus, Minus, Mult, Div, Mod:
+		switch l := left.(type) {
+		case ExprInt64:
+			switch r := right.(type) {
+			case ExprInt64:
+				return ExprInt64{Int64: arithmetic[int64](ctx, op, l.Int64, r.Int64, castType)}
+			case ExprFloat64:
+				switch {
+				case castType.IsInteger():
+					return ExprInt64{Int64: arithmetic[int64](ctx, op, l.Int64, r.Float64, castType)}
+				case castType.IsFloat():
+					return ExprFloat64{Float64: arithmetic[float64](ctx, op, l.Int64, r.Float64, castType)}
+				}
+			}
+		case ExprFloat64:
+			switch r := right.(type) {
+			case ExprInt64:
+				switch {
+				case castType.IsInteger():
+					return ExprInt64{Int64: arithmetic[int64](ctx, op, l.Float64, r.Int64, castType)}
+				case castType.IsFloat():
+					return ExprFloat64{Float64: arithmetic[float64](ctx, op, l.Float64, r.Int64, castType)}
+				}
+			case ExprFloat64:
+				return ExprFloat64{Float64: arithmetic[float64](ctx, op, l.Float64, r.Float64, castType)}
+			}
+		}
+	case Eq, NotEq, Gt, Gte, Lt, Lte:
+		switch l := left.(type) {
+		case ExprInt64:
+			switch r := right.(type) {
+			case ExprInt64:
+				return ExprBool{Bool: compare(ctx, op, l.Int64, r.Int64, castType)}
+			case ExprFloat64:
+				return ExprBool{Bool: compare(ctx, op, l.Int64, r.Float64, castType)}
+			}
+		case ExprFloat64:
+			switch r := right.(type) {
+			case ExprInt64:
+				return ExprBool{Bool: compare(ctx, op, l.Float64, r.Int64, castType)}
+			case ExprFloat64:
+				return ExprBool{Bool: compare(ctx, op, l.Float64, r.Float64, castType)}
+			}
+		}
+	}
+	return nil
+}
+
+func compare[Left, Right NumberOpTypes](
 	ctx *parser.CustomContext,
 	op Operator,
 	left Op[Left],
 	right Op[Right],
-	resultType types.Basic,
+	castType types.Basic,
 ) Bool {
 	type K struct {
-		op         Operator
-		resultType types.Basic
+		op       Operator
+		castType types.Basic
 	}
 
 	ops := map[K]func(l Op[Left], r Op[Right]) Bool{
@@ -496,10 +572,10 @@ func Compare[Left, Right NumberOpTypes](
 		{NotEq, types.REAL}:  func(l Op[Left], r Op[Right]) Bool { return notEqual[float32](ctx, l, r) },
 		{NotEq, types.LREAL}: func(l Op[Left], r Op[Right]) Bool { return notEqual[float64](ctx, l, r) },
 	}
-	return ops[K{op, resultType}](left, right)
+	return ops[K{op, castType}](left, right)
 }
 
-func IfTrue(_ *parser.CustomContext, cond Bool, body *Statement) *Statement {
+func IfTrue(_ *parser.CustomContext, cond ExprBool, body *Statement) *Statement {
 	return &Statement{
 		ctx:     cond.ctx,
 		snippet: cond.ctx.MakeSnippet(),

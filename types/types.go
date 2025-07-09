@@ -1,5 +1,7 @@
 package types
 
+// import _ "golang.org/x/tools/cmd/stringer"
+
 type Basic int
 
 func TypeFromString(v string) Basic {
@@ -11,7 +13,7 @@ func TypeFromString(v string) Basic {
 	return ANY
 }
 
-//go:generate go run .././vendor/golang.org/x/tools/cmd/stringer/stringer.go -type=Type
+//go:generate go run ../vendor/golang.org/x/tools/cmd/stringer/stringer.go -type=Basic
 const (
 	ANY   Basic = iota
 	BOOL        // bool
@@ -31,14 +33,14 @@ const (
 	// LTOD // int секунды с начала дня
 	DT // time.Time (строковое представление в time.Local)
 	// LDT // time.Time (строковое представление в time.Local)
-	STRING // string
-	// WSTRING // string
-	CHAR  // rune
-	WCHAR // rune
-	BYTE  // uint8 строка бит
-	WORD  // uint16 строка бит
-	DWORD // uint32 строка бит
-	LWORD // uint64 строка бит
+	STRING  // string
+	WSTRING // string
+	CHAR    // rune
+	WCHAR   // rune
+	BYTE    // uint8 строка бит
+	WORD    // uint16 строка бит
+	DWORD   // uint32 строка бит
+	LWORD   // uint64 строка бит
 
 	SIZE // для цикла по перечисленю
 )
@@ -52,4 +54,8 @@ func (t Basic) IsInteger() bool {
 }
 func (t Basic) IsFloat() bool {
 	return t == REAL || t == LREAL
+}
+
+func (t Basic) IsString() bool {
+	return t == STRING || t == WSTRING
 }
