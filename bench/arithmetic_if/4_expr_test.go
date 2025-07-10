@@ -61,8 +61,7 @@ func Benchmark_expr_001(b *testing.B) {
 	env["set"] = func(k string, v any) struct{} { env[k] = v; return struct{}{} }
 	script, _ := expr.Compile(arithmetic_expr, expr.Env(env))
 
-	b.ResetTimer()
-	for range iterations {
+	for b.Loop() {
 		expr.Run(script, env)
 	}
 }

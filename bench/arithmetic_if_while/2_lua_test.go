@@ -93,8 +93,7 @@ func Benchmark_lua_001(b *testing.B) {
 	lua.LoadString(l, arithmetic_lua)
 	l.SetGlobal("exec")
 
-	b.ResetTimer()
-	for range iterations {
+	for b.Loop() {
 		l.Global("exec")
 		l.Call(0, 0)
 	}

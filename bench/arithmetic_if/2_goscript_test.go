@@ -56,8 +56,7 @@ func Benchmark_goscript_001(b *testing.B) {
 		"test":    0,
 	}
 
-	b.ResetTimer()
-	for range iterations {
+	for b.Loop() {
 		expr.Eval(ctx)
 	}
 }

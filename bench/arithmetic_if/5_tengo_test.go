@@ -53,8 +53,7 @@ func Benchmark_tengo_001(b *testing.B) {
 	_ = script.Add("test", 0)
 	compiled, _ := script.Compile()
 
-	b.ResetTimer()
-	for range iterations {
+	for b.Loop() {
 		compiled.Run()
 	}
 }
@@ -88,5 +87,4 @@ func Test_tengo_001(t *testing.T) {
 	assert.Equal(t, 1, compiled.Get("divisor").Int())
 	assert.Equal(t, 1, compiled.Get("mult").Int())
 	assert.Equal(t, 6, compiled.Get("test").Int())
-
 }

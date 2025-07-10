@@ -17,8 +17,7 @@ func Benchmark_yaegi_001(b *testing.B) {
 	cb, _ := i.Eval("bench.exec")
 	exec := cb.Interface().(func())
 
-	b.ResetTimer()
-	for range iterations {
+	for b.Loop() {
 		exec()
 	}
 }

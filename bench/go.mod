@@ -1,6 +1,6 @@
 module bench
 
-go 1.23.9
+go 1.24
 
 replace github.com/slonegd/go-st => ..
 
