@@ -157,7 +157,7 @@ func (x *Placeholders) AddToStatementChain(chain, next *Statement) *Statement {
 
 		if s.nextStatement == nil {
 			s.nextStatement = next
-			// подстановка плейсхолжера, который в будущем может быть заменён
+			// подстановка плейсхолдера, который в будущем может быть заменён
 			if next.isPlaceholder {
 				x.m[next] = append(x.m[next], s)
 			}
@@ -273,17 +273,17 @@ func Assign(ctx *parser.CustomContext, name string, v types.Variable, expr ExprN
 func assignTable[T int64 | float64](ctx *parser.CustomContext, name string, v types.Variable, expr Op[T]) *Statement {
 	ctx.Name = name // добавляем для дебага
 	ops := map[types.Basic]func(v types.Variable, expr Op[T]) *Statement{
-		types.SINT:  func(v types.Variable, expr Op[T]) *Statement { return assign[int8](ctx, v, expr) },
-		types.INT:   func(v types.Variable, expr Op[T]) *Statement { return assign[int16](ctx, v, expr) },
-		types.DINT:  func(v types.Variable, expr Op[T]) *Statement { return assign[int32](ctx, v, expr) },
-		types.LINT:  func(v types.Variable, expr Op[T]) *Statement { return assign[int64](ctx, v, expr) },
-		types.USINT: func(v types.Variable, expr Op[T]) *Statement { return assign[uint8](ctx, v, expr) },
-		types.UINT:  func(v types.Variable, expr Op[T]) *Statement { return assign[uint16](ctx, v, expr) },
-		types.UDINT: func(v types.Variable, expr Op[T]) *Statement { return assign[uint32](ctx, v, expr) },
-		types.ULINT: func(v types.Variable, expr Op[T]) *Statement { return assign[uint64](ctx, v, expr) },
+		types.SINT:  func(v types.Variable, expr Op[T]) *Statement { return assign[int64, int8](ctx, v, expr) },
+		types.INT:   func(v types.Variable, expr Op[T]) *Statement { return assign[int64, int16](ctx, v, expr) },
+		types.DINT:  func(v types.Variable, expr Op[T]) *Statement { return assign[int64, int32](ctx, v, expr) },
+		types.LINT:  func(v types.Variable, expr Op[T]) *Statement { return assign[int64, int64](ctx, v, expr) },
+		types.USINT: func(v types.Variable, expr Op[T]) *Statement { return assign[int64, uint8](ctx, v, expr) },
+		types.UINT:  func(v types.Variable, expr Op[T]) *Statement { return assign[int64, uint16](ctx, v, expr) },
+		types.UDINT: func(v types.Variable, expr Op[T]) *Statement { return assign[int64, uint32](ctx, v, expr) },
+		types.ULINT: func(v types.Variable, expr Op[T]) *Statement { return assign[int64, uint64](ctx, v, expr) },
 
-		types.REAL:  func(v types.Variable, expr Op[T]) *Statement { return assign[float32](ctx, v, expr) },
-		types.LREAL: func(v types.Variable, expr Op[T]) *Statement { return assign[float64](ctx, v, expr) },
+		types.REAL:  func(v types.Variable, expr Op[T]) *Statement { return assign[float64, float32](ctx, v, expr) },
+		types.LREAL: func(v types.Variable, expr Op[T]) *Statement { return assign[float64, float64](ctx, v, expr) },
 	}
 	op := ops[v.Type()]
 	return op(v, expr)
@@ -753,19 +753,22 @@ func notEqual[T Number, Left, Right NumberOpTypes](
 	}
 }
 
-func assign[T Number, R int64 | float64](ctx *parser.CustomContext, variable types.Variable, expr Op[R]) *Statement {
-	val := (*R)(variable.Pointer())
+// V - тип хранения переменной int64/float64
+// T - тип переменной, int16/float32/etc
+// R - тип выражения, результат которого присваивается переменной
+func assign[V, T Number, R int64 | float64](ctx *parser.CustomContext, variable types.Variable, expr Op[R]) *Statement {
+	val := (*V)(variable.Pointer())
 	return &Statement{
 		ctx:     ctx,
 		snippet: ctx.MakeSnippet(),
 		Do: func(self *Statement) (struct{}, *Statement) {
 			v, _ := expr.Do(nil)
-			*val = R(T(v))
+			*val = V(T(v))
 			return struct{}{}, self.nextStatement
 		},
 		DoDebug: func(self *Statement) (struct{}, *Statement) {
 			v, _ := expr.DoDebug(nil)
-			*val = R(T(v))
+			*val = V(T(v))
 			msg := fmt.Sprintf("%v->%s", v, ctx.Name)
 			ctx.Debug(self.snippet, msg)
 			return struct{}{}, self.nextStatement

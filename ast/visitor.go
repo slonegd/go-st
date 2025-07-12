@@ -244,9 +244,8 @@ func (x visitor) VisitFor_statement(ctx *parser.For_statementContext) any {
 		x.AddToStatementChain(result, ops.Assign(ctx.CustomContext, stepName, stepV, step))
 	}
 
-	// TODO само условие выхода зависит от того положительный шаг или нет
-	// пока только положительный делаю
-	condition := ops.Binary(
+	// само условие выхода зависит от того положительный шаг или нет
+	plusCondition := ops.Binary(
 		ctx.CustomContext,
 		ops.Lte,
 		ops.Variable(ctx.CustomContext, name, v).(ops.ExprNumber),
@@ -254,28 +253,60 @@ func (x visitor) VisitFor_statement(ctx *parser.For_statementContext) any {
 		v.Type(),
 	).(ops.ExprBool)
 
-	// сам цикл
-	body := ops.Placeholder()
-	condOp := ops.IfTrue(ctx.CustomContext, condition, body)
-	x.AddToStatementChain(result, condOp)
-	x.cycle.condition = condOp
-	x.cycle.out = x.AddToStatementChain(condOp, ops.Placeholder())
-	// Accept выполняется после, так как ему нужен x.cycle
-	x.AddToStatementChain(body, ctx.Statement_list().Accept(x).(*ops.Statement))
-	stepOp := ops.Binary(
+	minusCondition := ops.Binary(
 		ctx.CustomContext,
-		ops.Plus,
+		ops.Gte,
 		ops.Variable(ctx.CustomContext, name, v).(ops.ExprNumber),
-		ops.Variable(ctx.CustomContext, stepName, stepV).(ops.ExprNumber),
+		ops.Variable(ctx.CustomContext, endName, endV).(ops.ExprNumber),
 		v.Type(),
-	).(ops.ExprNumber)
-	x.AddToStatementChain(body, ops.Assign(
+	).(ops.ExprBool)
+
+	// сам цикл
+	bodies := [...]*ops.Statement{ops.Placeholder(), ops.Placeholder()}
+	plusCondOp := ops.IfTrue(ctx.CustomContext, plusCondition, bodies[0])
+	minusCondOp := ops.IfTrue(ctx.CustomContext, minusCondition, bodies[1])
+	zero, _ := ops.MakeExprNumber(ops.Constant[int64](0))
+	chooseCond := ops.Binary(
 		ctx.CustomContext,
-		name,
-		v,
-		stepOp,
-	))
-	x.AddToStatementChain(body, condOp) // зацикливание на условии
+		ops.Gt,
+		ops.Variable(ctx.CustomContext, stepName, stepV).(ops.ExprNumber),
+		zero,
+		stepV.Type(),
+	).(ops.ExprBool)
+	chooseCondOp := ops.IfTrue(ctx.CustomContext, chooseCond, plusCondOp)
+	x.AddToStatementChain(chooseCondOp, minusCondOp)
+
+	x.AddToStatementChain(result, chooseCondOp)
+
+	// TODO тут развилка в зависимости положительный или отрицательный шаг
+	// но при этом x.cycle.out общий
+	x.cycle.out = ops.Placeholder()
+	for i, body := range bodies {
+		if i == 0 {
+			x.AddToStatementChain(plusCondOp, x.cycle.out)
+			x.cycle.condition = plusCondOp
+		} else {
+			x.AddToStatementChain(minusCondOp, x.cycle.out)
+			x.cycle.condition = minusCondOp
+		}
+		// Accept выполняется после, так как ему нужен x.cycle
+		x.AddToStatementChain(body, ctx.Statement_list().Accept(x).(*ops.Statement))
+		stepOp := ops.Binary(
+			ctx.CustomContext,
+			ops.Plus,
+			ops.Variable(ctx.CustomContext, name, v).(ops.ExprNumber),
+			ops.Variable(ctx.CustomContext, stepName, stepV).(ops.ExprNumber),
+			v.Type(),
+		).(ops.ExprNumber)
+		x.AddToStatementChain(body, ops.Assign(
+			ctx.CustomContext,
+			name,
+			v,
+			stepOp,
+		))
+		x.AddToStatementChain(body, x.cycle.condition) // зацикливание на условии
+	}
+
 	return result
 }
 

@@ -27,6 +27,8 @@ var (
 	while string
 	//go:embed 008_func.st
 	function string
+	//go:embed 009_for.st
+	forTest string
 )
 
 func main() {
