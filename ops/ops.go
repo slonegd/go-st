@@ -758,6 +758,7 @@ func notEqual[T Number, Left, Right NumberOpTypes](
 // R - тип выражения, результат которого присваивается переменной
 func assign[V, T Number, R int64 | float64](ctx *parser.CustomContext, variable types.Variable, expr Op[R]) *Statement {
 	val := (*V)(variable.Pointer())
+	name := ctx.Name
 	return &Statement{
 		ctx:     ctx,
 		snippet: ctx.MakeSnippet(),
@@ -769,7 +770,7 @@ func assign[V, T Number, R int64 | float64](ctx *parser.CustomContext, variable 
 		DoDebug: func(self *Statement) (struct{}, *Statement) {
 			v, _ := expr.DoDebug(nil)
 			*val = V(T(v))
-			msg := fmt.Sprintf("%v->%s", v, ctx.Name)
+			msg := fmt.Sprintf("%v->%s", v, name)
 			ctx.Debug(self.snippet, msg)
 			return struct{}{}, self.nextStatement
 		},

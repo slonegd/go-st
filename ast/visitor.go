@@ -219,7 +219,6 @@ func (x visitor) VisitFor_statement(ctx *parser.For_statementContext) any {
 	// конечное значение
 	endV := types.SetType(types.IntVariable(0), v.Type())
 	endName := "_end_" + name
-	x.vars[endName] = endV
 	end, err := ops.MakeExprNumber(ctx.GetEnd().Accept(x))
 	x.CheckError(ctx.GetEnd(), err)
 	if !end.IsConstant() {
@@ -231,7 +230,6 @@ func (x visitor) VisitFor_statement(ctx *parser.For_statementContext) any {
 	// шаг
 	stepV := types.SetType(types.IntVariable(1), v.Type())
 	stepName := "_step_" + name
-	x.vars[endName] = endV
 	if stepCtx := ctx.GetStep(); stepCtx != nil {
 		step, err := ops.MakeExprNumber(stepCtx.Accept(x))
 		x.CheckError(stepCtx, err)
