@@ -14,4 +14,5 @@ PROGRAM simpliest
   END_VAR
 
   i := 15;
+  // k := uv; // раскомментировать для ошибки
 END_PROGRAM

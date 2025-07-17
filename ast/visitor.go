@@ -92,7 +92,11 @@ func (x visitor) VisitArray_type_name(ctx *parser.Array_type_nameContext) any {
 // VisitAssignment_statement implements parser.STVisitor.
 func (x visitor) VisitAssignment_statement(ctx *parser.Assignment_statementContext) any {
 	varName := x.state + ctx.Variable().GetText() // TODO там правило немного сложнее
-	v := x.vars[varName]
+	v, ok := x.vars[varName]
+	if !ok {
+		x.CheckError(ctx.Variable(), fmt.Errorf("no variable with name: %q", varName))
+
+	}
 
 	expr, err := ops.MakeExprNumber(ctx.Expression().Accept(x))
 	x.CheckError(ctx.Expression(), err)
@@ -211,7 +215,10 @@ func (x visitor) VisitFor_statement(ctx *parser.For_statementContext) any {
 
 	// стартовое состояние
 	name := x.state + ctx.IDENTIFIER().GetText()
-	v := x.vars[name]
+	v, ok := x.vars[name]
+	if !ok {
+		x.CheckError(ctx, fmt.Errorf("no variable with name: %q", name))
+	}
 	start, err := ops.MakeExprNumber(ctx.GetStart_().Accept(x))
 	x.CheckError(ctx.GetStart_(), err)
 	x.AddToStatementChain(result, ops.Assign(ctx.CustomContext, name, v, start))
@@ -238,7 +245,7 @@ func (x visitor) VisitFor_statement(ctx *parser.For_statementContext) any {
 		}
 		x.AddToStatementChain(result, ops.Assign(ctx.CustomContext, stepName, stepV, step))
 	} else {
-		step := ops.ExprInt64{Int64: ops.Constant(int64(1))}
+		step := ops.Constant(types.IntVariable(1)).(ops.ExprInt64)
 		x.AddToStatementChain(result, ops.Assign(ctx.CustomContext, stepName, stepV, step))
 	}
 
@@ -263,7 +270,7 @@ func (x visitor) VisitFor_statement(ctx *parser.For_statementContext) any {
 	bodies := [...]*ops.Statement{ops.Placeholder(), ops.Placeholder()}
 	plusCondOp := ops.IfTrue(ctx.CustomContext, plusCondition, bodies[0])
 	minusCondOp := ops.IfTrue(ctx.CustomContext, minusCondition, bodies[1])
-	zero, _ := ops.MakeExprNumber(ops.Constant[int64](0))
+	zero := ops.Constant(types.IntVariable(0)).(ops.ExprInt64)
 	chooseCond := ops.Binary(
 		ctx.CustomContext,
 		ops.Gt,
@@ -339,7 +346,7 @@ func (x visitor) VisitFunction_decl(ctx *parser.Function_declContext) any {
 	body := ops.Placeholder()
 	for _, a := range ctx.AllVar_decl() {
 		v := a.Accept(x).(variable)
-		expr := ops.ExprInt64{Int64: ops.Constant(v.defaultV.Int())} // TODO другие типы
+		expr := ops.Constant(v.defaultV)
 		x.AddToStatementChain(body, ops.Assign(ctx.CustomContext, v.name, x.vars[v.name], expr))
 	}
 
@@ -361,7 +368,10 @@ func (x visitor) VisitFunction_invocation(ctx *parser.Function_invocationContext
 		for i, a := range ctx.GetArgs() {
 			arg := f.args[i]
 			varName := arg.name
-			v := x.vars[varName]
+			v, ok := x.vars[varName]
+			if !ok {
+				x.CheckError(a, fmt.Errorf("no variable with name: %q", varName))
+			}
 			expr, err := ops.MakeExprNumber(a.Accept(x))
 			x.CheckError(a, err)
 			if !expr.IsConstant() {
@@ -373,7 +383,10 @@ func (x visitor) VisitFunction_invocation(ctx *parser.Function_invocationContext
 		// вызвать тело функции, в ней результат будет лежать уже
 		x.AddToStatementChain(body, f.body)
 		// вернуть переменную
-		v := x.vars[funcName]     // TODO вынести в common вместе с доступом к переменной?
+		v, ok := x.vars[funcName] // TODO вынести в common вместе с доступом к переменной?
+		if !ok {
+			x.CheckError(ctx, fmt.Errorf("unknown function name: %q", funcName))
+		}
 		if v.Type().IsInteger() { // TODO другие типы
 			return ops.StatementVariable[int64](ctx.CustomContext, body, funcName, v)
 		}
@@ -451,19 +464,19 @@ func (x visitor) VisitLiteral(ctx *parser.LiteralContext) any {
 			v = strings.ReplaceAll(v, "_", "")
 			bint, ok := big.NewInt(0).SetString(v, 16)
 			if ok {
-				return ops.Constant(bint.Int64())
+				return ops.Constant(types.IntVariable(bint.Int64()))
 			}
 			x.CheckError(ctx, fmt.Errorf("fail parse int from %q", v))
 		}
 		i, err := strconv.Atoi(ctx.INT_LITERAL().GetText())
 		x.CheckError(ctx, err)
-		return ops.Constant(int64(i))
+		return ops.Constant(types.IntVariable(int64(i)))
 
 	case ctx.REAL_LITERAL() != nil:
 		v := ctx.REAL_LITERAL()
 		result, err := strconv.ParseFloat(v.GetText(), 64)
 		x.CheckError(ctx, err)
-		return ops.Constant(result)
+		return ops.Constant(types.Float64Variable(result))
 	}
 	return x.CheckError(ctx, fmt.Errorf("unknown literal: %q", ctx.GetText()))
 }
@@ -592,21 +605,14 @@ func (x visitor) VisitTyped_literal(ctx *parser.Typed_literalContext) any {
 
 // VisitUnaryExpression implements parser.STVisitor.
 func (x visitor) VisitUnaryExpression(ctx *parser.UnaryExpressionContext) any {
-	expr := ctx.Expression().Accept(x)
+	expr, err := ops.MakeExprNumber(ctx.Expression().Accept(x))
+	x.CheckError(ctx.Expression(), err)
 	token := ctx.GetOperator().GetTokenType()
 	switch token {
 	case parser.STLexerNOT, parser.STLexerPLUS:
 		return x.CheckError(ctx, fmt.Errorf("unimplemented unary expression with operator %q (token: %d)", ctx.GetOperator().GetText(), token))
 	case parser.STLexerMINUS:
-		// TODO может лучше перенести в операторы?
-		switch expr := expr.(type) {
-		case ops.Int64:
-			return ops.UnaryMinus(ctx.CustomContext, expr)
-		case ops.Float64:
-			return ops.UnaryMinus(ctx.CustomContext, expr)
-		default:
-			return x.CheckError(ctx, fmt.Errorf("unimplemented unary operator for type %T", expr))
-		}
+		return ops.UnaryMinus(ctx.CustomContext, expr)
 	}
 	return expr
 }
@@ -626,11 +632,11 @@ func (x visitor) VisitVar_decl(ctx *parser.Var_declContext) any {
 	var v types.Variable
 	if ctx := ctx.GetExpr(); ctx != nil {
 		switch op := ctx.Accept(x).(type) {
-		case ops.Int64:
+		case ops.ExprInt64:
 			tmp, _ := op.Do(nil)
 			v = types.IntVariable(tmp)
 			variable.defaultV = v
-		case ops.Float64:
+		case ops.ExprFloat64:
 			tmp, _ := op.Do(nil)
 			v = types.Float64Variable(tmp)
 			variable.defaultV = v
@@ -659,7 +665,10 @@ func (x visitor) VisitVar_declaration_block(ctx *parser.Var_declaration_blockCon
 // VisitVariable implements parser.STVisitor.
 func (x visitor) VisitVariable(ctx *parser.VariableContext) any {
 	varName := x.state + ctx.GetName().GetText() // TODO там немного сложнее со структурами/массивами
-	v := x.vars[varName]
+	v, ok := x.vars[varName]
+	if !ok {
+		x.CheckError(ctx, fmt.Errorf("unknown variable: %q", varName))
+	}
 	res := ops.Variable(ctx.CustomContext, varName, v)
 	if res == nil {
 		return x.CheckError(ctx, fmt.Errorf("unknown type of variable: %s", v.Type()))

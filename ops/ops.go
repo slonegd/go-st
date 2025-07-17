@@ -184,7 +184,25 @@ func (x *Placeholders) AddToStatementChain(chain, next *Statement) *Statement {
 
 }
 
-func Constant[T OpTypes](v T) Op[T] {
+// принимает types.Variable // TODO лучше сделать интерфейс
+func Constant(v types.Variable) Expr {
+	switch v := v.(type) {
+	case types.Variable:
+		switch {
+		case v.Type().IsInteger():
+			return ExprInt64{Int64: constant(v.Int())}
+		case v.Type().IsFloat():
+			return ExprFloat64{Float64: constant(v.Float64())}
+		case v.Type() == types.BOOL:
+			return ExprBool{Bool: constant(v.Bool())}
+		case v.Type().IsString():
+			return ExprString{String: constant(v.String())}
+		}
+	}
+	return nil
+}
+
+func constant[T OpTypes](v T) Op[T] {
 	op := Op[T]{
 		IsConstant: true,
 		Do:         func(*Statement) (T, *Statement) { return v, nil },
@@ -259,12 +277,13 @@ func StatementVariable[T OpTypes](ctx *parser.CustomContext, stmt *Statement, na
 	return op
 }
 
-func Assign(ctx *parser.CustomContext, name string, v types.Variable, expr ExprNumber) *Statement {
+func Assign(ctx *parser.CustomContext, name string, v types.Variable, expr Expr) *Statement {
 	switch e := expr.(type) {
 	case ExprInt64:
 		return assignTable(ctx, name, v, e.Int64)
 	case ExprFloat64:
 		return assignTable(ctx, name, v, e.Float64)
+	// TODO для стринга и була
 	default:
 		return nil
 	}
@@ -330,14 +349,24 @@ func Cast(ctx *parser.CustomContext, t types.Basic, expr ExprNumber) any {
 	return nil
 }
 
-func UnaryMinus[T NumberOpTypes](
+func UnaryMinus(ctx *parser.CustomContext, expr ExprNumber) ExprNumber {
+	switch v := expr.(type) {
+	case ExprInt64:
+		return ExprInt64{Int64: unaryMinus(ctx, v.Int64)}
+	case ExprFloat64:
+		return ExprFloat64{Float64: unaryMinus(ctx, v.Float64)}
+	}
+	return nil
+}
+
+func unaryMinus[T NumberOpTypes](
 	ctx *parser.CustomContext,
 	expr Op[T],
 ) Op[T] {
 	// TODO такая же логика и для остальных выражений
 	if expr.IsConstant {
 		v, _ := expr.Do(nil)
-		return Constant(-v)
+		return constant(-v)
 	}
 	return Op[T]{
 		IsConstant: expr.IsConstant,
