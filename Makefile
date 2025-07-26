@@ -25,3 +25,4 @@ test:
 bench:
 	cd bench && go test -bench=. ./arithmetic_if && cd ..
 	cd bench && go test -bench=. ./arithmetic_if_while && cd ..
+	cd bench && go test -bench=. ./fibo && cd ..
