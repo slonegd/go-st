@@ -1,11 +1,14 @@
 PROGRAM fibo
     VAR
-        fibo5  : INT;
-        fibo10 : INT;
+        r  : INT;
+        n  : INT;
     END_VAR
 
-    fibo5  := Fibonacci(5);
-    fibo10 := Fibonacci(10);
+    n := n + 1;
+    IF n > 100 THEN
+        n := 100;
+    END_IF;
+    r := Fibonacci(n);
 END_PROGRAM
 
 FUNCTION Fibonacci : INT

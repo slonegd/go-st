@@ -1,8 +1,8 @@
 package bench
 
 var (
-	fibo5  int
-	fibo10 int
+	r int
+	n int
 )
 
 func fibo_go(n int) int {
@@ -17,6 +17,9 @@ func fibo_go(n int) int {
 }
 
 func exec() {
-	fibo5 = fibo_go(5)
-	fibo10 = fibo_go(10)
+	n++
+	if n > 100 {
+		n = 100
+	}
+	r = fibo_go(n)
 }
