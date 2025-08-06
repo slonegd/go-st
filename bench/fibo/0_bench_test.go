@@ -18,10 +18,11 @@ func Benchmark_go_fibo(b *testing.B) {
 var fibo string
 
 // cpu: Intel(R) Core(TM) i5-6400 CPU @ 2.70GHz
-// Benchmark_go_fibo-4             16328564                69.58 ns/op (x0.02) // pure go
-// Benchmark_st_fibo-4               419558              2736 ns/op    (x1)    // this
-// Benchmark_yaegi_001-4              47620             24804 ns/op    (x9)    // github.com/traefik/yaegi v0.16.1
-// Benchmark_starlark_fibo-4          30840             38709 ns/op    (x14)   // go.starlark.net v0.0.0-20250804182900-3c9dc17c5f2e
+// Benchmark_go_fibo-4             19853395                58.81 ns/op (x0.02) // pure go
+// Benchmark_st_fibo-4               362671              3211 ns/op    (x1)    // this
+// Benchmark_go_lua-4                126418              8252 ns/op    (x2.5)  // github.com/Shopify/go-lua
+// Benchmark_yaegi_001-4              47493             25219 ns/op    (x8)    // github.com/traefik/yaegi v0.16.1
+// Benchmark_starlark_fibo-4          31035             38837 ns/op    (x12)   // go.starlark.net v0.0.0-20250804182900-3c9dc17c5f2e
 func Benchmark_st_fibo(b *testing.B) {
 	p, _ := st.NewProgram(fibo)
 
